@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: plog-backend
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: newuser
+    url: jdbc:mysql://127.0.0.1:3306/test
+    password: (ehgus2003)
