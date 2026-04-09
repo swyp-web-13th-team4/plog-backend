@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: PlogServer
+  profiles:
+    active: local
+  jpa:
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+logging:
+  file:
+    path: /var/log/plog
+  pattern:
+    file: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%-5level] %logger{36} - %msg%n'
