@@ -1,0 +1,77 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Seoul
+    ports:
+      - "80:80"
+    volumes:
+      - ./infra/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - spring
+    networks:
+      - app-tier
+
+  spring:
+    image: ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPOSITORY}:latest
+    container_name: spring
+    restart: on-failure:3
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      TZ: Asia/Seoul
+    volumes:
+      - /var/log/plog:/var/log/plog
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-tier
+      - data-tier
+
+  db:
+    image: mysql:8.0
+    container_name: db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Asia/Seoul
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command: [
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci"
+    ]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+    networks:
+      - data-tier
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Seoul
+    volumes:
+      - ./infra/promtail/promtail-config.dev.yml:/etc/promtail/config.yml
+      - /var/log/plog:/var/log/plog:ro
+      - /var/lib/promtail:/var/lib/promtail
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - app-tier
+
+networks:
+  app-tier:
+    driver: bridge
+  data-tier:
+    driver: bridge
+
+volumes:
+  mysql-data:

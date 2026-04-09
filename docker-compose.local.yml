@@ -1,0 +1,21 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: db-local
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: plog
+      MYSQL_USER: plog
+      MYSQL_PASSWORD: plog
+      TZ: Asia/Seoul
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-local-data:/var/lib/mysql
+    command: [
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci"
+    ]
+
+volumes:
+  mysql-local-data:
