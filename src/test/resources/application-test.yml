@@ -1,0 +1,33 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  datasource:
+    hikari:
+      jdbc-url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+      username: sa
+      password:
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        hbm2ddl:
+          auto: create
+
+logging:
+  level:
+    com.plog: debug
+
+jwt:
+  secret-key: test-secret-key
+
+kakao:
+  client-id: test
+  client-secret: test
+  redirect-uri: http://localhost:8080/test
+
+spring.cloud.gcp.storage:
+  bucket: test-bucket
+  project-id: test-project

@@ -2,11 +2,12 @@ name: Plog CI
 
 on:
   pull_request:
-    branches: [ "main", "develop"]
+    branches: [ "main", "develop" ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -23,4 +24,4 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew clean build
+        run: ./gradlew clean build -Dspring.profiles.active=test
