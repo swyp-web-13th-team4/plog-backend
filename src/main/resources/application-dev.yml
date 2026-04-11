@@ -2,6 +2,7 @@ spring:
   config:
     activate:
       on-profile: dev
+    import: sm://
 
   servlet:
     multipart:
@@ -11,9 +12,9 @@ spring:
   datasource:
     hikari:
       driver-class-name: com.mysql.cj.jdbc.Driver
-      jdbc-url: ${sm://dev-DB_URL}
-      username: ${sm://dev-DB_USERNAME}
-      password: ${sm://dev-DB_PASSWORD}
+      jdbc-url: ${dev-DB_URL}
+      username: ${dev-DB_USERNAME}
+      password: ${dev-DB_PASSWORD}
 
   jpa:
     properties:
