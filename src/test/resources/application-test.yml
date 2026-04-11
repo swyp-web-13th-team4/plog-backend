@@ -28,11 +28,6 @@ kakao:
   client-secret: test
   redirect-uri: http://localhost:8080/test
 
-spring:
-  cloud:
-    gcp:
-      secretmanager:
-        enabled: false
-      storage:
-        bucket: test-bucket
-        project-id: test-project
+spring.cloud.gcp.storage:
+  bucket: test-bucket
+  project-id: test-project

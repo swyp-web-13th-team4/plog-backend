@@ -21,6 +21,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       TZ: Asia/Seoul
+      GCP_PROJECT_ID: ${GCP_PROJECT_ID}
     volumes:
       - /var/log/plog:/var/log/plog
     depends_on:

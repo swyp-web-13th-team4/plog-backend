@@ -80,6 +80,7 @@ jobs:
           script: |
             cd ${{ secrets.DEPLOY_DIR }}
             cat > .env.dev << EOF
+            GCP_PROJECT_ID=$(gcloud config get-value project)
             MYSQL_ROOT_PASSWORD=$(gcloud secrets versions access latest --secret=dev-MYSQL_ROOT_PASSWORD)
             MYSQL_DATABASE=$(gcloud secrets versions access latest --secret=dev-MYSQL_DATABASE)
             MYSQL_USER=$(gcloud secrets versions access latest --secret=dev-MYSQL_USER)
