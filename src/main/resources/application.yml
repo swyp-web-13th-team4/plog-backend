@@ -5,11 +5,6 @@ spring:
     active: local
   jpa:
     open-in-view: false
-  cloud:
-    gcp:
-      project-id: ${GCP_PROJECT_ID}
-  config:
-    import: "sm://"
 
 management:
   endpoints:

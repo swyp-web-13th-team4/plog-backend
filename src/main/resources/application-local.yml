@@ -11,9 +11,9 @@ spring:
   datasource:
     hikari:
       driver-class-name: com.mysql.cj.jdbc.Driver
-      jdbc-url: ${local-DB_URL}
-      username: ${local-DB_USERNAME}
-      password: ${local-DB_PASSWORD}
+      jdbc-url: ${DB_URL}
+      username: ${DB_USERNAME}
+      password: ${DB_PASSWORD}
 
   jpa:
     properties:

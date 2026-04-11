@@ -85,13 +85,16 @@ jobs:
           script: |
             cd ${{ secrets.DEPLOY_DIR }}
             cat > .env.dev << EOF
-            GCP_PROJECT_ID=$(gcloud config get-value project)
             MYSQL_ROOT_PASSWORD=$(gcloud secrets versions access latest --secret=dev-MYSQL_ROOT_PASSWORD)
             MYSQL_DATABASE=$(gcloud secrets versions access latest --secret=dev-MYSQL_DATABASE)
             MYSQL_USER=$(gcloud secrets versions access latest --secret=dev-MYSQL_USER)
             MYSQL_PASSWORD=$(gcloud secrets versions access latest --secret=dev-MYSQL_PASSWORD)
             DOCKERHUB_USERNAME=$(gcloud secrets versions access latest --secret=dev-DOCKERHUB_USERNAME)
             DOCKERHUB_REPOSITORY=$(gcloud secrets versions access latest --secret=dev-DOCKERHUB_REPOSITORY)
+            DEV_DB_URL=$(gcloud secrets versions access latest --secret=dev-DB_URL)
+            DEV_DB_USERNAME=$(gcloud secrets versions access latest --secret=dev-DB_USERNAME)
+            DEV_DB_PASSWORD=$(gcloud secrets versions access latest --secret=dev-DB_PASSWORD)
+            JWT_SECRET_KEY=$(gcloud secrets versions access latest --secret=dev-JWT_SECRET_KEY)
             EOF
 
       - name: Deploy to Server

@@ -21,7 +21,10 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       TZ: Asia/Seoul
-      GCP_PROJECT_ID: ${GCP_PROJECT_ID}
+      DB_URL: ${DEV_DB_URL}
+      DB_USERNAME: ${DEV_DB_USERNAME}
+      DB_PASSWORD: ${DEV_DB_PASSWORD}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     volumes:
       - /var/log/plog:/var/log/plog
     depends_on:
