@@ -3,6 +3,8 @@ spring:
     name: PlogServer
   profiles:
     active: local
+  config:
+    import: sm://
   jpa:
     open-in-view: false
 

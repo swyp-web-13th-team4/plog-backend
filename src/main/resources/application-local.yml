@@ -2,7 +2,6 @@ spring:
   config:
     activate:
       on-profile: local
-    import: sm://
 
   servlet:
     multipart:
