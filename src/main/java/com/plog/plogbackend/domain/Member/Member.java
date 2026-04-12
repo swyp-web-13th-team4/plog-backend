@@ -27,8 +27,6 @@ public class Member extends BaseTimeStatusEntity {
   @Enumerated(EnumType.STRING)
   private Role role;
 
-  private String provider; // 다른 소셜 로그인 화장을 위한 변수
-
   @Enumerated(EnumType.STRING)
   private Status status; // soft delete
 
@@ -40,12 +38,10 @@ public class Member extends BaseTimeStatusEntity {
   public Member(
       String nickname,
       String profileImageUrl,
-      Role role,
-      String provider) { // createdAt - 생성 시각은 NULL 이었다가 DB 저장 시점에 자동기록
+      Role role) { // createdAt - 생성 시각은 NULL 이었다가 DB 저장 시점에 자동기록
     this.nickname = nickname;
     this.profileImageUrl = profileImageUrl;
     this.role = role != null ? role : Role.ROLE_USER;
-    this.provider = provider;
     this.status = Status.ACTIVE;
   }
 }
