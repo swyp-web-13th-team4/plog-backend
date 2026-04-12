@@ -16,6 +16,16 @@ management:
       percentiles-histogram:
         http.server.requests: true
 
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
+
 logging:
   file:
     path: /var/log/plog
