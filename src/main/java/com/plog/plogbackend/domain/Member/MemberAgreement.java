@@ -22,7 +22,8 @@ public class MemberAgreement extends BaseTimeStatusEntity {
   private Member member;
 
   @Column(nullable = false)
-  private String agreementType; // 예: "MARKETING"
+  @Enumerated(EnumType.STRING)
+  private Terms agreementType; // 예: "MARKETING"
 
   @Column(nullable = false)
   private boolean isAgreed;
@@ -30,7 +31,7 @@ public class MemberAgreement extends BaseTimeStatusEntity {
   private LocalDateTime agreedAt;
 
   @Builder
-  public MemberAgreement(Member member, String agreementType, boolean isAgreed) {
+  public MemberAgreement(Member member, Terms agreementType, boolean isAgreed) {
     this.member = member;
     this.agreementType = agreementType;
     this.isAgreed = isAgreed;

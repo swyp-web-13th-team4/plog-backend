@@ -1,5 +1,6 @@
 package com.plog.plogbackend.domain.Member;
 
+import com.plog.plogbackend.global.common.Enum.Status;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

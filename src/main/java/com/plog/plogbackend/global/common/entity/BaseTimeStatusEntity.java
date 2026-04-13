@@ -1,6 +1,6 @@
 package com.plog.plogbackend.global.common.entity;
 
-import com.plog.plogbackend.domain.Member.Status;
+import com.plog.plogbackend.global.common.Enum.Status;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.Member;
+package com.plog.plogbackend.global.common.Enum;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
