@@ -1,6 +1,6 @@
 package com.plog.plogbackend.global.common.entity;
 
-import com.plog.plogbackend.global.common.Enum.Status;
+import com.plog.plogbackend.global.common.Enum.EntityStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.Getter;
@@ -27,11 +27,11 @@ public abstract class BaseTimeStatusEntity {
   // 공통 상태 관리 (기본값 ACTIVE)
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
-  protected Status status = Status.ACTIVE;
+  protected EntityStatus status = EntityStatus.ACTIVE;
 
   /** 논리적 삭제 */
   public void deleteEntity() {
-    this.status = Status.DELETED;
+    this.status = EntityStatus.DELETED;
     this.deletedAt = LocalDateTime.now();
   }
 }
