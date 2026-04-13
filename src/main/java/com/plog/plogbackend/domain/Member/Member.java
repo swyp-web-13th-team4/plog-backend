@@ -2,8 +2,6 @@ package com.plog.plogbackend.domain.Member;
 
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,10 +27,6 @@ public class Member extends BaseTimeStatusEntity {
 
   @Enumerated(EnumType.STRING)
   private Status status; // soft delete
-
-  // 회원이 삭제되면 동의 내역도 함께 삭제되도록 설정 (Cascade)
-  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<MemberAgreement> agreements = new ArrayList<>();
 
   @Builder
   public Member(
