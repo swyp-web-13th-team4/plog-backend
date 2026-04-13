@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum Status { // soft delete 속성
+public enum EntityStatus { // soft delete 속성
   ACTIVE("활성/정상"),
   DELETED("삭제됨");
 

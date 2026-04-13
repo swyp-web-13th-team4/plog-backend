@@ -26,9 +26,6 @@ public class Member extends BaseTimeStatusEntity {
   @Enumerated(EnumType.STRING)
   private Role role;
 
-  @Enumerated(EnumType.STRING)
-  private Status status; // soft delete
-
   @Builder
   public Member(
       String nickname,
