@@ -1,6 +1,5 @@
 package com.plog.plogbackend.domain.Member;
 
-import com.plog.plogbackend.global.common.Enum.Status;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -34,6 +33,5 @@ public class Member extends BaseTimeStatusEntity {
     this.nickname = nickname;
     this.profileImageUrl = profileImageUrl;
     this.role = role != null ? role : Role.ROLE_USER;
-    this.status = Status.ACTIVE;
   }
 }
