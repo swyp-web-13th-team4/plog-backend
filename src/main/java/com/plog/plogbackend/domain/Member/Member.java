@@ -53,7 +53,7 @@ public class Member extends BaseTimeStatusEntity {
   }
 
   // ==========================================
-  // 4. 정적 팩토리 메서드 (안전한 객체 생성 보장)
+  // 4. 정적 팩토리 메서드
   // ==========================================
 
   /** 디폴트 생성자 */
@@ -66,25 +66,9 @@ public class Member extends BaseTimeStatusEntity {
         .build();
   }
 
-  /** 카카오 등 소셜 로그인 최초 접근 시 사용 (GUEST 권한 부여) */
-  public static Member createGuest(String temporaryNickname) {
-    return Member.builder()
-        .memberKey(UuidCreator.getTimeOrderedEpoch())
-        .nickname(temporaryNickname) // 카카오 소셜 로그인 응답으로 오는 식별자 id 값을 임시로 넣음.
-        .role(Role.ROLE_GUEST) // 추가 정보 입력 전까지 사용할 권한
-        .build();
-  }
-
   // ==========================================
   // 5. 비즈니스 메서드
   // ==========================================
-
-  /** 소셜 로그인 후 추가 정보 입력 시 정회원(USER)으로 승격 */
-  public void completeSignUp(String nickname, String profileImage) {
-    this.nickname = nickname; // 시용자에게 직접 입력받음.
-    this.profileImage = getOrDefaultImage(profileImage); // 시용자에게 직접 입력받음.
-    this.role = Role.ROLE_USER; // 추가정보 입력후 정회원 승격
-  }
 
   /** 기본 프로필 이미지 설정 */
   private static String getOrDefaultImage(String imageUrl) {
