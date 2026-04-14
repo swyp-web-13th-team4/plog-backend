@@ -59,11 +59,11 @@ public class Member extends BaseTimeStatusEntity {
   /** 디폴트 생성자 */
   public static Member createNewMember(String nickname, String profileImage) {
     return Member.builder()
-            .memberKey(UuidCreator.getTimeOrderedEpoch())
-            .nickname(nickname)
-            .profileImage(getOrDefaultImage(profileImage))
-            .role(Role.ROLE_USER)
-            .build();
+        .memberKey(UuidCreator.getTimeOrderedEpoch())
+        .nickname(nickname)
+        .profileImage(getOrDefaultImage(profileImage))
+        .role(Role.ROLE_USER)
+        .build();
   }
 
   // ==========================================
