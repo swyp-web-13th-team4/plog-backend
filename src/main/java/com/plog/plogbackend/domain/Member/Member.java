@@ -36,7 +36,7 @@ public class Member extends BaseTimeStatusEntity {
   private String nickname;
 
   @Column(length = 500)
-  private String profileImageUrl;
+  private String profileImage;
 
   @Enumerated(EnumType.STRING)
   private Role role;
@@ -45,10 +45,10 @@ public class Member extends BaseTimeStatusEntity {
   // 3. 빌더
   // ==========================================
   @Builder
-  private Member(UUID memberKey, String nickname, String profileImageUrl, Role role) {
+  private Member(UUID memberKey, String nickname, String profileImage, Role role) {
     this.memberKey = memberKey;
     this.nickname = nickname;
-    this.profileImageUrl = profileImageUrl;
+    this.profileImage = profileImage;
     this.role = role;
   }
 
@@ -57,11 +57,11 @@ public class Member extends BaseTimeStatusEntity {
   // ==========================================
 
   /** 디폴트 생성자 */
-  public static Member createNewMember(String nickname, String profileImageUrl) {
+  public static Member createNewMember(String nickname, String profileImage) {
     return Member.builder()
         .memberKey(UuidCreator.getTimeOrderedEpoch())
         .nickname(nickname)
-        .profileImageUrl(getOrDefaultImage(profileImageUrl))
+        .profileImage(getOrDefaultImage(profileImage))
         .role(Role.ROLE_USER)
         .build();
   }
@@ -80,9 +80,9 @@ public class Member extends BaseTimeStatusEntity {
   // ==========================================
 
   /** 소셜 로그인 후 추가 정보 입력 시 정회원(USER)으로 승격 */
-  public void completeSignUp(String nickname, String profileImageUrl) {
+  public void completeSignUp(String nickname, String profileImage) {
     this.nickname = nickname; // 시용자에게 직접 입력받음.
-    this.profileImageUrl = getOrDefaultImage(profileImageUrl); // 시용자에게 직접 입력받음.
+    this.profileImage = getOrDefaultImage(profileImage); // 시용자에게 직접 입력받음.
     this.role = Role.ROLE_USER; // 추가정보 입력후 정회원 승격
   }
 
