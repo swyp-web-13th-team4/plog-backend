@@ -8,9 +8,9 @@ import jakarta.persistence.Id;
 @Entity
 public class Tag {
 
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Id
-    private Long id;
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Id
+  private Long id;
 
-    private String name;
+  private String name;
 }
