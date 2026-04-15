@@ -2,7 +2,9 @@ package com.plog.plogbackend.domain.Member;
 
 import com.plog.plogbackend.domain.Member.dto.MemberSignupRequest;
 import com.plog.plogbackend.domain.Member.dto.MemberSignupResponse;
-import com.plog.plogbackend.global.common.ApiResponse;
+import com.plog.plogbackend.global.response.ApiResponse;
+import com.plog.plogbackend.global.error.AppException;
+import com.plog.plogbackend.global.error.ErrorType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -24,18 +26,17 @@ public class MemberController {
   public ResponseEntity<ApiResponse<MemberSignupResponse>> signup(
       @RequestHeader("Authorization") String authorizationHeader,
       @Valid @RequestBody MemberSignupRequest request)
-        ///
-        // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 여기 밑에 부터는 공통 응답 객체 머지 되면 수정 하겠습니다
+
       {
     String registerToken = resolveToken(authorizationHeader);
     MemberSignupResponse response = memberService.signup(registerToken, request);
-    return ResponseEntity.ok(ApiResponse.success("회원가입이 완료되었습니다.", response));
+    return ResponseEntity.ok(ApiResponse.success(response)); // 응답
   }
 
   private String resolveToken(String authorizationHeader) {
     if (StringUtils.hasText(authorizationHeader) && authorizationHeader.startsWith("Bearer ")) {
       return authorizationHeader.substring(7);
     }
-    throw new IllegalArgumentException("올바르지 않은 인증 헤더입니다.");
+    throw new AppException(ErrorType.FAILED_AUTH, "올바르지 않은 인증 헤더입니다.");
   }
 }

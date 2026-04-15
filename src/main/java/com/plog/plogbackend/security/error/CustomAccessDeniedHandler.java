@@ -8,27 +8,30 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OAuth2FailureHandler implements AuthenticationFailureHandler {
+public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
   private final ObjectMapper objectMapper;
 
   @Override
-  public void onAuthenticationFailure(
-      HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
+  public void handle(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      AccessDeniedException accessDeniedException)
       throws IOException {
-    log.error("소셜 로그인 실패 원인: {}", exception.getMessage(), exception);
 
-    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    log.warn("권한이 없는 엔드포인트에 접근했습니다: {}", request.getRequestURI());
+
+    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
     response.setContentType("application/json;charset=UTF-8");
 
-    ApiResponse<Void> apiResponse = ApiResponse.error(ErrorType.FAILED_AUTH, "소셜 로그인 실패");
+    ApiResponse<Void> apiResponse = ApiResponse.error(ErrorType.FAILED_AUTH);
     response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
   }
 }

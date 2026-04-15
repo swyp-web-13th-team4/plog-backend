@@ -1,6 +1,8 @@
 package com.plog.plogbackend.global.config;
 
 import com.plog.plogbackend.security.CustomOAuth2UserService;
+import com.plog.plogbackend.security.error.CustomAccessDeniedHandler;
+import com.plog.plogbackend.security.error.CustomAuthenticationEntryPoint;
 import com.plog.plogbackend.security.error.OAuth2FailureHandler;
 import com.plog.plogbackend.security.jwt.JwtAuthenticationFilter;
 import com.plog.plogbackend.security.oauth2.OAuth2SuccessHandler;
@@ -23,7 +25,7 @@ import org.springframework.web.cors.CorsConfiguration;
 @RequiredArgsConstructor
 @Slf4j
 public class SecurityConfig {
-  // yml 파일에서 주소를 읽어옵니다.
+ 
   @Value("${spring.security.front.cors.allowed-origins}")
   private String allowedOrigins;
 
@@ -31,6 +33,8 @@ public class SecurityConfig {
   private final OAuth2SuccessHandler oAuth2SuccessHandler;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final OAuth2FailureHandler oAuth2FailureHandler;
+  private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+  private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -83,7 +87,14 @@ public class SecurityConfig {
             )
 
         // 5. JWT 필터를 시큐리티 기본 필터 앞에 추가
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
+        // 6. 예외 처리 필터 (미인증, 권한 부족 시 ApiResponse 공통 형태로 반환)
+        .exceptionHandling(
+            exceptionHandling ->
+                exceptionHandling
+                    .authenticationEntryPoint(customAuthenticationEntryPoint)
+                    .accessDeniedHandler(customAccessDeniedHandler));
 
     return http.build();
   }

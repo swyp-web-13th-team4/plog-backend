@@ -9,26 +9,29 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OAuth2FailureHandler implements AuthenticationFailureHandler {
+public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
   private final ObjectMapper objectMapper;
 
   @Override
-  public void onAuthenticationFailure(
-      HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
+  public void commence(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      AuthenticationException authException)
       throws IOException {
-    log.error("소셜 로그인 실패 원인: {}", exception.getMessage(), exception);
+
+    log.warn("인증이 필요한 엔드포인트에 미인증 상태로 접근했습니다: {}", request.getRequestURI());
 
     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     response.setContentType("application/json;charset=UTF-8");
 
-    ApiResponse<Void> apiResponse = ApiResponse.error(ErrorType.FAILED_AUTH, "소셜 로그인 실패");
+    ApiResponse<Void> apiResponse = ApiResponse.error(ErrorType.REQUIRED_AUTH);
     response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
   }
 }
