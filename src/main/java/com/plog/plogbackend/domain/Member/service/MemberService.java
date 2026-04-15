@@ -1,7 +1,9 @@
-package com.plog.plogbackend.domain.Member;
+package com.plog.plogbackend.domain.Member.service;
 
+import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.dto.MemberSignupRequest;
 import com.plog.plogbackend.domain.Member.dto.MemberSignupResponse;
+import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.security.jwt.JwtProvider;

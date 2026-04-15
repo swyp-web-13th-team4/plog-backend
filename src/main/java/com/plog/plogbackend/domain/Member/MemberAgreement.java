@@ -1,5 +1,6 @@
 package com.plog.plogbackend.domain.Member;
 
+import com.plog.plogbackend.domain.Member.enums.Terms;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

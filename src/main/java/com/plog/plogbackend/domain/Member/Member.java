@@ -1,6 +1,7 @@
 package com.plog.plogbackend.domain.Member;
 
 import com.github.f4b6a3.uuid.UuidCreator;
+import com.plog.plogbackend.domain.Member.enums.Role;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
 import java.util.UUID;

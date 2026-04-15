@@ -1,7 +1,7 @@
 package com.plog.plogbackend.security.oauth2;
 
 import com.plog.plogbackend.domain.Member.Member;
-import com.plog.plogbackend.domain.Member.MemberRepository;
+import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.security.jwt.JwtProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

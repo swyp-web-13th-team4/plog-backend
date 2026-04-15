@@ -1,7 +1,8 @@
-package com.plog.plogbackend.domain.Member;
+package com.plog.plogbackend.domain.Member.controller;
 
 import com.plog.plogbackend.domain.Member.dto.MemberSignupRequest;
 import com.plog.plogbackend.domain.Member.dto.MemberSignupResponse;
+import com.plog.plogbackend.domain.Member.service.MemberService;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.global.response.ApiResponse;
@@ -21,7 +22,7 @@ public class MemberController {
 
   private final MemberService memberService;
 
-  @Operation(summary = "회원가입 완성", description = "추가 정보 입력 후 가입 완료")
+  @Operation(summary = "회원가입(카카오 인증 후)", description = "추가 정보 입력 후 가입 완료")
   @PostMapping("/signup")
   public ResponseEntity<ApiResponse<MemberSignupResponse>> signup(
       @RequestHeader("Authorization") String authorizationHeader,

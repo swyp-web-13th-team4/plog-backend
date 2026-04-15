@@ -23,7 +23,7 @@ import org.springframework.web.cors.CorsConfiguration;
 @RequiredArgsConstructor
 @Slf4j
 public class SecurityConfig {
-  // yml 파일에서 주소를 읽어옵니다.
+
   @Value("${spring.security.front.cors.allowed-origins}")
   private String allowedOrigins;
 
@@ -78,9 +78,8 @@ public class SecurityConfig {
                     .userInfoEndpoint(
                         userInfo -> userInfo.userService(customOAuth2UserService) // 카카오 유저 정보 수집
                         )
-                    .successHandler(oAuth2SuccessHandler) // 가져온 후 성공 처리
-                    .failureHandler(oAuth2FailureHandler) // <--- 이거 추가!
-            )
+                    .successHandler(oAuth2SuccessHandler)
+                    .failureHandler(oAuth2FailureHandler))
 
         // 5. JWT 필터를 시큐리티 기본 필터 앞에 추가
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
