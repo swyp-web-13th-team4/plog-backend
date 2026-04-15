@@ -1,6 +1,5 @@
 package com.plog.plogbackend.security.error;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.global.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,13 +10,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
-  private final ObjectMapper objectMapper;
+  private final JsonMapper jsonMapper;
 
   @Override
   public void handle(
@@ -32,6 +32,6 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     response.setContentType("application/json;charset=UTF-8");
 
     ApiResponse<Void> apiResponse = ApiResponse.error(ErrorType.FAILED_AUTH);
-    response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+    response.getWriter().write(jsonMapper.writeValueAsString(apiResponse));
   }
 }

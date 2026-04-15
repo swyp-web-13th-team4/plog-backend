@@ -68,7 +68,6 @@
         50%      { opacity: var(--op,0.5); }
       }
 
-      /* ── 카드 ── */
       .card {
         position: relative;
         background: var(--surface);
@@ -87,7 +86,6 @@
         to   { opacity: 1; transform: translateY(0); }
       }
 
-      /* 상단 헤더 */
       .card-header { text-align: center; margin-bottom: 36px; }
       .step-badge {
         display: inline-block;
@@ -108,7 +106,6 @@
       }
       .subtitle { font-size: 0.9rem; color: var(--muted); }
 
-      /* 토큰 상태 배지 */
       .token-status {
         display: flex; align-items: center; gap: 10px;
         background: rgba(74,222,128,0.08);
@@ -137,7 +134,6 @@
       .token-info strong { color: var(--success); display: block; font-weight: 600; margin-bottom: 2px; }
       .token-timer { color: var(--muted); font-size: 0.75rem; }
 
-      /* 프로필 이미지 선택기 */
       .profile-picker {
         display: flex; flex-direction: column; align-items: center;
         margin-bottom: 28px;
@@ -173,12 +169,21 @@
       .avatar-edit:hover { transform: scale(1.1); }
       .avatar-hint { font-size: 0.75rem; color: var(--muted); }
 
-      /* 폼 */
       .form-group { margin-bottom: 20px; }
       label {
         display: block; font-size: 0.82rem; font-weight: 500;
         color: var(--muted); margin-bottom: 8px; letter-spacing: 0.02em;
       }
+
+      /* 입력창 그룹 레이아웃 */
+      .input-with-btn {
+        display: flex;
+        gap: 8px;
+      }
+      .input-with-btn input {
+        flex: 1;
+      }
+
       input[type="text"], input[type="url"] {
         width: 100%;
         padding: 14px 16px;
@@ -197,6 +202,26 @@
         box-shadow: 0 0 0 3px rgba(129,140,248,0.12);
       }
       input::placeholder { color: rgba(121,134,171,0.6); }
+
+      /* 보조 버튼 스타일 */
+      .btn-secondary {
+        padding: 0 16px;
+        background: rgba(129, 140, 248, 0.15);
+        color: var(--accent);
+        border: 1px solid rgba(129, 140, 248, 0.3);
+        border-radius: 12px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+      .btn-secondary:hover {
+        background: rgba(129, 140, 248, 0.3);
+        color: white;
+      }
+
       .char-count {
         text-align: right; font-size: 0.72rem;
         color: var(--muted); margin-top: 5px;
@@ -206,7 +231,6 @@
         margin-top: 6px; display: none;
       }
 
-      /* 약관 */
       .terms-section {
         background: rgba(255,255,255,0.03);
         border: 1px solid var(--border);
@@ -238,7 +262,6 @@
         font-size: 0.7rem; color: var(--muted);
       }
 
-      /* 제출 버튼 */
       .btn-submit {
         width: 100%;
         padding: 16px;
@@ -270,7 +293,6 @@
         100% { transform: translateX(100%); }
       }
 
-      /* 에러/성공 토스트 */
       .toast {
         position: fixed; top: 24px; right: 24px;
         padding: 14px 20px; border-radius: 12px;
@@ -307,7 +329,6 @@
         <p class="subtitle">Plog에서 사용할 닉네임이랑<br/>프로필을 설정해주세요</p>
       </div>
 
-      <!-- 토큰 유효성 표시 -->
       <div class="token-status" id="token-status">
         <div class="token-dot" id="token-dot"></div>
         <div class="token-info">
@@ -316,7 +337,6 @@
         </div>
       </div>
 
-      <!-- 프로필 이미지 -->
       <div class="profile-picker">
         <div class="avatar-wrap">
           <div class="avatar" id="avatar-preview">
@@ -325,11 +345,10 @@
           </div>
           <div class="avatar-edit" onclick="document.getElementById('img-url-group').scrollIntoView({behavior:'smooth'})">✏️</div>
         </div>
-        <span class="avatar-hint">아래에 이미지 URL을 입력하거나 기본 이미지를 사용하세요</span>
+        <span class="avatar-hint">아래에 이미지 URL을 입력하고 확인 버튼을 누르세요</span>
       </div>
 
       <form id="signup-form" novalidate>
-        <!-- 닉네임 -->
         <div class="form-group">
           <label for="nickname">닉네임 <span style="color:var(--error)">*</span></label>
           <input
@@ -340,17 +359,18 @@
           <div class="field-error" id="nick-error">닉네임은 2자 이상 20자 이하여야 합니다.</div>
         </div>
 
-        <!-- 프로필 이미지 URL -->
         <div class="form-group" id="img-url-group">
           <label for="profile-image">프로필 이미지 URL <span style="color:var(--muted);font-size:0.75rem">(선택)</span></label>
-          <input
-            type="url" id="profile-image"
-            placeholder="https://example.com/image.jpg"
-          />
+          <div class="input-with-btn">
+            <input
+              type="url" id="profile-image"
+              placeholder="https://example.com/image.jpg"
+            />
+            <button type="button" id="check-img-btn" class="btn-secondary">확인</button>
+          </div>
           <div class="field-error" id="img-error">올바른 URL 형식을 입력해주세요.</div>
         </div>
 
-        <!-- 약관 동의 -->
         <div class="terms-section">
           <div class="terms-item" onclick="toggleCheck('check-all')">
             <div class="custom-check" id="check-all"></div>
@@ -382,7 +402,6 @@
     </div>
 
     <script>
-      // ── 별 ──
       const starsEl = document.getElementById('stars');
       for (let i = 0; i < 60; i++) {
         const s = document.createElement('div');
@@ -392,7 +411,6 @@
         starsEl.appendChild(s);
       }
 
-      // ── URL에서 registerToken 파싱 ──
       const params = new URLSearchParams(window.location.search);
       const registerToken = params.get('registerToken');
 
@@ -433,7 +451,7 @@
       } else {
         const payload = decodeJwtPayload(registerToken);
         if (payload && payload.exp) {
-          const expMs = payload.exp * 1000;
+          const expMs = payload. Exp * 1000;
           if (Date.now() > expMs) {
             tokenStatusEl.classList.add('invalid');
             tokenDotEl.style.background = '#f87171';
@@ -449,7 +467,6 @@
         }
       }
 
-      // ── 닉네임 카운터 ──
       const nicknameInput = document.getElementById('nickname');
       const nickCount     = document.getElementById('nick-count');
       nicknameInput.addEventListener('input', () => {
@@ -458,24 +475,33 @@
         updateSubmitState();
       });
 
-      // ── 프로필 이미지 미리보기 ──
+      // ── 프로필 이미지 수동 로드 로직 ──
       const profileInput = document.getElementById('profile-image');
+      const checkImgBtn  = document.getElementById('check-img-btn');
       const avatarImg    = document.getElementById('avatar-img');
       const avatarPreview = document.getElementById('avatar-preview');
 
-      profileInput.addEventListener('input', () => {
+      checkImgBtn.addEventListener('click', () => {
         const url = profileInput.value.trim();
         if (url) {
           avatarImg.src = url;
           avatarImg.style.display = 'block';
-          avatarPreview.querySelector('text, span') && (avatarPreview.firstChild.nodeValue = '');
+          if (avatarPreview.firstChild.nodeType === Node.TEXT_NODE) {
+            avatarPreview.firstChild.nodeValue = '';
+          }
         } else {
           avatarImg.style.display = 'none';
+          avatarImg.src = '';
+          if (avatarPreview.firstChild.nodeType === Node.TEXT_NODE) {
+            avatarPreview.firstChild.nodeValue = '🙂';
+          }
         }
       });
-      avatarImg.onerror = () => { avatarImg.style.display = 'none'; };
+      avatarImg.onerror = () => { 
+        avatarImg.style.display = 'none';
+        showToast('이미지를 불러올 수 없습니다. URL을 확인해주세요.', 'error');
+      };
 
-      // ── 약관 체크박스 ──
       const required = ['check-service', 'check-privacy'];
       function toggleCheck(id) {
         const el = document.getElementById(id);
@@ -506,7 +532,6 @@
         err.style.display = 'none'; return true;
       }
 
-      // ── 폼 제출 ──
       document.getElementById('signup-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!validateNickname()) return;
