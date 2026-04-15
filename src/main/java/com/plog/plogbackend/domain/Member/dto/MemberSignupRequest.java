@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.member.dto;
+package com.plog.plogbackend.domain.Member.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

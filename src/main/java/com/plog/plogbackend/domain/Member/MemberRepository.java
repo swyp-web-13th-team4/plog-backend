@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.member;
+package com.plog.plogbackend.domain.Member;
 
 import java.util.Optional;
 import java.util.UUID;

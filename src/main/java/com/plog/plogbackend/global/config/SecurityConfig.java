@@ -4,9 +4,7 @@ import com.plog.plogbackend.security.CustomOAuth2UserService;
 import com.plog.plogbackend.security.error.OAuth2FailureHandler;
 import com.plog.plogbackend.security.jwt.JwtAuthenticationFilter;
 import com.plog.plogbackend.security.oauth2.OAuth2SuccessHandler;
-
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,8 +31,6 @@ public class SecurityConfig {
   private final OAuth2SuccessHandler oAuth2SuccessHandler;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final OAuth2FailureHandler oAuth2FailureHandler;
-
-
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
