@@ -61,11 +61,13 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth
+                    // TODO: 이후 만들어진 API에 따라 변경 필요
+
                     // 회원가입 API와 소셜 로그인 진입점은 모두에게 허용
                     .requestMatchers("/api/members/signup", "/oauth2/**", "/login/**")
                     .permitAll()
                     // 그 외 모든 요청은 인증(JWT) 필요
-                    //                    .anyRequest().authenticated()
+                    // .anyRequest().authenticated()
 
                     // 테스트 전용
                     .anyRequest()
