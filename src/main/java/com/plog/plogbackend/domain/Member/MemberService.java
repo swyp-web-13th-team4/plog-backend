@@ -2,6 +2,8 @@ package com.plog.plogbackend.domain.Member;
 
 import com.plog.plogbackend.domain.Member.dto.MemberSignupRequest;
 import com.plog.plogbackend.domain.Member.dto.MemberSignupResponse;
+import com.plog.plogbackend.global.error.AppException;
+import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,12 +21,12 @@ public class MemberService {
   @Transactional
   public MemberSignupResponse signup(String registerToken, MemberSignupRequest request) {
     if (!jwtProvider.isValidToken(registerToken) || !jwtProvider.isRegisterToken(registerToken)) {
-      throw new IllegalArgumentException("유효하지 않은 가입 토큰입니다.");
+      throw new AppException(ErrorType.INVALID_SIGNUP_TOKEN);
     }
 
     String providerId = jwtProvider.getProviderIdFromToken(registerToken);
     if (memberRepository.findByProviderId(providerId).isPresent()) {
-      throw new IllegalStateException("이미 가입된 회원입니다.");
+      throw new AppException(ErrorType.ALREADY_REGISTERED_MEMBER);
     }
 
     Member member = Member.createNewMember(request.nickname(), providerId, request.profileImage());
