@@ -1,3 +1,3 @@
-package com.plog.plogbackend.domain.member.dto;
+package com.plog.plogbackend.domain.Member.dto;
 
 public record MemberSignupResponse(String accessToken) {}

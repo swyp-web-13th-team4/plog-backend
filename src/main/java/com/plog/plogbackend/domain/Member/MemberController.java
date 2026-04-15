@@ -1,7 +1,7 @@
-package com.plog.plogbackend.domain.member;
+package com.plog.plogbackend.domain.Member;
 
-import com.plog.plogbackend.domain.member.dto.MemberSignupRequest;
-import com.plog.plogbackend.domain.member.dto.MemberSignupResponse;
+import com.plog.plogbackend.domain.Member.dto.MemberSignupRequest;
+import com.plog.plogbackend.domain.Member.dto.MemberSignupResponse;
 import com.plog.plogbackend.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

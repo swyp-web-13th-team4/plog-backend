@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.member;
+package com.plog.plogbackend.domain.Member;
 
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
