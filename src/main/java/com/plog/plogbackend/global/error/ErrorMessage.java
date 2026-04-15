@@ -9,8 +9,8 @@ public class ErrorMessage {
   private final Object errorData;
 
   public ErrorMessage(ErrorType errorType, Object errorData) {
-    this.errorCode = errorType.name();
-    this.message = errorType.name();
+    this.errorCode = errorType.getErrorCode().name();
+    this.message = errorType.getMessage();
     this.errorData = errorData;
   }
 }
