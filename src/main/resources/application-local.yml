@@ -3,6 +3,13 @@ spring:
     activate:
       on-profile: local
 
+
+  security:
+    front:
+      cors:
+        allowed-origins: "http://localhost:3000" # 프론트 CORS 허용 주소
+      frontend-url: http://localhost:8080
+
   servlet:
     multipart:
       max-file-size: 10MB
