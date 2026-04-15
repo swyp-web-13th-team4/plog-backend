@@ -29,6 +29,6 @@ public class ApiResponse<T> {
   }
 
   public static ApiResponse<Void> error(ErrorType errorType) {
-    return new ApiResponse<>(ResultType.ERROR, null, null);
+    return new ApiResponse<>(ResultType.ERROR, null, new ErrorMessage(errorType, null));
   }
 }
