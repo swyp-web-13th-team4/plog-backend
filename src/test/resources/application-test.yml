@@ -43,7 +43,7 @@ logging:
     com.plog: debug
 
 jwt:
-  secret: jwt_test
+  secret: sZrRMHHyVBtvoCugce18RIRUyZ6Arb8KSK3h/FGX9ps=
   access-token-validity-in-ms: 7200000
   register-token-validity-in-ms: 900000
 
