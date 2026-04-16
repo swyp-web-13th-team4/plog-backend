@@ -7,7 +7,6 @@ import jakarta.annotation.PostConstruct;
 import java.util.Date;
 import java.util.UUID;
 import javax.crypto.SecretKey;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,11 +29,10 @@ public class JwtProvider {
 
   private SecretKey key; // Member UUID 식별키
 
-
-    @PostConstruct // yml 에 저장된 JWT 토큰 시크릿 키를 메모리에 적제 (성능 향상 목적)
-    public void init() {
-      byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-      this.key = Keys.hmacShaKeyFor(keyBytes);
+  @PostConstruct // yml 에 저장된 JWT 토큰 시크릿 키를 메모리에 적제 (성능 향상 목적)
+  public void init() {
+    byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+    this.key = Keys.hmacShaKeyFor(keyBytes);
   }
 
   // ==========================================

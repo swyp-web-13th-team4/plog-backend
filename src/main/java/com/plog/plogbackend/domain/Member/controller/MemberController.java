@@ -6,16 +6,16 @@ import com.plog.plogbackend.domain.Member.service.MemberService;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.global.response.ApiResponse;
+import com.plog.plogbackend.global.util.CookieUtil;
+import com.plog.plogbackend.security.jwt.JwtProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.plog.plogbackend.security.jwt.JwtProvider;
-import com.plog.plogbackend.global.util.CookieUtil;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.ResponseCookie;
 
 @Tag(name = "회원", description = "로그인 인증/인가")
 @RestController
@@ -41,13 +41,15 @@ public class MemberController {
     MemberSignupResponse responseDto = memberService.signup(registerToken, request);
 
     // 1. 발급된 accessToken을 쿠키에 담음
-    ResponseCookie accessCookie = cookieUtil.createCookie(
-        "accessToken", responseDto.accessToken(), jwtProvider.getAccessTokenValidityInMs());
+    ResponseCookie accessCookie =
+        cookieUtil.createCookie(
+            "accessToken", responseDto.accessToken(), jwtProvider.getAccessTokenValidityInMs());
     response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, accessCookie.toString());
 
     // 2. 사용이 끝난 registerToken 쿠키는 삭제 (즉시 만료)
     ResponseCookie deleteRegisterCookie = cookieUtil.deleteCookie("registerToken");
-    response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, deleteRegisterCookie.toString());
+    response.addHeader(
+        org.springframework.http.HttpHeaders.SET_COOKIE, deleteRegisterCookie.toString());
 
     return ResponseEntity.ok(ApiResponse.success(responseDto));
   }
