@@ -31,8 +31,6 @@ spring:
             user-name-attribute: id # 카카오 응답 JSON의 고유 식별자 키 이름
 
 jwt:
-  secret: sZrRMHHyVBtvoCugce18RIRUyZ6Arb8KSK3h/FGX9ps= # 테스트 JWT 시크릿키
-
   access-token-validity-in-ms: 7200000
   register-token-validity-in-ms: 900000
 
