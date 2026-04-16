@@ -30,6 +30,11 @@ spring:
         hbm2ddl:
           auto: create
 
+# 로컬 환경(HTTP)에서는 Secure 쿠키 비활성화
+cookie:
+  secure: false
+  sameSite: Lax
+
 logging:
   level:
     com.plog: debug

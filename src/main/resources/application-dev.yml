@@ -26,6 +26,9 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         hbm2ddl:
           auto: update
+cookie:
+  secure: true
+  sameSite: None
 
 logging:
   level:

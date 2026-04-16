@@ -240,19 +240,13 @@
         <p class="success-sub">Access Token이 발급되었습니다</p>
       </div>
 
-      <!-- 토큰 정보 -->
+      <!-- 인증 안내 -->
       <div class="card">
-        <div class="card-title">🔑 Access Token</div>
-        <div class="token-display" id="token-raw">토큰 없음</div>
-        <button class="copy-btn" onclick="copyToken()">📋 클립보드에 복사</button>
-      </div>
-
-      <!-- Payload 디코딩 -->
-      <div class="card">
-        <div class="card-title">📦 Token Payload (디코딩)</div>
-        <table class="payload-table" id="payload-table">
-          <tr><td colspan="2" style="color:var(--muted);font-size:0.85rem">토큰을 파싱하는 중...</td></tr>
-        </table>
+        <div class="card-title">🛡️ 인증 상태</div>
+        <p style="font-size:0.85rem; color:var(--muted); line-height: 1.6;">
+          안전한 <strong>HttpOnly 쿠키</strong>로 토큰이 관리됩니다.<br/>
+          API 요청 시 자동으로 인증 정보가 포함됩니다.
+        </p>
       </div>
 
       <!-- API 테스트 (추후 구현될 API 미리 배치) -->
@@ -292,56 +286,7 @@
         starsEl.appendChild(s);
       }
 
-      // ── 토큰 파싱 ──
-      const params = new URLSearchParams(window.location.search);
-      let token = params.get('token') || localStorage.getItem('plog_access_token');
-
-      if (token) {
-        localStorage.setItem('plog_access_token', token);
-        document.getElementById('token-raw').textContent = token;
-
-        // JWT payload 디코딩
-        try {
-          const base64  = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-          const payload = JSON.parse(atob(base64));
-          const table   = document.getElementById('payload-table');
-          table.innerHTML = '';
-
-          const expDate = payload.exp ? new Date(payload.exp * 1000) : null;
-          const iatDate = payload.iat ? new Date(payload.iat * 1000) : null;
-          const isValid = expDate && expDate > new Date();
-
-          const rows = [
-            ['sub (토큰 종류)', `<span class="badge badge-blue">${payload.sub || '-'}</span>`],
-            ['memberKey', payload.memberKey || '-'],
-            ['발급 시각 (iat)', iatDate ? iatDate.toLocaleString('ko-KR') : '-'],
-            ['만료 시각 (exp)', expDate
-              ? `${expDate.toLocaleString('ko-KR')} <span class="badge ${isValid?'badge-green':'badge-red'}">${isValid?'유효':'만료'}</span>`
-              : '-'],
-          ];
-
-          rows.forEach(([k, v]) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${k}</td><td>${v}</td>`;
-            table.appendChild(tr);
-          });
-        } catch (e) {
-          document.getElementById('payload-table').innerHTML =
-            `<tr><td style="color:var(--error)">JWT 파싱 실패: ${e.message}</td></tr>`;
-        }
-      } else {
-        document.getElementById('token-raw').textContent = '토큰이 없습니다. 로그인을 먼저 진행해주세요.';
-        document.getElementById('token-raw').style.color = '#f87171';
-      }
-
-      function copyToken() {
-        if (!token) return;
-        navigator.clipboard.writeText(token).then(() => {
-          const btn = event.target;
-          btn.textContent = '✅ 복사됨!';
-          setTimeout(() => { btn.textContent = '📋 클립보드에 복사'; }, 2000);
-        });
-      }
+      // 토큰은 HttpOnly 쿠키로 관리되므로 JS에서 접근 및 파싱하지 않습니다.
 
       // ── API 테스트 ──
       async function testApi(method, path, resultId) {
@@ -351,10 +296,13 @@
         resultEl.textContent   = '요청 중...';
 
         const headers = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
 
         try {
-          const res  = await fetch(`http://localhost:8080${path}`, { method, headers });
+          const res  = await fetch(`http://localhost:8080${path}`, { 
+            method, 
+            headers,
+            credentials: 'include' // 세션 쿠키 전송
+          });
           const data = await res.json();
           resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
           resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(data, null, 2)}`;
@@ -365,7 +313,7 @@
       }
 
       function logout() {
-        localStorage.removeItem('plog_access_token');
+        // 백엔드 로그아웃 API 호출 또는 그냥 메인으로 이동
         window.location.href = 'index.html';
       }
     </script>

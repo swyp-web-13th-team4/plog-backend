@@ -420,52 +420,12 @@
       const tokenDotEl    = document.getElementById('token-dot');
       const submitBtn     = document.getElementById('submit-btn');
 
-      function decodeJwtPayload(token) {
-        try {
-          const base64 = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-          return JSON.parse(atob(base64));
-        } catch { return null; }
-      }
+      // 토큰 상태 확인 및 카운트다운 관련 UI/로직 삭제 (HttpOnly 쿠키로 관리됨)
+      tokenLabelEl.textContent = '가입 진행 가능 ✓';
+      tokenTimerEl.textContent = '안전한 인증을 통해 회원가입이 진행됩니다.';
+      submitBtn.disabled = false;
 
-      function updateTimer(expMs) {
-        const remaining = expMs - Date.now();
-        if (remaining <= 0) {
-          tokenTimerEl.textContent = '토큰이 만료되었습니다. 다시 로그인하세요.';
-          tokenStatusEl.classList.add('invalid');
-          tokenDotEl.style.background = '#f87171';
-          tokenDotEl.style.boxShadow = '0 0 8px rgba(248,113,113,0.6)';
-          submitBtn.disabled = true;
-          return;
-        }
-        const m = Math.floor(remaining / 60000);
-        const s = Math.floor((remaining % 60000) / 1000);
-        tokenTimerEl.textContent = `남은 시간: ${m}분 ${s}초`;
-        setTimeout(() => updateTimer(expMs), 1000);
-      }
-
-      if (!registerToken) {
-        tokenStatusEl.classList.add('invalid');
-        tokenDotEl.style.background = '#f87171';
-        tokenLabelEl.textContent = '유효한 임시 토큰이 없습니다';
-        tokenTimerEl.textContent = '로그인 페이지에서 카카오 로그인을 먼저 진행해주세요.';
-      } else {
-        const payload = decodeJwtPayload(registerToken);
-        if (payload && payload.exp) {
-          const expMs = payload. Exp * 1000;
-          if (Date.now() > expMs) {
-            tokenStatusEl.classList.add('invalid');
-            tokenDotEl.style.background = '#f87171';
-            tokenLabelEl.textContent = '임시 토큰이 만료됨';
-          } else {
-            tokenLabelEl.textContent = '임시 토큰 유효 ✓';
-            submitBtn.disabled = false;
-            updateTimer(expMs);
-          }
-        } else {
-          tokenLabelEl.textContent = '임시 토큰 수신됨 (만료 시간 불명)';
-          submitBtn.disabled = false;
-        }
-      }
+      // 이제 registerToken은 쿠키에 있으므로 JS에서 디코딩하지 않음
 
       const nicknameInput = document.getElementById('nickname');
       const nickCount     = document.getElementById('nick-count');
@@ -521,8 +481,7 @@
       function updateSubmitState() {
         const nickOk = nicknameInput.value.trim().length >= 2;
         const termsOk = required.every(c => document.getElementById(c).classList.contains('checked'));
-        const tokenOk = !tokenStatusEl.classList.contains('invalid') && registerToken;
-        submitBtn.disabled = !(nickOk && termsOk && tokenOk);
+        submitBtn.disabled = !(nickOk && termsOk);
       }
 
       function validateNickname() {
@@ -547,20 +506,19 @@
         try {
           const res = await fetch('http://localhost:8080/api/members/signup', {
             method: 'POST',
+            credentials: 'include',
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${registerToken}`
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({ nickname, profileImage, marketingAgreed: marketing })
           });
 
           const data = await res.json();
 
-          if (res.ok && data.data?.accessToken) {
+          if (res.ok && data. Success) { // ApiResponse에 맞춰 data. Success 확인
             showToast('가입 완료! 메인 페이지로 이동합니다 🎉', 'success');
-            localStorage.setItem('plog_access_token', data.data.accessToken);
             setTimeout(() => {
-              window.location.href = `success.html?token=${encodeURIComponent(data.data.accessToken)}`;
+              window.location.href = `success.html`;
             }, 1000);
           } else {
             showToast(data.message || '가입에 실패했습니다.', 'error');

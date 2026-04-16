@@ -2,6 +2,7 @@ package com.plog.plogbackend.security.oauth2;
 
 import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
+import com.plog.plogbackend.global.util.CookieUtil;
 import com.plog.plogbackend.security.jwt.JwtProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,6 +25,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
   private final MemberRepository memberRepository;
   private final JwtProvider jwtProvider; // JWT 생성 유틸리티 클래스 (가정)
+  private final CookieUtil cookieUtil;
 
   @Override
   public void onAuthenticationSuccess(
@@ -45,9 +47,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
       Member member = memberOpt.get();
       String accessToken = jwtProvider.createAccessToken(member.getMemberKey());
 
+      org.springframework.http.ResponseCookie cookie = cookieUtil.createCookie(
+          "accessToken", accessToken, jwtProvider.getAccessTokenValidityInMs());
+      response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, cookie.toString());
+
       // 프론트엔드의 메인 페이지(또는 로그인 성공 처리 페이지)로 리다이렉트
-      String redirectUrl = frontendUrl + "/success.html?token=" + accessToken; // 로컬 HTML 테스트 전용 경로
-      //      String redirectUrl = frontendUrl+ "/login/success?token=" + accessToken; // 실 서비스 경로
+      String redirectUrl = frontendUrl + "/success.html"; // 로컈 HTML 테스트 전용 경로
+      //      String redirectUrl = frontendUrl+ "/login/success"; // TODO : 실 서비스 경로 수정 필요
       getRedirectStrategy().sendRedirect(request, response, redirectUrl);
 
     } else {
@@ -57,10 +63,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
       // 카카오 ID를 담은 유효기간 15분 임시 토큰 생성
       String registerToken = jwtProvider.createRegisterToken(providerId);
 
+      org.springframework.http.ResponseCookie cookie2 = cookieUtil.createCookie(
+          "registerToken", registerToken, jwtProvider.getRegisterTokenValidityInMs());
+      response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, cookie2.toString());
+
       // 프론트엔드 추가 정보 입력(회원가입) 페이지로 리다이렉트
-      String redirectUrl =
-          frontendUrl + "/signup.html?registerToken=" + registerToken; // 로컬 HTML 테스트 전용 경로
-      //      String redirectUrl = frontendUrl+"/signup?registerToken=" + registerToken; // 실 서비스 경로
+      String redirectUrl = frontendUrl + "/signup.html"; // 로컬 HTML 테스트 전용 경로
+      //      String redirectUrl = frontendUrl+"/signup"; // TODO : 실 서비스 경로 수정 필요
       getRedirectStrategy().sendRedirect(request, response, redirectUrl); // 리다이렉트
     }
   }
