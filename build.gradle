@@ -34,6 +34,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'com.google.cloud:google-cloud-storage'
     implementation 'com.github.f4b6a3:uuid-creator:5.3.7'
     implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
     compileOnly 'org.projectlombok:lombok'

@@ -23,6 +23,7 @@ public class Member extends BaseTimeStatusEntity {
   // ==========================================
   // 1. 내부 식별자 (조인, 인덱스 최적화용)
   // ==========================================
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -30,6 +31,7 @@ public class Member extends BaseTimeStatusEntity {
   // ==========================================
   // 2. 외부 식별자 (API 통신, 클라이언트 노출용)
   // ==========================================
+
   @Column(nullable = false, unique = true, updatable = false, columnDefinition = "BINARY(16)")
   private UUID memberKey;
 
@@ -48,6 +50,7 @@ public class Member extends BaseTimeStatusEntity {
   // ==========================================
   // 3. 빌더
   // ==========================================
+
   @Builder
   private Member(
       UUID memberKey, String providerId, String nickname, String profileImage, Role role) {
@@ -62,7 +65,6 @@ public class Member extends BaseTimeStatusEntity {
   // 4. 정적 팩토리 메서드
   // ==========================================
 
-  /** 디폴트 생성자 */
   public static Member createNewMember(String nickname, String providerId, String profileImage) {
     return Member.builder()
         .memberKey(UuidCreator.getTimeOrderedEpoch())
@@ -85,4 +87,10 @@ public class Member extends BaseTimeStatusEntity {
     }
     return imageUrl;
   }
+
+  /** 프로필 이미지 URL 업데이트 */
+  public void updateProfileImage(String imageUrl) {
+    this.profileImage = imageUrl;
+  }
 }
+

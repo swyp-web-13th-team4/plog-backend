@@ -1,12 +1,25 @@
 spring:
   config:
     import: optional:file:.env[.properties]
+
   application:
     name: PlogServer
+
+  cloud:
+    gcp:
+      storage:
+        # ADC 방식 사용
+        # 로컬: gcloud CLI 인증
+        # GCP 환경: 서비스 계정 메타데이터 자동 인식
+        project-id: ${project-id}
+        bucket: ${plog-storage-bucket}
+
   profiles:
     active: local
+
   jpa:
     open-in-view: false
+
   security:
     oauth2:
       client:
