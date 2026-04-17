@@ -20,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/test/images")
-public class TestImageController {
+public class TestImageController { // TODO: 마이페이지 , 게시글 API 구현 완료후 삭제
 
   private final PostImageService postImageService;
   private final MemberImageService memberImageService;
