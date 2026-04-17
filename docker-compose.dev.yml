@@ -28,6 +28,8 @@ services:
       DB_USERNAME: ${DEV_DB_USERNAME}
       DB_PASSWORD: ${DEV_DB_PASSWORD}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
+      KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
     volumes:
       - /var/log/plog:/var/log/plog
     depends_on:
