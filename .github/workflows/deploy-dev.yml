@@ -97,8 +97,8 @@ jobs:
             JWT_SECRET_KEY=$(gcloud secrets versions access latest --secret=dev-JWT_SECRET_KEY)
             KAKAO_CLIENT_ID=$(gcloud secrets versions access latest --secret=dev-KAKAO_CLIENT_ID)
             KAKAO_CLIENT_SECRET=$(gcloud secrets versions access latest --secret=dev-KAKAO_CLIENT_SECRET)
-            project-id=$(gcloud secrets versions access latest --secret=dev-project-id)
-            plog-storage-bucket=$(gcloud secrets versions access latest --secret=dev-plog-storage-bucket)
+            PROJECT_ID=$(gcloud secrets versions access latest --secret=dev-PROJECT_ID)
+            PLOG_STORAGE_BUCKET=$(gcloud secrets versions access latest --secret=dev-PLOG_STORAGE_BUCKET)
             EOF
 
       - name: Deploy to Server

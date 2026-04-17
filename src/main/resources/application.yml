@@ -11,8 +11,8 @@ spring:
         # ADC 방식 사용
         # 로컬: gcloud CLI 인증
         # GCP 환경: 서비스 계정 메타데이터 자동 인식
-        project-id: ${project-id}
-        bucket: ${plog-storage-bucket}
+        project-id: ${PROJECT_ID}
+        bucket: ${PLOG_STORAGE_BUCKET}
 
   profiles:
     active: local
