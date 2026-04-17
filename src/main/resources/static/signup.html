@@ -515,7 +515,7 @@
 
           const data = await res.json();
 
-          if (res.ok && data. Success) { // ApiResponse에 맞춰 data. Success 확인
+          if (res.ok && data.resultType === 'SUCCESS') { // ApiResponse 결과 확인
             showToast('가입 완료! 메인 페이지로 이동합니다 🎉', 'success');
             setTimeout(() => {
               window.location.href = `success.html`;

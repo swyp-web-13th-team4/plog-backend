@@ -312,9 +312,17 @@
         }
       }
 
-      function logout() {
-        // 백엔드 로그아웃 API 호출 또는 그냥 메인으로 이동
-        window.location.href = 'index.html';
+      async function logout() {
+        try {
+          await fetch('http://localhost:8080/api/members/logout', {
+            method: 'POST',
+            credentials: 'include'
+          });
+        } catch (e) {
+          console.error(e);
+        } finally {
+          window.location.href = 'index.html';
+        }
       }
     </script>
   </body>

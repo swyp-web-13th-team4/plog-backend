@@ -2,11 +2,11 @@ package com.plog.plogbackend.domain.Member.service;
 
 import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.dto.MemberSignupRequest;
-import com.plog.plogbackend.domain.Member.dto.MemberSignupResponse;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.security.jwt.JwtProvider;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ public class MemberService {
   private final JwtProvider jwtProvider;
 
   @Transactional
-  public MemberSignupResponse signup(String registerToken, MemberSignupRequest request) {
+  public UUID signup(String registerToken, MemberSignupRequest request) {
     if (!jwtProvider.isValidToken(registerToken) || !jwtProvider.isRegisterToken(registerToken)) {
       throw new AppException(ErrorType.INVALID_SIGNUP_TOKEN);
     }
@@ -34,7 +34,6 @@ public class MemberService {
     Member member = Member.createNewMember(request.nickname(), providerId, request.profileImage());
     memberRepository.save(member);
 
-    String accessToken = jwtProvider.createAccessToken(member.getMemberKey());
-    return new MemberSignupResponse(accessToken);
+    return member.getMemberKey(); // accessToken 생성은 컨트롤러에서 처리
   }
 }
