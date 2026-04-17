@@ -3,6 +3,12 @@ spring:
     activate:
       on-profile: dev
 
+  security:
+    front:
+      cors:
+        allowed-origins: "https://" # 프론트 CORS 허용 주소
+      frontend-url: https://
+
   servlet:
     multipart:
       max-file-size: 10MB
@@ -20,6 +26,9 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         hbm2ddl:
           auto: update
+cookie:
+  secure: true
+  sameSite: None
 
 logging:
   level:

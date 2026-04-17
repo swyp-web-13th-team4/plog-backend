@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plog — 회원가입</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --bg: #070b14;
+        --surface: rgba(255,255,255,0.05);
+        --border: rgba(255,255,255,0.1);
+        --border-focus: rgba(129,140,248,0.6);
+        --text: #e8eaf6;
+        --muted: #7986ab;
+        --accent: #818cf8;
+        --accent-dark: #6366f1;
+        --success: #4ade80;
+        --error: #f87171;
+      }
+
+      body {
+        font-family: 'Outfit', sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        overflow-x: hidden;
+        position: relative;
+      }
+
+      .bg-orb {
+        position: fixed; border-radius: 50%;
+        filter: blur(80px); pointer-events: none;
+        animation: float 8s ease-in-out infinite;
+      }
+      .bg-orb-1 {
+        width: 500px; height: 500px;
+        background: radial-gradient(circle, rgba(99,102,241,0.2), transparent 70%);
+        top: -100px; right: -100px; animation-delay: -2s;
+      }
+      .bg-orb-2 {
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(168,85,247,0.18), transparent 70%);
+        bottom: -100px; left: -100px;
+      }
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50%       { transform: translateY(-20px); }
+      }
+
+      .stars { position: fixed; inset: 0; pointer-events: none; }
+      .star {
+        position: absolute; border-radius: 50%;
+        background: white; opacity: 0;
+        animation: twinkle var(--dur,3s) var(--delay,0s) infinite;
+      }
+      @keyframes twinkle {
+        0%,100% { opacity: 0; }
+        50%      { opacity: var(--op,0.5); }
+      }
+
+      .card {
+        position: relative;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        padding: 48px 44px;
+        width: 460px;
+        max-width: 100%;
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+        animation: cardIn 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
+      }
+      @keyframes cardIn {
+        from { opacity: 0; transform: translateY(24px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      .card-header { text-align: center; margin-bottom: 36px; }
+      .step-badge {
+        display: inline-block;
+        background: rgba(129,140,248,0.15);
+        border: 1px solid rgba(129,140,248,0.25);
+        color: var(--accent);
+        font-size: 0.75rem; font-weight: 600;
+        letter-spacing: 0.06em; text-transform: uppercase;
+        padding: 4px 12px; border-radius: 100px;
+        margin-bottom: 16px;
+      }
+      h1 {
+        font-size: 1.7rem; font-weight: 800;
+        letter-spacing: -0.03em;
+        background: linear-gradient(135deg, #e0e7ff, #a5b4fc);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        margin-bottom: 6px;
+      }
+      .subtitle { font-size: 0.9rem; color: var(--muted); }
+
+      .token-status {
+        display: flex; align-items: center; gap: 10px;
+        background: rgba(74,222,128,0.08);
+        border: 1px solid rgba(74,222,128,0.2);
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-bottom: 28px;
+        font-size: 0.82rem;
+      }
+      .token-status.invalid {
+        background: rgba(248,113,113,0.08);
+        border-color: rgba(248,113,113,0.2);
+        color: var(--error);
+      }
+      .token-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--success); flex-shrink: 0;
+        box-shadow: 0 0 8px rgba(74,222,128,0.6);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,100% { opacity: 1; }
+        50%      { opacity: 0.4; }
+      }
+      .token-info { flex: 1; }
+      .token-info strong { color: var(--success); display: block; font-weight: 600; margin-bottom: 2px; }
+      .token-timer { color: var(--muted); font-size: 0.75rem; }
+
+      .profile-picker {
+        display: flex; flex-direction: column; align-items: center;
+        margin-bottom: 28px;
+      }
+      .avatar-wrap {
+        position: relative;
+        width: 100px; height: 100px;
+        margin-bottom: 12px;
+      }
+      .avatar {
+        width: 100px; height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--border);
+        background: rgba(255,255,255,0.06);
+        transition: border-color 0.2s;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 40px;
+      }
+      .avatar img {
+        width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+        display: none;
+      }
+      .avatar-edit {
+        position: absolute; bottom: 2px; right: 2px;
+        width: 28px; height: 28px; border-radius: 50%;
+        background: var(--accent-dark);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; font-size: 13px;
+        border: 2px solid var(--bg);
+        transition: transform 0.2s;
+      }
+      .avatar-edit:hover { transform: scale(1.1); }
+      .avatar-hint { font-size: 0.75rem; color: var(--muted); }
+
+      .form-group { margin-bottom: 20px; }
+      label {
+        display: block; font-size: 0.82rem; font-weight: 500;
+        color: var(--muted); margin-bottom: 8px; letter-spacing: 0.02em;
+      }
+
+      /* 입력창 그룹 레이아웃 */
+      .input-with-btn {
+        display: flex;
+        gap: 8px;
+      }
+      .input-with-btn input {
+        flex: 1;
+      }
+
+      input[type="text"], input[type="url"] {
+        width: 100%;
+        padding: 14px 16px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        color: var(--text);
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.95rem;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      }
+      input[type="text"]:focus, input[type="url"]:focus {
+        border-color: var(--border-focus);
+        background: rgba(129,140,248,0.06);
+        box-shadow: 0 0 0 3px rgba(129,140,248,0.12);
+      }
+      input::placeholder { color: rgba(121,134,171,0.6); }
+
+      /* 보조 버튼 스타일 */
+      .btn-secondary {
+        padding: 0 16px;
+        background: rgba(129, 140, 248, 0.15);
+        color: var(--accent);
+        border: 1px solid rgba(129, 140, 248, 0.3);
+        border-radius: 12px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+      .btn-secondary:hover {
+        background: rgba(129, 140, 248, 0.3);
+        color: white;
+      }
+
+      .char-count {
+        text-align: right; font-size: 0.72rem;
+        color: var(--muted); margin-top: 5px;
+      }
+      .field-error {
+        font-size: 0.75rem; color: var(--error);
+        margin-top: 6px; display: none;
+      }
+
+      .terms-section {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 24px;
+      }
+      .terms-item {
+        display: flex; align-items: center; gap: 12px;
+        padding: 8px 0; cursor: pointer;
+      }
+      .terms-item:not(:last-child) { border-bottom: 1px solid var(--border); }
+      .custom-check {
+        width: 20px; height: 20px; border-radius: 6px;
+        border: 2px solid var(--border);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; transition: all 0.2s;
+        background: transparent;
+      }
+      .custom-check.checked {
+        background: var(--accent-dark);
+        border-color: var(--accent-dark);
+      }
+      .terms-label { font-size: 0.85rem; flex: 1; }
+      .terms-required {
+        font-size: 0.7rem; color: var(--error); font-weight: 600;
+      }
+      .terms-optional {
+        font-size: 0.7rem; color: var(--muted);
+      }
+
+      .btn-submit {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, var(--accent-dark), #7c3aed);
+        color: white;
+        font-family: 'Outfit', sans-serif;
+        font-size: 1rem; font-weight: 600;
+        border: none; border-radius: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 24px rgba(99,102,241,0.4);
+        position: relative; overflow: hidden;
+      }
+      .btn-submit:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(99,102,241,0.55);
+      }
+      .btn-submit:disabled {
+        opacity: 0.5; cursor: not-allowed;
+      }
+      .btn-submit.loading::after {
+        content: '';
+        position: absolute; inset: 0;
+        background: rgba(255,255,255,0.1);
+        animation: shimmer 1s infinite;
+      }
+      @keyframes shimmer {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+
+      .toast {
+        position: fixed; top: 24px; right: 24px;
+        padding: 14px 20px; border-radius: 12px;
+        font-size: 0.88rem; font-weight: 500;
+        display: none; z-index: 100;
+        animation: slideIn 0.3s ease;
+        max-width: 320px;
+      }
+      .toast.error  { background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3); color: #fca5a5; }
+      .toast.success { background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.3); color: #86efac; }
+      @keyframes slideIn {
+        from { opacity: 0; transform: translateX(20px); }
+        to   { opacity: 1; transform: translateX(0); }
+      }
+
+      .back-link {
+        display: block; text-align: center; margin-top: 20px;
+        font-size: 0.82rem; color: var(--muted);
+        text-decoration: none; transition: color 0.2s;
+      }
+      .back-link:hover { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <div class="stars" id="stars"></div>
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="toast" id="toast"></div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="step-badge">✨ 마지막 단계</div>
+        <h1>프로필 설정</h1>
+        <p class="subtitle">Plog에서 사용할 닉네임이랑<br/>프로필을 설정해주세요</p>
+      </div>
+
+      <div class="token-status" id="token-status">
+        <div class="token-dot" id="token-dot"></div>
+        <div class="token-info">
+          <strong id="token-label">임시 토큰 확인 중...</strong>
+          <span class="token-timer" id="token-timer"></span>
+        </div>
+      </div>
+
+      <div class="profile-picker">
+        <div class="avatar-wrap">
+          <div class="avatar" id="avatar-preview">
+            🙂
+            <img id="avatar-img" src="" alt="프로필"/>
+          </div>
+          <div class="avatar-edit" onclick="document.getElementById('img-url-group').scrollIntoView({behavior:'smooth'})">✏️</div>
+        </div>
+        <span class="avatar-hint">아래에 이미지 URL을 입력하고 확인 버튼을 누르세요</span>
+      </div>
+
+      <form id="signup-form" novalidate>
+        <div class="form-group">
+          <label for="nickname">닉네임 <span style="color:var(--error)">*</span></label>
+          <input
+            type="text" id="nickname" placeholder="2~20자 한글/영문/숫자"
+            maxlength="20" autocomplete="off"
+          />
+          <div class="char-count"><span id="nick-count">0</span> / 20</div>
+          <div class="field-error" id="nick-error">닉네임은 2자 이상 20자 이하여야 합니다.</div>
+        </div>
+
+        <div class="form-group" id="img-url-group">
+          <label for="profile-image">프로필 이미지 URL <span style="color:var(--muted);font-size:0.75rem">(선택)</span></label>
+          <div class="input-with-btn">
+            <input
+              type="url" id="profile-image"
+              placeholder="https://example.com/image.jpg"
+            />
+            <button type="button" id="check-img-btn" class="btn-secondary">확인</button>
+          </div>
+          <div class="field-error" id="img-error">올바른 URL 형식을 입력해주세요.</div>
+        </div>
+
+        <div class="terms-section">
+          <div class="terms-item" onclick="toggleCheck('check-all')">
+            <div class="custom-check" id="check-all"></div>
+            <span class="terms-label" style="font-weight:600">전체 동의</span>
+          </div>
+          <div class="terms-item" onclick="toggleCheck('check-service')">
+            <div class="custom-check" id="check-service"></div>
+            <span class="terms-label">이용약관 동의</span>
+            <span class="terms-required">필수</span>
+          </div>
+          <div class="terms-item" onclick="toggleCheck('check-privacy')">
+            <div class="custom-check" id="check-privacy"></div>
+            <span class="terms-label">개인정보 수집·이용 동의</span>
+            <span class="terms-required">필수</span>
+          </div>
+          <div class="terms-item" onclick="toggleCheck('check-marketing')">
+            <div class="custom-check" id="check-marketing"></div>
+            <span class="terms-label">마케팅 정보 수신 동의</span>
+            <span class="terms-optional">선택</span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submit-btn" disabled>
+          Plog 시작하기 🚀
+        </button>
+      </form>
+
+      <a href="index.html" class="back-link">← 처음으로 돌아가기</a>
+    </div>
+
+    <script>
+      const starsEl = document.getElementById('stars');
+      for (let i = 0; i < 60; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        const size = Math.random() < 0.3 ? 3 : 2;
+        s.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${2+Math.random()*4}s;--delay:${Math.random()*5}s;--op:${0.3+Math.random()*0.5}`;
+        starsEl.appendChild(s);
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const registerToken = params.get('registerToken');
+
+      const tokenStatusEl = document.getElementById('token-status');
+      const tokenLabelEl  = document.getElementById('token-label');
+      const tokenTimerEl  = document.getElementById('token-timer');
+      const tokenDotEl    = document.getElementById('token-dot');
+      const submitBtn     = document.getElementById('submit-btn');
+
+      // 토큰 상태 확인 및 카운트다운 관련 UI/로직 삭제 (HttpOnly 쿠키로 관리됨)
+      tokenLabelEl.textContent = '가입 진행 가능 ✓';
+      tokenTimerEl.textContent = '안전한 인증을 통해 회원가입이 진행됩니다.';
+      submitBtn.disabled = false;
+
+      // 이제 registerToken은 쿠키에 있으므로 JS에서 디코딩하지 않음
+
+      const nicknameInput = document.getElementById('nickname');
+      const nickCount     = document.getElementById('nick-count');
+      nicknameInput.addEventListener('input', () => {
+        nickCount.textContent = nicknameInput.value.length;
+        validateNickname();
+        updateSubmitState();
+      });
+
+      // ── 프로필 이미지 수동 로드 로직 ──
+      const profileInput = document.getElementById('profile-image');
+      const checkImgBtn  = document.getElementById('check-img-btn');
+      const avatarImg    = document.getElementById('avatar-img');
+      const avatarPreview = document.getElementById('avatar-preview');
+
+      checkImgBtn.addEventListener('click', () => {
+        const url = profileInput.value.trim();
+        if (url) {
+          avatarImg.src = url;
+          avatarImg.style.display = 'block';
+          if (avatarPreview.firstChild.nodeType === Node.TEXT_NODE) {
+            avatarPreview.firstChild.nodeValue = '';
+          }
+        } else {
+          avatarImg.style.display = 'none';
+          avatarImg.src = '';
+          if (avatarPreview.firstChild.nodeType === Node.TEXT_NODE) {
+            avatarPreview.firstChild.nodeValue = '🙂';
+          }
+        }
+      });
+      avatarImg.onerror = () => { 
+        avatarImg.style.display = 'none';
+        showToast('이미지를 불러올 수 없습니다. URL을 확인해주세요.', 'error');
+      };
+
+      const required = ['check-service', 'check-privacy'];
+      function toggleCheck(id) {
+        const el = document.getElementById(id);
+        const isChecked = el.classList.toggle('checked');
+        if (id === 'check-all') {
+          ['check-service','check-privacy','check-marketing'].forEach(c => {
+            document.getElementById(c).classList.toggle('checked', isChecked);
+          });
+        } else {
+          const allRequired = required.every(c => document.getElementById(c).classList.contains('checked'));
+          const allChecked  = allRequired && document.getElementById('check-marketing').classList.contains('checked');
+          document.getElementById('check-all').classList.toggle('checked', allChecked);
+        }
+        updateSubmitState();
+      }
+
+      function updateSubmitState() {
+        const nickOk = nicknameInput.value.trim().length >= 2;
+        const termsOk = required.every(c => document.getElementById(c).classList.contains('checked'));
+        submitBtn.disabled = !(nickOk && termsOk);
+      }
+
+      function validateNickname() {
+        const v = nicknameInput.value.trim();
+        const err = document.getElementById('nick-error');
+        if (v.length > 0 && v.length < 2) { err.style.display = 'block'; return false; }
+        err.style.display = 'none'; return true;
+      }
+
+      document.getElementById('signup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!validateNickname()) return;
+
+        const nickname     = nicknameInput.value.trim();
+        const profileImage = profileInput.value.trim() || null;
+        const marketing    = document.getElementById('check-marketing').classList.contains('checked');
+
+        submitBtn.classList.add('loading');
+        submitBtn.disabled  = true;
+        submitBtn.textContent = '가입 처리 중...';
+
+        try {
+          const res = await fetch('http://localhost:8080/api/members/signup', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ nickname, profileImage, marketingAgreed: marketing })
+          });
+
+          const data = await res.json();
+
+          if (res.ok && data.resultType === 'SUCCESS') { // ApiResponse 결과 확인
+            showToast('가입 완료! 메인 페이지로 이동합니다 🎉', 'success');
+            setTimeout(() => {
+              window.location.href = `success.html`;
+            }, 1000);
+          } else {
+            showToast(data.message || '가입에 실패했습니다.', 'error');
+            submitBtn.classList.remove('loading');
+            submitBtn.disabled  = false;
+            submitBtn.textContent = 'Plog 시작하기 🚀';
+          }
+        } catch (err) {
+          showToast('서버에 연결할 수 없습니다. 백엔드가 실행 중인지 확인해주세요.', 'error');
+          submitBtn.classList.remove('loading');
+          submitBtn.disabled  = false;
+          submitBtn.textContent = 'Plog 시작하기 🚀';
+        }
+      });
+
+      function showToast(msg, type) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = `toast ${type}`;
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 4000);
+      }
+    </script>
+  </body>
+</html>

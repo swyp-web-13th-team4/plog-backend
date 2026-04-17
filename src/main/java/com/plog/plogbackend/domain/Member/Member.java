@@ -1,6 +1,7 @@
 package com.plog.plogbackend.domain.Member;
 
 import com.github.f4b6a3.uuid.UuidCreator;
+import com.plog.plogbackend.domain.Member.enums.Role;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
 import java.util.UUID;
@@ -38,6 +39,9 @@ public class Member extends BaseTimeStatusEntity {
   @Column(length = 500)
   private String profileImage;
 
+  @Column(nullable = false, unique = true)
+  private String providerId; // 카카오 소셜 로그인 식별키
+
   @Enumerated(EnumType.STRING)
   private Role role;
 
@@ -45,8 +49,10 @@ public class Member extends BaseTimeStatusEntity {
   // 3. 빌더
   // ==========================================
   @Builder
-  private Member(UUID memberKey, String nickname, String profileImage, Role role) {
+  private Member(
+      UUID memberKey, String providerId, String nickname, String profileImage, Role role) {
     this.memberKey = memberKey;
+    this.providerId = providerId;
     this.nickname = nickname;
     this.profileImage = profileImage;
     this.role = role;
@@ -57,9 +63,10 @@ public class Member extends BaseTimeStatusEntity {
   // ==========================================
 
   /** 디폴트 생성자 */
-  public static Member createNewMember(String nickname, String profileImage) {
+  public static Member createNewMember(String nickname, String providerId, String profileImage) {
     return Member.builder()
         .memberKey(UuidCreator.getTimeOrderedEpoch())
+        .providerId(providerId)
         .nickname(nickname)
         .profileImage(getOrDefaultImage(profileImage))
         .role(Role.ROLE_USER)

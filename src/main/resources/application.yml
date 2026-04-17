@@ -1,10 +1,39 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: PlogServer
   profiles:
     active: local
   jpa:
     open-in-view: false
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+
+            # 리다이렉트 백엔드 주소
+            redirect-uri: "{baseUrl}/login/oauth2/code/kakao"
+
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            client-name: Kakao
+
+        # 카카오 서버의 API 엔드포인트들
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize # 시큐리티에서 감지하는 OAuth 엔드포인트
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id # 카카오 응답 JSON의 고유 식별자 키 이름
+
+jwt:
+  secret: ${jwt_secret}
+  access-token-validity-in-ms: 7200000
+  register-token-validity-in-ms: 900000
 
 management:
   endpoints:
@@ -25,6 +54,7 @@ springdoc:
     enabled: true
   default-produces-media-type: application/json
   default-consumes-media-type: application/json
+
 
 logging:
   file:

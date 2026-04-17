@@ -8,6 +8,9 @@ public enum ErrorCode {
   E409,
   E500,
 
+  E1000,
+  E1001,
+
   /*
       E1000~E1999 Member
       E2000~E2999 POST

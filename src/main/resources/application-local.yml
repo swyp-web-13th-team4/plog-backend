@@ -3,6 +3,13 @@ spring:
     activate:
       on-profile: local
 
+
+  security:
+    front:
+      cors:
+        allowed-origins: "http://localhost:8080" # 프론트 CORS 허용 주소
+      frontend-url: http://localhost:8080 # 프론트 페이지 주소
+
   servlet:
     multipart:
       max-file-size: 10MB
@@ -22,6 +29,11 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         hbm2ddl:
           auto: create
+
+# 로컬 환경(HTTP)에서는 Secure 쿠키 비활성화
+cookie:
+  secure: false
+  sameSite: Lax
 
 logging:
   level:

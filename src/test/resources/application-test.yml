@@ -16,17 +16,36 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
 
+  security:
+    front:
+      cors:
+        allowed-origins: "http://localhost:8080"
+      frontend-url: "http://localhost:8080"
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: KAKAO_CLIENT_ID_TEST
+            client-secret: KAKAO_CLIENT_SECRET_TEST
+            redirect-uri: "test"
+            authorization-grant-type: authorization_code_TEST
+            client-authentication-method: client_secret_post_TEST
+            client-name: Kakao_TEST
+        provider:
+          kakao:
+            authorization-uri: http://localhost:8080/test
+            token-uri: http://localhost:8080/test
+            user-info-uri: http://localhost:8080/test
+            user-name-attribute: http://localhost:8080/test
+
 logging:
   level:
     com.plog: debug
 
 jwt:
-  secret-key: test-secret-key
-
-kakao:
-  client-id: test
-  client-secret: test
-  redirect-uri: http://localhost:8080/test
+  secret: sZrRMHHyVBtvoCugce18RIRUyZ6Arb8KSK3h/FGX9ps=
+  access-token-validity-in-ms: 7200000
+  register-token-validity-in-ms: 900000
 
 spring.cloud.gcp.storage:
   bucket: test-bucket
