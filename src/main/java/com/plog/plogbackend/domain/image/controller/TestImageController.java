@@ -66,8 +66,9 @@ public class TestImageController {
       throw new AppException(ErrorType.POST_IMAGE_LIMIT_EXCEEDED);
     }
 
+    // 이미지 URL 리스트 반환 이걸 DB에 저장하면 될것 같습니다
     List<ImageUrlResponse> response =
-        images.stream() // 이미지 URL 리스트 반환 이걸 DB에 저장하면 될것 같습니다
+        images.stream()
             .map(file -> new ImageUrlResponse(gcsService.upload(file, "test")))
             .toList();
 

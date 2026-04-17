@@ -1,12 +1,12 @@
 package com.plog.plogbackend.global.util;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import java.io.IOException;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -105,6 +105,6 @@ public class GcsService {
     if (originalFilename != null && originalFilename.contains(".")) {
       extension = originalFilename.substring(originalFilename.lastIndexOf("."));
     }
-    return directory + "/" + UUID.randomUUID() + extension;
+    return directory + "/" + UuidCreator.getTimeOrderedEpoch() + extension;
   }
 }

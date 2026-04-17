@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Configuration;
 /**
  * GCS 클라이언트 빈 설정.
  *
- * <p>로컬 환경: gcloud CLI의 ADC(Application Default Credentials)를 자동으로 사용하므로 별도 키 파일 불필요. GCP 환경(Cloud
- * Run, GCE 등): 서비스 계정 메타데이터를 ADC로 자동 인식하여 키 파일 불필요.
+ * <p>로컬 환경: gcloud CLI의 ADC를 자동으로 사용하므로 별도 키 파일 불필요.
+ * GCP 환경: 서비스 계정 메타데이터를 ADC로 자동 인식하여 키 파일 불필요.
  */
 @Configuration
 public class GcsConfig {
