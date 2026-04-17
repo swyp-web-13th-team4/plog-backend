@@ -14,9 +14,11 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "회원", description = "로그인 인증/인가")
 @RestController
@@ -28,11 +30,12 @@ public class MemberController {
   private final JwtProvider jwtProvider;
   private final CookieUtil cookieUtil;
 
-  @Operation(summary = "회원가입(카카오 인증 후)", description = "추가 정보 입력 후 가입 완료")
-  @PostMapping("/signup")
+  @Operation(summary = "회원가입(카카오 인증 후)", description = "추가 정보 입력 후 가입 완료 (멀티파트 폼 데이터)")
+  @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<Void>> signup(
       @CookieValue(value = "registerToken", required = false) String registerToken,
-      @Valid @RequestBody MemberSignupRequest request,
+      @Valid @RequestPart("request") MemberSignupRequest request,
+      @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
       HttpServletResponse response) {
 
     if (registerToken == null) {
@@ -40,7 +43,7 @@ public class MemberController {
     }
 
     // 1. 회원 저장 후 memberKey 반환 (accessToken은 서비스 레이어에서 생성하지 않음)
-    UUID memberKey = memberService.signup(registerToken, request);
+    UUID memberKey = memberService.signup(registerToken, request, profileImage);
 
     // 2. 컨트롤러에서 accessToken 생성 후 쿠키에 담음
     String accessToken = jwtProvider.createAccessToken(memberKey);

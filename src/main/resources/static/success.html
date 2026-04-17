@@ -269,6 +269,30 @@
         </div>
       </div>
 
+      <!-- 이미지 업로드 테스트 -->
+      <div class="card">
+        <div class="card-title">🖼️ 이미지 관리 테스트</div>
+        
+        <!-- 프로필 이미지 -->
+        <div style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+          <h4 style="font-size: 0.85rem; color: #a5b4fc; margin-bottom: 10px;">1. 프로필 이미지 업로드</h4>
+          <input type="file" id="profile-img-input" accept="image/*" style="font-size: 0.8rem; margin-bottom: 12px; color: var(--muted);"/>
+          <br/>
+          <button class="api-run-btn" onclick="uploadProfileImage()">프로필 등록(PUT)</button>
+          <button class="api-run-btn" onclick="deleteProfileImage()" style="border-color: #fca5a5; color: #fca5a5;">삭제(DELETE)</button>
+          <div class="api-result" id="result-profile-img"></div>
+        </div>
+
+        <!-- 게시글 이미지 테스트 (테스트 컨트롤러 연동) -->
+        <div>
+          <h4 style="font-size: 0.85rem; color: #a5b4fc; margin-bottom: 10px;">2. 다중 이미지 업로드 테스트 (게시글용)</h4>
+          <input type="file" id="post-img-input" accept="image/*" multiple style="font-size: 0.8rem; margin-bottom: 12px; color: var(--muted);"/>
+          <br/>
+          <button class="api-run-btn" onclick="uploadTestImages()">여러 개 업로드(POST)</button>
+          <div class="api-result" id="result-post-img"></div>
+        </div>
+      </div>
+
       <!-- 하단 버튼 -->
       <div class="footer-btns">
         <a class="btn-outline" href="index.html">← 처음으로</a>
@@ -324,6 +348,53 @@
           window.location.href = 'index.html';
         }
       }
+
+      // ── 이미지 테스트 로직 ──
+      async function doImageFetch(url, method, formData, resultId) {
+        const resultEl = document.getElementById(resultId);
+        resultEl.style.display = 'block';
+        resultEl.style.color = '#a5b4fc';
+        resultEl.textContent = '요청 중...';
+        
+        try {
+          const options = { method, credentials: 'include' };
+          if (formData) options.body = formData; // FormData는 자동으로 content-type 및 boundary 설정됨
+          
+          const res = await fetch(url, options);
+          const data = await res.json();
+          resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
+          resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(data, null, 2)}`;
+        } catch (err) {
+          resultEl.style.color = '#fca5a5';
+          resultEl.textContent = `연결 실패: ${err.message}`;
+        }
+      }
+
+      function uploadProfileImage() {
+        const fileInput = document.getElementById('profile-img-input');
+        if (!fileInput.files.length) return alert('프로필 이미지를 선택해주세요.');
+        const form = new FormData();
+        form.append('image', fileInput.files[0]);
+        doImageFetch('http://localhost:8080/api/members/me/profile-image', 'PUT', form, 'result-profile-img');
+      }
+
+      function deleteProfileImage() {
+        if (!confirm('프로필 이미지를 삭제하시겠습니까?')) return;
+        doImageFetch('http://localhost:8080/api/members/me/profile-image', 'DELETE', null, 'result-profile-img');
+        document.getElementById('profile-img-input').value = '';
+      }
+
+      function uploadTestImages() {
+        const fileInput = document.getElementById('post-img-input');
+        if (!fileInput.files.length) return alert('이미지를 1개 이상 선택해주세요.');
+        if (fileInput.files.length > 5) return alert('이미지는 최대 5개까지만 업로드 가능합니다.');
+
+        const form = new FormData();
+        Array.from(fileInput.files).forEach(file => form.append('images', file));
+        doImageFetch('http://localhost:8080/api/test/images/upload', 'POST', form, 'result-post-img');
+      }
+
+
     </script>
   </body>
 </html>
