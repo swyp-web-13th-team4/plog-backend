@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,15 +32,14 @@ public class TestImageController {
   // ==========================================
 
   @Operation(
-          summary = "프로필 이미지 업로드/수정",
-          description = "로그인한 회원의 프로필 이미지를 업로드합니다. 기존 이미지가 있으면 자동으로 교체됩니다.")
+      summary = "프로필 이미지 업로드/수정",
+      description = "로그인한 회원의 프로필 이미지를 업로드합니다. 기존 이미지가 있으면 자동으로 교체됩니다.")
   @PutMapping(
-          value = "/api/members/me/profile-image",
-          consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+      value = "/api/members/me/profile-image",
+      consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<ImageUrlResponse>> uploadProfileImage(
-          Authentication authentication,
-          @Parameter(description = "업로드할 이미지 파일 (jpg, png 등, 최대 10MB)")
-          @RequestPart("image")
+      Authentication authentication,
+      @Parameter(description = "업로드할 이미지 파일 (jpg, png 등, 최대 10MB)") @RequestPart("image")
           MultipartFile image) {
 
     UUID memberKey = (UUID) authentication.getPrincipal();
@@ -60,21 +58,18 @@ public class TestImageController {
   @Operation(
       summary = "[테스트] 다중 이미지 업로드",
       description = "게시글 컨텍스트 없이 이미지 여러 개가 GCS에 정상적으로 업로드되는지 테스트합니다 (최대5개).")
-  @PostMapping(
-      value = "/upload",
-      consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<List<ImageUrlResponse>>> uploadTestImages(
-      @Parameter(description = "업로드할 이미지 파일들")
-          @RequestPart("images")
-          List<MultipartFile> images) {
+      @Parameter(description = "업로드할 이미지 파일들") @RequestPart("images") List<MultipartFile> images) {
 
     if (images != null && images.size() > 5) { // 이미지 업로드 5개로 제한
       throw new AppException(ErrorType.POST_IMAGE_LIMIT_EXCEEDED);
     }
 
-    List<ImageUrlResponse> response = images.stream() // 이미지 URL 리스트 반환 이걸 DB에 저장하면 될것 같습니다
-        .map(file -> new ImageUrlResponse(gcsService.upload(file, "test")))
-        .toList();
+    List<ImageUrlResponse> response =
+        images.stream() // 이미지 URL 리스트 반환 이걸 DB에 저장하면 될것 같습니다
+            .map(file -> new ImageUrlResponse(gcsService.upload(file, "test")))
+            .toList();
 
     return ResponseEntity.ok(ApiResponse.success(response));
   }

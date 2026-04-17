@@ -24,7 +24,8 @@ public class MemberService {
   private final GcsService gcsService;
 
   @Transactional
-  public UUID signup(String registerToken, MemberSignupRequest request, MultipartFile profileImage) {
+  public UUID signup(
+      String registerToken, MemberSignupRequest request, MultipartFile profileImage) {
     if (!jwtProvider.isValidToken(registerToken) || !jwtProvider.isRegisterToken(registerToken)) {
       throw new AppException(ErrorType.INVALID_SIGNUP_TOKEN);
     }

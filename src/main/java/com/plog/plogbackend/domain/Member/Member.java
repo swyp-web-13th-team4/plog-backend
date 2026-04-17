@@ -93,4 +93,3 @@ public class Member extends BaseTimeStatusEntity {
     this.profileImage = imageUrl;
   }
 }
-
