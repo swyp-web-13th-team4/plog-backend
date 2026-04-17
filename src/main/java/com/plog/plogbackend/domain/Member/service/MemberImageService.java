@@ -69,5 +69,4 @@ public class MemberImageService {
     member.updateProfileImage(null); // Member 엔티티 내부에서 기본 이미지로 처리
     log.info("프로필 이미지 삭제 완료 - memberKey: {}", memberKey);
   }
-
 }

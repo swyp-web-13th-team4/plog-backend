@@ -16,8 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * Google Cloud Storage 파일 업로드/삭제 공통 유틸 서비스.
  *
- * <p>GCS 객체 URL 형식: {@code
- * https://storage.googleapis.com/{bucket}/{objectName}}
+ * <p>GCS 객체 URL 형식: {@code https://storage.googleapis.com/{bucket}/{objectName}}
  */
 @Slf4j
 @Service

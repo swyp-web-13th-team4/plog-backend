@@ -62,22 +62,27 @@ public class SecurityConfig {
             auth ->
                 auth
                     // Swagger 등 API 문서 접근 허용
-                    .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                    
+                    .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                    .permitAll()
+
                     // 회원가입 API와 소셜 로그인 진입점은 모두에게 허용
-                    .requestMatchers("/api/members/signup", "/oauth2/**", "/login/**").permitAll()
-                    
+                    .requestMatchers("/api/members/signup", "/oauth2/**", "/login/**")
+                    .permitAll()
+
                     // 테스트용 게시글 이미지 목록 조회는 모두에게 허용
-                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/test/images/**").permitAll()
-                    
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/test/images/**")
+                    .permitAll()
+
                     // 내 프로필 이미지 관리, 테스트용 게시글 이미지 등록/삭제 등은 반드시 인증 필요
-                    .requestMatchers("/api/members/me/profile-image", "/api/test/images/upload").authenticated()
+                    .requestMatchers("/api/members/me/profile-image", "/api/test/images/upload")
+                    .authenticated()
 
                     // 그 외 모든 요청은 인증(JWT) 필요 (현재는 테스트를 위해 열어둠)
                     // .anyRequest().authenticated()
 
                     // 테스트 전용
-                    .anyRequest().permitAll())
+                    .anyRequest()
+                    .permitAll())
 
         // 4. 소셜 로그인(OAuth2) 설정
         .oauth2Login(
