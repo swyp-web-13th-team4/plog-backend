@@ -2,10 +2,8 @@ package com.plog.plogbackend.domain.image.controller;
 
 import com.plog.plogbackend.domain.Member.service.MemberImageService;
 import com.plog.plogbackend.domain.image.dto.ImageUrlResponse;
-import com.plog.plogbackend.global.error.AppException;
-import com.plog.plogbackend.global.error.ErrorType;
+import com.plog.plogbackend.domain.post.service.PostImageService;
 import com.plog.plogbackend.global.response.ApiResponse;
-import com.plog.plogbackend.global.util.GcsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/test/images")
 public class TestImageController {
 
-  private final GcsService gcsService;
+  private final PostImageService postImageService;
   private final MemberImageService memberImageService;
 
   // ==========================================
@@ -62,15 +60,7 @@ public class TestImageController {
   public ResponseEntity<ApiResponse<List<ImageUrlResponse>>> uploadTestImages(
       @Parameter(description = "업로드할 이미지 파일들") @RequestPart("images") List<MultipartFile> images) {
 
-    if (images != null && images.size() > 5) { // 이미지 업로드 5개로 제한
-      throw new AppException(ErrorType.POST_IMAGE_LIMIT_EXCEEDED);
-    }
-
-    // 이미지 URL 리스트 반환 이걸 DB에 저장하면 될것 같습니다
-    List<ImageUrlResponse> response =
-        images.stream()
-            .map(file -> new ImageUrlResponse(gcsService.upload(file, "test")))
-            .toList();
+    List<ImageUrlResponse> response = postImageService.uploadTestImages(images);
 
     return ResponseEntity.ok(ApiResponse.success(response));
   }

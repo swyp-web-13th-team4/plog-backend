@@ -61,19 +61,19 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth
-                    // Swagger 등 API 문서 접근 허용
+                    // Swagger 등 API 문서
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                     .permitAll()
 
-                    // 회원가입 API와 소셜 로그인 진입점은 모두에게 허용
+                    // 회원가입 API와 소셜 로그인
                     .requestMatchers("/api/members/signup", "/oauth2/**", "/login/**")
                     .permitAll()
 
-                    // 테스트용 게시글 이미지 목록 조회는 모두에게 허용
+                    // 테스트용 게시글 이미지 목록 조회 TODO: 게시글 API 구현 완료후 삭제
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/test/images/**")
                     .permitAll()
 
-                    // 내 프로필 이미지 관리, 테스트용 게시글 이미지 등록/삭제 등은 반드시 인증 필요
+                    // 내 프로필 이미지 관리, 테스트용 게시글 이미지 등록/삭제 TODO: 마이페이지 , 게시글 API 구현 완료후 삭제
                     .requestMatchers("/api/members/me/profile-image", "/api/test/images/upload")
                     .authenticated()
 

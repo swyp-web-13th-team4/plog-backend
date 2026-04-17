@@ -46,7 +46,7 @@ public class PostImageService {
     }
 
     int currentCount = postImageRepository.countByPostId(postId);
-    if (currentCount + files.size() > POST_IMAGE_MAX) {
+    if (currentCount + files.size() > POST_IMAGE_MAX) { // 게시글 5개 제한
       throw new AppException(ErrorType.POST_IMAGE_LIMIT_EXCEEDED);
     }
 
@@ -113,6 +113,26 @@ public class PostImageService {
     }
     return postImageRepository.findAllByPostId(postId).stream()
         .map(img -> new ImageUrlResponse(img.getImageUrl()))
+        .toList();
+  }
+
+  /**
+   * [테스트용] 게시글 컨텍스트 없이 GCS에 이미지를 업로드합니다.
+   *
+   * @param files 업로드할 이미지 파일 목록
+   * @return 업로드된 이미지 URL 목록
+   */
+  public List<ImageUrlResponse> uploadTestImages(List<MultipartFile> files) { // 게시물 정보 없어도 테스트 가능
+    if (files != null && files.size() > POST_IMAGE_MAX) { // 이미지 업로드 제한 (기본 5개)
+      throw new AppException(ErrorType.POST_IMAGE_LIMIT_EXCEEDED);
+    }
+
+    if (files == null || files.isEmpty()) {
+      return List.of();
+    }
+
+    return files.stream()
+        .map(file -> new ImageUrlResponse(gcsService.upload(file, "test")))
         .toList();
   }
 }
