@@ -5,7 +5,6 @@ import com.plog.plogbackend.domain.Member.dto.MemberSignupRequest;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
-import com.plog.plogbackend.global.util.GcsService;
 import com.plog.plogbackend.security.jwt.JwtProvider;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +20,7 @@ public class MemberService {
 
   private final MemberRepository memberRepository;
   private final JwtProvider jwtProvider;
-  private final GcsService gcsService;
+  private final MemberImageService memberImageService;
 
   @Transactional
   public UUID signup(
@@ -35,10 +34,8 @@ public class MemberService {
       throw new AppException(ErrorType.ALREADY_REGISTERED_MEMBER);
     }
 
-    String profileImageUrl = null;
-    if (profileImage != null && !profileImage.isEmpty()) {
-      profileImageUrl = gcsService.upload(profileImage, "profiles");
-    }
+    // 이미지 업로드는 MemberImageService에서 처리
+    String profileImageUrl = memberImageService.uploadSignupProfileImage(profileImage);
 
     Member member = Member.createNewMember(request.nickname(), providerId, profileImageUrl);
     memberRepository.save(member);

@@ -7,6 +7,7 @@ import com.google.cloud.storage.Storage;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import java.io.IOException;
+import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,8 +47,8 @@ public class GcsService {
             .setContentType(file.getContentType())
             .build();
 
-    try {
-      storage.create(blobInfo, file.getBytes());
+    try (InputStream inputStream = file.getInputStream()) {
+      storage.createFrom(blobInfo, inputStream);
       String finalUrl = GCS_BASE_URL + bucket + "/" + objectName;
       log.info("GCS 파일 업로드 완료. 생성된 URL: {}", finalUrl);
       return finalUrl;
@@ -99,12 +100,40 @@ public class GcsService {
     }
   }
 
-  /** 중복 없는 고유한 GCS 객체 이름을 생성합니다. */
+  /**
+   * 중복 없는 고유한 GCS 객체 이름을 생성합니다.
+   *
+   * <p>originalFilename에서 경로 구분자(/ \)를 제거한 뒤 확장자만 추출합니다.
+   */
   private String buildObjectName(String directory, String originalFilename) {
-    String extension = "";
-    if (originalFilename != null && originalFilename.contains(".")) {
-      extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-    }
+    String extension = extractSafeExtension(originalFilename);
     return directory + "/" + UuidCreator.getTimeOrderedEpoch() + extension;
+  }
+
+  /**
+   * 파일명에서 경로 인젝션을 방지하고 확장자만 안전하게 추출합니다.
+   *
+   * <p>경로 구분자(/ \)를 포함한 디렉터리 정보를 제거하고, 소문자 알파벳·숫자만 허용합니다.
+   *
+   * @param originalFilename 클라이언트에서 전달된 원본 파일명
+   * @return ".jpg" 형태의 확장자, 유효하지 않으면 빈 문자열
+   */
+  private String extractSafeExtension(String originalFilename) {
+    if (originalFilename == null || originalFilename.isBlank()) {
+      return "";
+    }
+    // 경로 구분자 이후 파일명만 추출 (경로 인젝션 방지)
+    String basename = originalFilename.replaceAll(".*[/\\\\]", "");
+    int dotIndex = basename.lastIndexOf('.');
+    if (dotIndex < 0 || dotIndex == basename.length() - 1) {
+      return "";
+    }
+    String ext = basename.substring(dotIndex + 1).toLowerCase();
+    // 알파벳·숫자만 허용 (예: jpg, png, gif, webp)
+    if (!ext.matches("[a-z0-9]+")) {
+      log.warn("허용되지 않는 파일 확장자 - 확장자 제거 처리: {}", ext);
+      return "";
+    }
+    return "." + ext;
   }
 }

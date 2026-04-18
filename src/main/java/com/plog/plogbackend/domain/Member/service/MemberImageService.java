@@ -28,7 +28,24 @@ public class MemberImageService {
   // ==========================================
 
   /**
-   * 프로필 이미지를 GCS에 업로드하고 Member 엔티티를 갱신합니다.
+   * 회원가입 시 프로필 이미지를 GCS에 업로드하고 URL을 반환합니다. 최초 회원가입
+   *
+   * <p>이미지가 없으면 null을 반환 — Member 엔티티가 기본 이미지로 처리합니다.
+   *
+   * @param profileImage 업로드할 이미지 파일 (nullable)
+   * @return GCS 업로드 URL, 이미지 없으면 null
+   */
+  public String uploadSignupProfileImage(MultipartFile profileImage) {
+    if (profileImage == null || profileImage.isEmpty()) {
+      return null;
+    }
+    String url = gcsService.upload(profileImage, PROFILE_DIR);
+    log.info("회원가입 프로필 이미지 업로드 완료 - url: {}", url);
+    return url;
+  }
+
+  /**
+   * 프로필 이미지를 GCS에 업로드하고 Member 엔티티를 갱신합니다. 프로필 이미지 수정
    *
    * <p>기존 이미지가 GCS에 저장된 파일이면 먼저 삭제 후 새 이미지를 업로드합니다.
    *
@@ -54,7 +71,7 @@ public class MemberImageService {
   }
 
   /**
-   * 프로필 이미지를 GCS에서 삭제하고 Member 엔티티를 기본 이미지로 초기화합니다.
+   * 프로필 이미지를 GCS에서 삭제하고 Member 엔티티를 기본 이미지로 초기화합니다. 프로필 이미지 삭제
    *
    * @param memberKey 회원 UUID
    */
