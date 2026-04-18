@@ -6,8 +6,8 @@ spring:
   security:
     front:
       cors:
-        allowed-origins: "https://" # 프론트 CORS 허용 주소
-      frontend-url: https://
+        allowed-origins: "https://plog-dev.duckdns.org" # 프론트 CORS 허용 주소
+      frontend-url: https://plog-dev.duckdns.org
 
   servlet:
     multipart:
