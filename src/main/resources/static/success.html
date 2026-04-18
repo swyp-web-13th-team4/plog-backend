@@ -298,7 +298,7 @@
         const headers = { 'Content-Type': 'application/json' };
 
         try {
-          const res  = await fetch(`http://localhost:8080${path}`, { 
+          const res  = await fetch(`https://plog-dev.duckdns.org${path}`, {
             method, 
             headers,
             credentials: 'include' // 세션 쿠키 전송
@@ -314,7 +314,7 @@
 
       async function logout() {
         try {
-          await fetch('http://localhost:8080/api/members/logout', {
+          await fetch('https://plog-dev.duckdns.org/api/members/logout', {
             method: 'POST',
             credentials: 'include'
           });
