@@ -53,9 +53,10 @@ public class SecurityConfig {
                       return config;
                     }))
 
-        // 2. 세션 사용 안 함 (JWT 사용)
+        // 2. 세션 정책: OAuth2 로그인 흐름(state 검증)을 위해 IF_REQUIRED 사용
+        // STATELESS 설정 시 OAuth2 콜백 시점에 state를 비교할 세션이 없어 인증 실패함
         .sessionManagement(
-            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 
         // 3. 권한 및 경로 설정
         .authorizeHttpRequests(
