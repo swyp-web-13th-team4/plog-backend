@@ -1,400 +1,620 @@
 <!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Plog — 로그인 성공</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-      :root {
-        --bg: #070b14;
-        --surface: rgba(255,255,255,0.05);
-        --border: rgba(255,255,255,0.1);
-        --text: #e8eaf6;
-        --muted: #7986ab;
-        --accent: #818cf8;
-        --success: #4ade80;
-        --green-glow: rgba(74,222,128,0.3);
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plog — 로그인 성공</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #070b14;
+      --surface: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #e8eaf6;
+      --muted: #7986ab;
+      --accent: #818cf8;
+      --success: #4ade80;
+      --green-glow: rgba(74, 222, 128, 0.3);
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 32px 16px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      animation: float 8s ease-in-out infinite;
+    }
+
+    .bg-orb-1 {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(74, 222, 128, 0.12), transparent 70%);
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .bg-orb-2 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.15), transparent 70%);
+      bottom: -100px;
+      right: -100px;
+      animation-delay: -4s;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateX(-50%) translateY(0);
       }
 
-      body {
-        font-family: 'Outfit', sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        min-height: 100vh;
-        padding: 32px 16px;
-        position: relative;
-        overflow-x: hidden;
+      50% {
+        transform: translateX(-50%) translateY(-20px);
+      }
+    }
+
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: white;
+      opacity: 0;
+      animation: twinkle var(--dur, 3s) var(--delay, 0s) infinite;
+    }
+
+    @keyframes twinkle {
+
+      0%,
+      100% {
+        opacity: 0;
       }
 
-      .bg-orb {
-        position: fixed; border-radius: 50%;
-        filter: blur(80px); pointer-events: none;
-        animation: float 8s ease-in-out infinite;
+      50% {
+        opacity: var(--op, .5);
       }
-      .bg-orb-1 {
-        width: 600px; height: 600px;
-        background: radial-gradient(circle, rgba(74,222,128,0.12), transparent 70%);
-        top: -200px; left: 50%; transform: translateX(-50%);
-      }
-      .bg-orb-2 {
-        width: 400px; height: 400px;
-        background: radial-gradient(circle, rgba(99,102,241,0.15), transparent 70%);
-        bottom: -100px; right: -100px; animation-delay: -4s;
-      }
-      @keyframes float {
-        0%,100% { transform: translateX(-50%) translateY(0); }
-        50%      { transform: translateX(-50%) translateY(-20px); }
+    }
+
+    /* ── 레이아웃 ── */
+    .page-wrap {
+      max-width: 580px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── 성공 배너 ── */
+    .success-banner {
+      background: rgba(74, 222, 128, 0.08);
+      border: 1px solid rgba(74, 222, 128, 0.25);
+      border-radius: 24px;
+      padding: 40px 32px;
+      text-align: center;
+      animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .success-banner::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(74, 222, 128, 0.15), transparent 70%);
+      pointer-events: none;
+    }
+
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
       }
 
-      .stars { position: fixed; inset: 0; pointer-events: none; }
-      .star {
-        position: absolute; border-radius: 50%;
-        background: white; opacity: 0;
-        animation: twinkle var(--dur,3s) var(--delay,0s) infinite;
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
-      @keyframes twinkle {
-        0%,100%{opacity:0;} 50%{opacity:var(--op,.5);}
-      }
+    }
 
-      /* ── 레이아웃 ── */
-      .page-wrap {
-        max-width: 580px; margin: 0 auto;
-        display: flex; flex-direction: column; gap: 16px;
-      }
+    .success-icon {
+      font-size: 56px;
+      margin-bottom: 16px;
+      display: block;
+      animation: bounce 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97) 0.3s forwards;
+      transform: scale(0);
+    }
 
-      /* ── 성공 배너 ── */
-      .success-banner {
-        background: rgba(74,222,128,0.08);
-        border: 1px solid rgba(74,222,128,0.25);
-        border-radius: 24px;
-        padding: 40px 32px;
-        text-align: center;
-        animation: cardIn 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
-        position: relative; overflow: hidden;
-      }
-      .success-banner::before {
-        content: '';
-        position: absolute; top: -50px; left: 50%; transform: translateX(-50%);
-        width: 300px; height: 300px; border-radius: 50%;
-        background: radial-gradient(circle, rgba(74,222,128,0.15), transparent 70%);
-        pointer-events: none;
-      }
-      @keyframes cardIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to   { opacity: 1; transform: translateY(0); }
-      }
-      .success-icon {
-        font-size: 56px; margin-bottom: 16px;
-        display: block;
-        animation: bounce 0.8s cubic-bezier(0.36,0.07,0.19,0.97) 0.3s forwards;
+    @keyframes bounce {
+      0% {
         transform: scale(0);
       }
-      @keyframes bounce {
-        0%  { transform: scale(0); }
-        60% { transform: scale(1.2); }
-        80% { transform: scale(0.95); }
-        100%{ transform: scale(1); }
-      }
-      .success-title {
-        font-size: 1.8rem; font-weight: 800; letter-spacing: -0.03em;
-        background: linear-gradient(135deg, #86efac, #4ade80);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        margin-bottom: 8px;
-      }
-      .success-sub { color: var(--muted); font-size: 0.9rem; }
 
-      /* ── 공통 카드 ── */
-      .card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 24px 28px;
-        backdrop-filter: blur(16px);
-        animation: cardIn 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
-      }
-      .card:nth-child(2) { animation-delay: 0.1s; opacity: 0; }
-      .card:nth-child(3) { animation-delay: 0.2s; opacity: 0; }
-      .card:nth-child(4) { animation-delay: 0.3s; opacity: 0; }
-      .card:nth-child(5) { animation-delay: 0.4s; opacity: 0; }
-
-      .card-title {
-        font-size: 0.75rem; font-weight: 600;
-        letter-spacing: 0.08em; text-transform: uppercase;
-        color: var(--muted); margin-bottom: 16px;
-        display: flex; align-items: center; gap: 8px;
-      }
-      .card-title::after {
-        content: ''; flex: 1; height: 1px; background: var(--border);
+      60% {
+        transform: scale(1.2);
       }
 
-      /* ── 토큰 표시 ── */
-      .token-display {
-        background: rgba(0,0,0,0.3);
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 12px;
-        padding: 14px 16px;
-        font-family: 'Courier New', monospace;
-        font-size: 0.72rem;
-        color: #86efac;
-        word-break: break-all;
-        line-height: 1.6;
-        margin-bottom: 12px;
-        max-height: 80px;
-        overflow-y: auto;
-      }
-      .copy-btn {
-        background: rgba(129,140,248,0.1);
-        border: 1px solid rgba(129,140,248,0.2);
-        color: var(--accent);
-        font-family: 'Outfit', sans-serif;
-        font-size: 0.8rem; font-weight: 500;
-        padding: 8px 16px; border-radius: 8px;
-        cursor: pointer; transition: all 0.2s;
-      }
-      .copy-btn:hover { background: rgba(129,140,248,0.2); }
-
-      /* ── Payload 테이블 ── */
-      .payload-table { width: 100%; border-collapse: collapse; }
-      .payload-table tr:not(:last-child) td { border-bottom: 1px solid var(--border); }
-      .payload-table td {
-        padding: 10px 0; font-size: 0.85rem; vertical-align: top;
-      }
-      .payload-table td:first-child {
-        color: var(--muted); width: 40%; font-weight: 500;
-      }
-      .payload-table td:last-child { color: var(--text); word-break: break-all; }
-      .badge {
-        display: inline-block; padding: 2px 10px; border-radius: 100px;
-        font-size: 0.72rem; font-weight: 600;
-      }
-      .badge-green { background: rgba(74,222,128,0.15); color: #86efac; border: 1px solid rgba(74,222,128,0.25); }
-      .badge-blue  { background: rgba(129,140,248,0.15); color: #a5b4fc; border: 1px solid rgba(129,140,248,0.25); }
-
-      /* ── API 테스트 ── */
-      .api-row {
-        display: flex; align-items: center; gap: 10px;
-        padding: 10px 0;
-      }
-      .api-row:not(:last-child) { border-bottom: 1px solid var(--border); }
-      .method-badge {
-        font-size: 0.68rem; font-weight: 700; padding: 3px 8px;
-        border-radius: 6px; flex-shrink: 0;
-      }
-      .get  { background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.25); }
-      .post { background: rgba(74,222,128,0.15); color: #86efac; border: 1px solid rgba(74,222,128,0.25); }
-      .api-path { font-family: monospace; font-size: 0.82rem; color: var(--muted); flex: 1; }
-      .api-run-btn {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid var(--border);
-        color: var(--text); font-family: 'Outfit', sans-serif;
-        font-size: 0.75rem; padding: 6px 14px;
-        border-radius: 8px; cursor: pointer;
-        transition: all 0.15s;
-      }
-      .api-run-btn:hover { background: rgba(255,255,255,0.08); border-color: var(--accent); color: var(--accent); }
-      .api-result {
-        background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 10px; padding: 12px 14px; margin-top: 8px;
-        font-family: monospace; font-size: 0.75rem; color: #a5b4fc;
-        display: none; white-space: pre-wrap; word-break: break-all; max-height: 120px; overflow-y: auto;
+      80% {
+        transform: scale(0.95);
       }
 
-      /* ── 하단 버튼 ── */
-      .footer-btns { display: flex; gap: 10px; }
-      .btn-outline {
-        flex: 1; padding: 14px; border-radius: 12px;
-        border: 1px solid var(--border); background: transparent;
-        color: var(--text); font-family: 'Outfit', sans-serif;
-        font-size: 0.88rem; font-weight: 500;
-        cursor: pointer; transition: all 0.2s; text-align: center;
-        text-decoration: none; display: flex; align-items: center; justify-content: center;
+      100% {
+        transform: scale(1);
       }
-      .btn-outline:hover { border-color: var(--accent); color: var(--accent); background: rgba(129,140,248,0.06); }
-      .btn-primary {
-        flex: 2; padding: 14px; border-radius: 12px;
-        background: linear-gradient(135deg, #6366f1, #7c3aed);
-        border: none; color: white;
-        font-family: 'Outfit', sans-serif; font-size: 0.88rem; font-weight: 600;
-        cursor: pointer; transition: all 0.2s;
-        box-shadow: 0 4px 20px rgba(99,102,241,0.4);
-      }
-      .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(99,102,241,0.55); }
-    </style>
-  </head>
-  <body>
-    <div class="stars" id="stars"></div>
-    <div class="bg-orb bg-orb-1"></div>
-    <div class="bg-orb bg-orb-2"></div>
+    }
 
-    <div class="page-wrap">
-      <!-- 성공 배너 -->
-      <div class="success-banner">
-        <span class="success-icon">🎉</span>
-        <div class="success-title">로그인 성공!</div>
-        <p class="success-sub">Access Token이 발급되었습니다</p>
-      </div>
+    .success-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #86efac, #4ade80);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
 
-      <!-- 인증 안내 -->
-      <div class="card">
-        <div class="card-title">🛡️ 인증 상태</div>
-        <p style="font-size:0.85rem; color:var(--muted); line-height: 1.6;">
-          안전한 <strong>HttpOnly 쿠키</strong>로 토큰이 관리됩니다.<br/>
-          API 요청 시 자동으로 인증 정보가 포함됩니다.
-        </p>
-      </div>
+    .success-sub {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
 
-      <!-- API 테스트 (추후 구현될 API 미리 배치) -->
-      <div class="card">
-        <div class="card-title">🧪 API 빠른 테스트</div>
-        <div id="api-tests">
-          <div class="api-row">
-            <span class="method-badge get">GET</span>
-            <span class="api-path">/api/members/me</span>
-            <button class="api-run-btn" onclick="testApi('GET','/api/members/me','result-me')">실행</button>
-          </div>
-          <div class="api-result" id="result-me"></div>
+    /* ── 공통 카드 ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px 28px;
+      backdrop-filter: blur(16px);
+      animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
 
-          <div class="api-row">
-            <span class="method-badge get">GET</span>
-            <span class="api-path">/actuator/health</span>
-            <button class="api-run-btn" onclick="testApi('GET','/actuator/health','result-health')">실행</button>
-          </div>
-          <div class="api-result" id="result-health"></div>
+    .card:nth-child(2) {
+      animation-delay: 0.1s;
+      opacity: 0;
+    }
+
+    .card:nth-child(3) {
+      animation-delay: 0.2s;
+      opacity: 0;
+    }
+
+    .card:nth-child(4) {
+      animation-delay: 0.3s;
+      opacity: 0;
+    }
+
+    .card:nth-child(5) {
+      animation-delay: 0.4s;
+      opacity: 0;
+    }
+
+    .card-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── 토큰 표시 ── */
+    .token-display {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.72rem;
+      color: #86efac;
+      word-break: break-all;
+      line-height: 1.6;
+      margin-bottom: 12px;
+      max-height: 80px;
+      overflow-y: auto;
+    }
+
+    .copy-btn {
+      background: rgba(129, 140, 248, 0.1);
+      border: 1px solid rgba(129, 140, 248, 0.2);
+      color: var(--accent);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: rgba(129, 140, 248, 0.2);
+    }
+
+    /* ── Payload 테이블 ── */
+    .payload-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .payload-table tr:not(:last-child) td {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .payload-table td {
+      padding: 10px 0;
+      font-size: 0.85rem;
+      vertical-align: top;
+    }
+
+    .payload-table td:first-child {
+      color: var(--muted);
+      width: 40%;
+      font-weight: 500;
+    }
+
+    .payload-table td:last-child {
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 100px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .badge-green {
+      background: rgba(74, 222, 128, 0.15);
+      color: #86efac;
+      border: 1px solid rgba(74, 222, 128, 0.25);
+    }
+
+    .badge-blue {
+      background: rgba(129, 140, 248, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(129, 140, 248, 0.25);
+    }
+
+    /* ── API 테스트 ── */
+    .api-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+    }
+
+    .api-row:not(:last-child) {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .method-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    .get {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+    }
+
+    .post {
+      background: rgba(74, 222, 128, 0.15);
+      color: #86efac;
+      border: 1px solid rgba(74, 222, 128, 0.25);
+    }
+
+    .api-path {
+      font-family: monospace;
+      font-size: 0.82rem;
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .api-run-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.75rem;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .api-run-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .api-result {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 8px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: #a5b4fc;
+      display: none;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    /* ── 하단 버튼 ── */
+    .footer-btns {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-outline {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(129, 140, 248, 0.06);
+    }
+
+    .btn-primary {
+      flex: 2;
+      padding: 14px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #6366f1, #7c3aed);
+      border: none;
+      color: white;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 28px rgba(99, 102, 241, 0.55);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="stars" id="stars"></div>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+
+  <div class="page-wrap">
+    <!-- 성공 배너 -->
+    <div class="success-banner">
+      <span class="success-icon">🎉</span>
+      <div class="success-title">로그인 성공!</div>
+      <p class="success-sub">Access Token이 발급되었습니다</p>
+    </div>
+
+    <!-- 인증 안내 -->
+    <div class="card">
+      <div class="card-title">🛡️ 인증 상태</div>
+      <p style="font-size:0.85rem; color:var(--muted); line-height: 1.6;">
+        안전한 <strong>HttpOnly 쿠키</strong>로 토큰이 관리됩니다.<br />
+        API 요청 시 자동으로 인증 정보가 포함됩니다.
+      </p>
+    </div>
+
+    <!-- API 테스트 (추후 구현될 API 미리 배치) -->
+    <div class="card">
+      <div class="card-title">🧪 API 빠른 테스트</div>
+      <div id="api-tests">
+        <div class="api-row">
+          <span class="method-badge get">GET</span>
+          <span class="api-path">/api/members/me</span>
+          <button class="api-run-btn" onclick="testApi('GET','/api/members/me','result-me')">실행</button>
         </div>
-      </div>
+        <div class="api-result" id="result-me"></div>
 
-      <!-- 이미지 업로드 테스트 -->
-      <div class="card">
-        <div class="card-title">🖼️ 이미지 관리 테스트</div>
-        
-        <!-- 프로필 이미지 -->
-        <div style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
-          <h4 style="font-size: 0.85rem; color: #a5b4fc; margin-bottom: 10px;">1. 프로필 사진 변경 및 삭제</h4>
-          <input type="file" id="profile-img-input" accept="image/*" style="font-size: 0.8rem; margin-bottom: 12px; color: var(--muted);"/>
-          <br/>
-          <button class="api-run-btn" onclick="uploadProfileImage()">프로필 사진 변경(PUT)</button>
-          <button class="api-run-btn" onclick="deleteProfileImage()" style="border-color: #fca5a5; color: #fca5a5;">프로필 사진 삭제(DELETE)</button>
-          <div class="api-result" id="result-profile-img"></div>
+        <div class="api-row">
+          <span class="method-badge get">GET</span>
+          <span class="api-path">/actuator/health</span>
+          <button class="api-run-btn" onclick="testApi('GET','/actuator/health','result-health')">실행</button>
         </div>
-
-        <!-- 게시글 이미지 테스트 (테스트 컨트롤러 연동) -->
-        <div>
-          <h4 style="font-size: 0.85rem; color: #a5b4fc; margin-bottom: 10px;">2. 다중 이미지 업로드 테스트 (게시글용)</h4>
-          <input type="file" id="post-img-input" accept="image/*" multiple style="font-size: 0.8rem; margin-bottom: 12px; color: var(--muted);"/>
-          <br/>
-          <button class="api-run-btn" onclick="uploadTestImages()">여러 개 업로드(POST)</button>
-          <div class="api-result" id="result-post-img"></div>
-        </div>
-      </div>
-
-      <!-- 하단 버튼 -->
-      <div class="footer-btns">
-        <a class="btn-outline" href="index.html">← 처음으로</a>
-        <button class="btn-primary" onclick="logout()">로그아웃 후 재테스트</button>
+        <div class="api-result" id="result-health"></div>
       </div>
     </div>
 
-    <script>
-      // ── 별 ──
-      const starsEl = document.getElementById('stars');
-      for (let i = 0; i < 70; i++) {
-        const s = document.createElement('div'); s.className = 'star';
-        const sz = Math.random() < 0.3 ? 3 : 2;
-        s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${2+Math.random()*4}s;--delay:${Math.random()*5}s;--op:${0.3+Math.random()*0.5}`;
-        starsEl.appendChild(s);
+    <!-- 이미지 업로드 테스트 -->
+    <div class="card">
+      <div class="card-title">🖼️ 이미지 관리 테스트</div>
+
+      <!-- 프로필 이미지 -->
+      <div style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+        <h4 style="font-size: 0.85rem; color: #a5b4fc; margin-bottom: 10px;">1. 프로필 사진 변경 및 삭제</h4>
+        <input type="file" id="profile-img-input" accept="image/*"
+          style="font-size: 0.8rem; margin-bottom: 12px; color: var(--muted);" />
+        <br />
+        <button class="api-run-btn" onclick="uploadProfileImage()">프로필 사진 변경(PUT)</button>
+        <button class="api-run-btn" onclick="deleteProfileImage()" style="border-color: #fca5a5; color: #fca5a5;">프로필 사진
+          삭제(DELETE)</button>
+        <div class="api-result" id="result-profile-img"></div>
+      </div>
+
+      <!-- 게시글 이미지 테스트 (테스트 컨트롤러 연동) -->
+      <div>
+        <h4 style="font-size: 0.85rem; color: #a5b4fc; margin-bottom: 10px;">2. 다중 이미지 업로드 테스트 (게시글용)</h4>
+        <input type="file" id="post-img-input" accept="image/*" multiple
+          style="font-size: 0.8rem; margin-bottom: 12px; color: var(--muted);" />
+        <br />
+        <button class="api-run-btn" onclick="uploadTestImages()">여러 개 업로드(POST)</button>
+        <div class="api-result" id="result-post-img"></div>
+      </div>
+    </div>
+
+    <!-- 하단 버튼 -->
+    <div class="footer-btns">
+      <a class="btn-outline" href="index.html">← 처음으로</a>
+      <button class="btn-primary" onclick="logout()">로그아웃 후 재테스트</button>
+    </div>
+  </div>
+
+  <script>
+    // ── 별 ──
+    const starsEl = document.getElementById('stars');
+    for (let i = 0; i < 70; i++) {
+      const s = document.createElement('div'); s.className = 'star';
+      const sz = Math.random() < 0.3 ? 3 : 2;
+      s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random() * 100}%;top:${Math.random() * 100}%;--dur:${2 + Math.random() * 4}s;--delay:${Math.random() * 5}s;--op:${0.3 + Math.random() * 0.5}`;
+      starsEl.appendChild(s);
+    }
+
+    // 토큰은 HttpOnly 쿠키로 관리되므로 JS에서 접근 및 파싱하지 않습니다.
+
+    // ── API 테스트 ──
+    async function testApi(method, path, resultId) {
+      const resultEl = document.getElementById(resultId);
+      resultEl.style.display = 'block';
+      resultEl.style.color = '#a5b4fc';
+      resultEl.textContent = '요청 중...';
+
+      const headers = { 'Content-Type': 'application/json' };
+
+      try {
+        const res = await fetch(`https://plog-dev.duckdns.org${path}`, {
+          method,
+          headers,
+          credentials: 'include' // 세션 쿠키 전송
+        });
+        const data = await res.json();
+        resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
+        resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(data, null, 2)}`;
+      } catch (err) {
+        resultEl.style.color = '#fca5a5';
+        resultEl.textContent = `연결 실패: ${err.message}`;
       }
+    }
 
-      // 토큰은 HttpOnly 쿠키로 관리되므로 JS에서 접근 및 파싱하지 않습니다.
-
-      // ── API 테스트 ──
-      async function testApi(method, path, resultId) {
-        const resultEl = document.getElementById(resultId);
-        resultEl.style.display = 'block';
-        resultEl.style.color   = '#a5b4fc';
-        resultEl.textContent   = '요청 중...';
-
-        const headers = { 'Content-Type': 'application/json' };
-
-        try {
-          const res  = await fetch(`https://plog-dev.duckdns.org${path}`, {
-            method, 
-            headers,
-            credentials: 'include' // 세션 쿠키 전송
-          });
-          const data = await res.json();
-          resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
-          resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(data, null, 2)}`;
-        } catch (err) {
-          resultEl.style.color = '#fca5a5';
-          resultEl.textContent = `연결 실패: ${err.message}`;
-        }
+    async function logout() {
+      try {
+        await fetch('https://plog-dev.duckdns.org/api/members/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+      } catch (e) {
+        console.error(e);
+      } finally {
+        window.location.href = 'index.html';
       }
+    }
 
-      async function logout() {
-        try {
-          await fetch('https://plog-dev.duckdns.org/api/members/logout', {
-            method: 'POST',
-            credentials: 'include'
-          });
-        } catch (e) {
-          console.error(e);
-        } finally {
-          window.location.href = 'index.html';
-        }
+    // ── 이미지 테스트 로직 ──
+    async function doImageFetch(url, method, formData, resultId) {
+      const resultEl = document.getElementById(resultId);
+      resultEl.style.display = 'block';
+      resultEl.style.color = '#a5b4fc';
+      resultEl.textContent = '요청 중...';
+
+      try {
+        const options = { method, credentials: 'include' };
+        if (formData) options.body = formData; // FormData는 자동으로 content-type 및 boundary 설정됨
+
+        const res = await fetch(url, options);
+        const data = await res.json();
+        resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
+        resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(data, null, 2)}`;
+      } catch (err) {
+        resultEl.style.color = '#fca5a5';
+        resultEl.textContent = `연결 실패: ${err.message}`;
       }
+    }
 
-      // ── 이미지 테스트 로직 ──
-      async function doImageFetch(url, method, formData, resultId) {
-        const resultEl = document.getElementById(resultId);
-        resultEl.style.display = 'block';
-        resultEl.style.color = '#a5b4fc';
-        resultEl.textContent = '요청 중...';
-        
-        try {
-          const options = { method, credentials: 'include' };
-          if (formData) options.body = formData; // FormData는 자동으로 content-type 및 boundary 설정됨
-          
-          const res = await fetch(url, options);
-          const data = await res.json();
-          resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
-          resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(data, null, 2)}`;
-        } catch (err) {
-          resultEl.style.color = '#fca5a5';
-          resultEl.textContent = `연결 실패: ${err.message}`;
-        }
-      }
+    function uploadProfileImage() {
+      const fileInput = document.getElementById('profile-img-input');
+      if (!fileInput.files.length) return alert('프로필 이미지를 선택해주세요.');
+      const form = new FormData();
+      form.append('image', fileInput.files[0]);
+      doImageFetch('https://plog-dev.duckdns.org/api/members/me/profile-image', 'PUT', form, 'result-profile-img');
+    }
 
-      function uploadProfileImage() {
-        const fileInput = document.getElementById('profile-img-input');
-        if (!fileInput.files.length) return alert('프로필 이미지를 선택해주세요.');
-        const form = new FormData();
-        form.append('image', fileInput.files[0]);
-        doImageFetch('http://localhost:8080/api/members/me/profile-image', 'PUT', form, 'result-profile-img');
-      }
+    function deleteProfileImage() {
+      if (!confirm('프로필 이미지를 삭제하시겠습니까?')) return;
+      doImageFetch('https://plog-dev.duckdns.org/api/members/me/profile-image', 'DELETE', null, 'result-profile-img');
+      document.getElementById('profile-img-input').value = '';
+    }
 
-      function deleteProfileImage() {
-        if (!confirm('프로필 이미지를 삭제하시겠습니까?')) return;
-        doImageFetch('http://localhost:8080/api/members/me/profile-image', 'DELETE', null, 'result-profile-img');
-        document.getElementById('profile-img-input').value = '';
-      }
+    function uploadTestImages() {
+      const fileInput = document.getElementById('post-img-input');
+      if (!fileInput.files.length) return alert('이미지를 1개 이상 선택해주세요.');
+      if (fileInput.files.length > 5) return alert('이미지는 최대 5개까지만 업로드 가능합니다.');
 
-      function uploadTestImages() {
-        const fileInput = document.getElementById('post-img-input');
-        if (!fileInput.files.length) return alert('이미지를 1개 이상 선택해주세요.');
-        if (fileInput.files.length > 5) return alert('이미지는 최대 5개까지만 업로드 가능합니다.');
-
-        const form = new FormData();
-        Array.from(fileInput.files).forEach(file => form.append('images', file));
-        doImageFetch('http://localhost:8080/api/test/images/upload', 'POST', form, 'result-post-img');
-      }
+      const form = new FormData();
+      Array.from(fileInput.files).forEach(file => form.append('images', file));
+      doImageFetch('https://plog-dev.duckdns.org/api/test/images/upload', 'POST', form, 'result-post-img');
+    }
 
 
-    </script>
-  </body>
+  </script>
+</body>
+
 </html>

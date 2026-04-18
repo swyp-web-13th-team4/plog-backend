@@ -1,279 +1,377 @@
 <!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Plog — 나만의 장소 기록</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-      :root {
-        --bg: #070b14;
-        --surface: rgba(255, 255, 255, 0.05);
-        --border: rgba(255, 255, 255, 0.1);
-        --text: #e8eaf6;
-        --muted: #7986ab;
-        --accent: #818cf8;
-        --accent-glow: rgba(129, 140, 248, 0.4);
-        --kakao: #FEE500;
-        --kakao-text: #191919;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plog — 나만의 장소 기록</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #070b14;
+      --surface: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #e8eaf6;
+      --muted: #7986ab;
+      --accent: #818cf8;
+      --accent-glow: rgba(129, 140, 248, 0.4);
+      --kakao: #FEE500;
+      --kakao-text: #191919;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── 배경 애니메이션 ── */
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      animation: float 8s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .bg-orb-1 {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.25), transparent 70%);
+      top: -200px;
+      left: -200px;
+    }
+
+    .bg-orb-2 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.2), transparent 70%);
+      bottom: -150px;
+      right: -150px;
+      animation-delay: -3s;
+    }
+
+    .bg-orb-3 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.15), transparent 70%);
+      top: 50%;
+      right: 20%;
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0px) scale(1);
       }
 
-      body {
-        font-family: 'Outfit', sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        position: relative;
+      50% {
+        transform: translateY(-30px) scale(1.05);
       }
+    }
 
-      /* ── 배경 애니메이션 ── */
-      .bg-orb {
-        position: fixed;
-        border-radius: 50%;
-        filter: blur(80px);
-        animation: float 8s ease-in-out infinite;
-        pointer-events: none;
-      }
-      .bg-orb-1 {
-        width: 600px; height: 600px;
-        background: radial-gradient(circle, rgba(99,102,241,0.25), transparent 70%);
-        top: -200px; left: -200px;
-      }
-      .bg-orb-2 {
-        width: 500px; height: 500px;
-        background: radial-gradient(circle, rgba(168,85,247,0.2), transparent 70%);
-        bottom: -150px; right: -150px;
-        animation-delay: -3s;
-      }
-      .bg-orb-3 {
-        width: 400px; height: 400px;
-        background: radial-gradient(circle, rgba(59,130,246,0.15), transparent 70%);
-        top: 50%; right: 20%;
-        animation-delay: -5s;
-      }
-      @keyframes float {
-        0%, 100% { transform: translateY(0px) scale(1); }
-        50%       { transform: translateY(-30px) scale(1.05); }
-      }
+    /* 별 */
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
 
-      /* 별 */
-      .stars {
-        position: fixed; inset: 0; pointer-events: none;
-      }
-      .star {
-        position: absolute;
-        width: 2px; height: 2px;
-        background: white;
-        border-radius: 50%;
-        animation: twinkle var(--dur, 3s) var(--delay, 0s) infinite;
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle var(--dur, 3s) var(--delay, 0s) infinite;
+      opacity: 0;
+    }
+
+    @keyframes twinkle {
+
+      0%,
+      100% {
         opacity: 0;
       }
-      @keyframes twinkle {
-        0%, 100% { opacity: 0; }
-        50%       { opacity: var(--op, 0.7); }
+
+      50% {
+        opacity: var(--op, 0.7);
+      }
+    }
+
+    /* ── 카드 ── */
+    .card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 56px 48px;
+      width: 420px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+      text-align: center;
+      animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(32px) scale(0.96);
       }
 
-      /* ── 카드 ── */
-      .card {
-        position: relative;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 28px;
-        padding: 56px 48px;
-        width: 420px;
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset;
-        text-align: center;
-        animation: cardIn 0.7s cubic-bezier(0.16,1,0.3,1) forwards;
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
       }
-      @keyframes cardIn {
-        from { opacity: 0; transform: translateY(32px) scale(0.96); }
-        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* 로고 */
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      border-radius: 20px;
+      margin-bottom: 28px;
+      box-shadow: 0 8px 32px rgba(99, 102, 241, 0.5);
+      font-size: 32px;
+      animation: logoPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes logoPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 8px 32px rgba(99, 102, 241, 0.5);
       }
 
-      /* 로고 */
-      .logo {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 72px; height: 72px;
-        background: linear-gradient(135deg, #6366f1, #a855f7);
-        border-radius: 20px;
-        margin-bottom: 28px;
-        box-shadow: 0 8px 32px rgba(99,102,241,0.5);
-        font-size: 32px;
-        animation: logoPulse 3s ease-in-out infinite;
+      50% {
+        box-shadow: 0 8px 48px rgba(99, 102, 241, 0.8);
       }
-      @keyframes logoPulse {
-        0%, 100% { box-shadow: 0 8px 32px rgba(99,102,241,0.5); }
-        50%       { box-shadow: 0 8px 48px rgba(99,102,241,0.8); }
-      }
+    }
 
-      h1 {
-        font-size: 2rem;
-        font-weight: 800;
-        letter-spacing: -0.03em;
-        background: linear-gradient(135deg, #e0e7ff, #a5b4fc);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        margin-bottom: 8px;
-      }
-      .tagline {
-        color: var(--muted);
-        font-size: 0.95rem;
-        font-weight: 400;
-        margin-bottom: 40px;
-        line-height: 1.5;
-      }
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #e0e7ff, #a5b4fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
 
-      /* ── 카카오 버튼 ── */
-      .btn-kakao {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        width: 100%;
-        padding: 16px 24px;
-        background: var(--kakao);
-        color: var(--kakao-text);
-        font-family: 'Outfit', sans-serif;
-        font-size: 1rem;
-        font-weight: 600;
-        border: none;
-        border-radius: 14px;
-        cursor: pointer;
-        text-decoration: none;
-        transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
-        box-shadow: 0 4px 24px rgba(254,229,0,0.3);
-      }
-      .btn-kakao:hover {
-        background: #f5dc00;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 32px rgba(254,229,0,0.45);
-      }
-      .btn-kakao:active {
-        transform: translateY(0);
-      }
-      .btn-kakao svg { flex-shrink: 0; }
+    .tagline {
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 400;
+      margin-bottom: 40px;
+      line-height: 1.5;
+    }
 
-      .divider {
-        display: flex; align-items: center; gap: 12px;
-        margin: 28px 0;
-        color: var(--muted); font-size: 0.8rem;
-      }
-      .divider::before, .divider::after {
-        content: ''; flex: 1;
-        height: 1px; background: var(--border);
-      }
+    /* ── 카카오 버튼 ── */
+    .btn-kakao {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 16px 24px;
+      background: var(--kakao);
+      color: var(--kakao-text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 24px rgba(254, 229, 0, 0.3);
+    }
 
-      /* 테스트 정보 박스 */
-      .info-box {
-        background: rgba(99,102,241,0.08);
-        border: 1px solid rgba(99,102,241,0.2);
-        border-radius: 12px;
-        padding: 16px;
-        text-align: left;
-        margin-top: 28px;
-      }
-      .info-box p { font-size: 0.8rem; color: var(--muted); line-height: 1.8; }
-      .info-box strong { color: var(--accent); font-weight: 500; }
-      .info-box .label {
-        font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em;
-        text-transform: uppercase; color: var(--accent);
-        margin-bottom: 8px; display: block;
-      }
+    .btn-kakao:hover {
+      background: #f5dc00;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(254, 229, 0, 0.45);
+    }
 
-      .check-item {
-        display: flex; align-items: center; gap: 8px;
-        font-size: 0.78rem; color: var(--muted); margin-top: 6px;
-      }
-      .check-dot {
-        width: 6px; height: 6px; border-radius: 50%;
-        background: #4ade80; flex-shrink: 0;
-      }
-      .check-dot.warn { background: #fbbf24; }
-    </style>
-  </head>
-  <body>
-    <div class="stars" id="stars"></div>
-    <div class="bg-orb bg-orb-1"></div>
-    <div class="bg-orb bg-orb-2"></div>
-    <div class="bg-orb bg-orb-3"></div>
+    .btn-kakao:active {
+      transform: translateY(0);
+    }
 
-    <div class="card">
-      <div class="logo">📍</div>
-      <h1>Plog</h1>
-      <p class="tagline">나만의 장소 이야기를 기록하고<br />지도 위에 남겨보세요.</p>
+    .btn-kakao svg {
+      flex-shrink: 0;
+    }
 
-      <a id="kakao-login-btn" class="btn-kakao" href="https://plog-dev.duckdns.org/oauth2/authorization/kakao">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.67 5.31 4.2 6.87l-.97 3.56 4.1-2.68c.87.12 1.76.18 2.67.18 5.52 0 10-3.58 10-8S17.52 3 12 3z" fill="#191919"/>
-        </svg>
-        카카오로 시작하기
-      </a>
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 28px 0;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
 
-      <div class="divider">테스트 환경 정보</div>
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
 
-      <div class="info-box">
-        <span class="label">🔧 현재 연결 상태</span>
-        <div class="check-item"><div class="check-dot" id="dot-backend"></div> <span id="msg-backend">백엔드 확인 중...</span></div>
-        <div class="check-item"><div class="check-dot" style="background:#818cf8"></div> <span>Frontend: localhost:3000</span></div>
-        <div class="check-item" style="margin-top:10px">
-          <div class="check-dot warn"></div>
-          <span>신규 회원 → <strong>signup.html</strong> 으로 이동</span>
-        </div>
-        <div class="check-item">
-          <div class="check-dot warn"></div>
-          <span>기존 회원 → <strong>success.html</strong> 으로 이동</span>
-        </div>
+    /* 테스트 정보 박스 */
+    .info-box {
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: left;
+      margin-top: 28px;
+    }
+
+    .info-box p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .info-box strong {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .info-box .label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .check-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4ade80;
+      flex-shrink: 0;
+    }
+
+    .check-dot.warn {
+      background: #fbbf24;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="stars" id="stars"></div>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+
+  <div class="card">
+    <div class="logo">📍</div>
+    <h1>Plog</h1>
+    <p class="tagline">나만의 장소 이야기를 기록하고<br />지도 위에 남겨보세요.</p>
+
+    <a id="kakao-login-btn" class="btn-kakao" href="https://plog-dev.duckdns.org/oauth2/authorization/kakao">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.67 5.31 4.2 6.87l-.97 3.56 4.1-2.68c.87.12 1.76.18 2.67.18 5.52 0 10-3.58 10-8S17.52 3 12 3z"
+          fill="#191919" />
+      </svg>
+      카카오로 시작하기
+    </a>
+
+    <div class="divider">테스트 환경 정보</div>
+
+    <div class="info-box">
+      <span class="label">🔧 현재 연결 상태</span>
+      <div class="check-item">
+        <div class="check-dot" id="dot-backend"></div> <span id="msg-backend">백엔드 확인 중...</span>
+      </div>
+      <div class="check-item">
+        <div class="check-dot" style="background:#818cf8"></div> <span>Frontend: localhost:3000</span>
+      </div>
+      <div class="check-item" style="margin-top:10px">
+        <div class="check-dot warn"></div>
+        <span>신규 회원 → <strong>signup.html</strong> 으로 이동</span>
+      </div>
+      <div class="check-item">
+        <div class="check-dot warn"></div>
+        <span>기존 회원 → <strong>success.html</strong> 으로 이동</span>
       </div>
     </div>
+  </div>
 
-    <script>
-      // 별 생성
-      const starsEl = document.getElementById('stars');
-      for (let i = 0; i < 80; i++) {
-        const s = document.createElement('div');
-        s.className = 'star';
-        s.style.cssText = `
-          left:${Math.random()*100}%;
-          top:${Math.random()*100}%;
-          --dur:${2+Math.random()*4}s;
-          --delay:${Math.random()*5}s;
-          --op:${0.3+Math.random()*0.7};
-          width:${Math.random()<0.3?3:2}px;
-          height:${Math.random()<0.3?3:2}px;
+  <script>
+    // 별 생성
+    const starsEl = document.getElementById('stars');
+    for (let i = 0; i < 80; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      s.style.cssText = `
+          left:${Math.random() * 100}%;
+          top:${Math.random() * 100}%;
+          --dur:${2 + Math.random() * 4}s;
+          --delay:${Math.random() * 5}s;
+          --op:${0.3 + Math.random() * 0.7};
+          width:${Math.random() < 0.3 ? 3 : 2}px;
+          height:${Math.random() < 0.3 ? 3 : 2}px;
         `;
-        starsEl.appendChild(s);
-      }
+      starsEl.appendChild(s);
+    }
 
-      // 백엔드 상태 체크
-      const dot = document.getElementById('dot-backend');
-      const msg = document.getElementById('msg-backend');
-      fetch('http://localhost:8080/actuator/health', { signal: AbortSignal.timeout(3000) })
-        .then(r => r.json())
-        .then(data => {
-          if (data.status === 'UP') {
-            dot.style.background = '#4ade80';
-            msg.textContent = '백엔드 연결됨 (localhost:8080)';
-          } else {
-            dot.style.background = '#f87171';
-            msg.textContent = '백엔드 응답 이상';
-          }
-        })
-        .catch(() => {
+    // 백엔드 상태 체크
+    const dot = document.getElementById('dot-backend');
+    const msg = document.getElementById('msg-backend');
+    fetch('https://plog-dev.duckdns.org/actuator/health', { signal: AbortSignal.timeout(3000) })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === 'UP') {
+          dot.style.background = '#4ade80';
+          msg.textContent = '백엔드 연결됨 (https://plog-dev.duckdns.org)';
+        } else {
           dot.style.background = '#f87171';
-          msg.textContent = '백엔드 연결 실패 (서버를 먼저 실행하세요)';
-        });
-    </script>
-  </body>
+          msg.textContent = '백엔드 응답 이상';
+        }
+      })
+      .catch(() => {
+        dot.style.background = '#f87171';
+        msg.textContent = '백엔드 연결 실패 (서버를 먼저 실행하세요)';
+      });
+  </script>
+</body>
+
 </html>
