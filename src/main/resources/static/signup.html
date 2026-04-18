@@ -360,15 +360,14 @@
         </div>
 
         <div class="form-group" id="img-url-group">
-          <label for="profile-image">프로필 이미지 URL <span style="color:var(--muted);font-size:0.75rem">(선택)</span></label>
+          <label for="profile-image-file">프로필 이미지 파일 <span style="color:var(--muted);font-size:0.75rem">(선택)</span></label>
           <div class="input-with-btn">
             <input
-              type="url" id="profile-image"
-              placeholder="https://example.com/image.jpg"
+              type="file" id="profile-image-file" accept="image/*"
+              style="padding: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; color: var(--text); width: 100%; cursor: pointer;"
             />
-            <button type="button" id="check-img-btn" class="btn-secondary">확인</button>
           </div>
-          <div class="field-error" id="img-error">올바른 URL 형식을 입력해주세요.</div>
+          <div class="field-error" id="img-error">이미지 파일을 선택해주세요.</div>
         </div>
 
         <div class="terms-section">
@@ -436,19 +435,22 @@
       });
 
       // ── 프로필 이미지 수동 로드 로직 ──
-      const profileInput = document.getElementById('profile-image');
-      const checkImgBtn  = document.getElementById('check-img-btn');
+      const profileFileInput = document.getElementById('profile-image-file');
       const avatarImg    = document.getElementById('avatar-img');
       const avatarPreview = document.getElementById('avatar-preview');
 
-      checkImgBtn.addEventListener('click', () => {
-        const url = profileInput.value.trim();
-        if (url) {
-          avatarImg.src = url;
-          avatarImg.style.display = 'block';
-          if (avatarPreview.firstChild.nodeType === Node.TEXT_NODE) {
-            avatarPreview.firstChild.nodeValue = '';
-          }
+      profileFileInput.addEventListener('change', () => {
+        const file = profileFileInput.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            avatarImg.src = e.target.result;
+            avatarImg.style.display = 'block';
+            if (avatarPreview.firstChild.nodeType === Node.TEXT_NODE) {
+              avatarPreview.firstChild.nodeValue = '';
+            }
+          };
+          reader.readAsDataURL(file);
         } else {
           avatarImg.style.display = 'none';
           avatarImg.src = '';
@@ -457,10 +459,7 @@
           }
         }
       });
-      avatarImg.onerror = () => { 
-        avatarImg.style.display = 'none';
-        showToast('이미지를 불러올 수 없습니다. URL을 확인해주세요.', 'error');
-      };
+
 
       const required = ['check-service', 'check-privacy'];
       function toggleCheck(id) {
@@ -496,8 +495,16 @@
         if (!validateNickname()) return;
 
         const nickname     = nicknameInput.value.trim();
-        const profileImage = profileInput.value.trim() || null;
         const marketing    = document.getElementById('check-marketing').classList.contains('checked');
+
+        const formData = new FormData();
+        const requestData = { nickname, marketingAgreed: marketing };
+        formData.append('request', new Blob([JSON.stringify(requestData)], { type: 'application/json' }));
+
+        const file = profileFileInput.files[0];
+        if (file) {
+          formData.append('profileImage', file);
+        }
 
         submitBtn.classList.add('loading');
         submitBtn.disabled  = true;
@@ -507,10 +514,7 @@
           const res = await fetch('http://localhost:8080/api/members/signup', {
             method: 'POST',
             credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ nickname, profileImage, marketingAgreed: marketing })
+            body: formData
           });
 
           const data = await res.json();

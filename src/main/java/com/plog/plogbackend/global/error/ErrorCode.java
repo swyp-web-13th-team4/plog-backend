@@ -11,8 +11,15 @@ public enum ErrorCode {
   E1000,
   E1001,
 
+  // 파일/이미지 관련
+  E1100,
+  E1101,
+  E1102,
+  E1103,
+  E1104,
+
   /*
-      E1000~E1999 Member
+      E1000~E1999 Member / File
       E2000~E2999 POST
       이런 식으로 작성하면 좋을 거 같습니다
   */

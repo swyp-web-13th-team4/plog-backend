@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -19,9 +20,11 @@ public class MemberService {
 
   private final MemberRepository memberRepository;
   private final JwtProvider jwtProvider;
+  private final MemberImageService memberImageService;
 
   @Transactional
-  public UUID signup(String registerToken, MemberSignupRequest request) {
+  public UUID signup(
+      String registerToken, MemberSignupRequest request, MultipartFile profileImage) {
     if (!jwtProvider.isValidToken(registerToken) || !jwtProvider.isRegisterToken(registerToken)) {
       throw new AppException(ErrorType.INVALID_SIGNUP_TOKEN);
     }
@@ -31,7 +34,10 @@ public class MemberService {
       throw new AppException(ErrorType.ALREADY_REGISTERED_MEMBER);
     }
 
-    Member member = Member.createNewMember(request.nickname(), providerId, request.profileImage());
+    // 이미지 업로드는 MemberImageService에서 처리
+    String profileImageUrl = memberImageService.uploadSignupProfileImage(profileImage);
+
+    Member member = Member.createNewMember(request.nickname(), providerId, profileImageUrl);
     memberRepository.save(member);
 
     return member.getMemberKey(); // accessToken 생성은 컨트롤러에서 처리
