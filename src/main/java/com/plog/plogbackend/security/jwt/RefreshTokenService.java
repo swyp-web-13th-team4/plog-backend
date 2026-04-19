@@ -52,7 +52,7 @@ public class RefreshTokenService {
   // ==========================================
 
   /**
-   * Refresh Token으로 새 Access Token + 새 Refresh Token을 발급합니다. (Rotation 전략)
+   * Refresh Token으로 새 Access Token + 새 Refresh Token을 발급합니다.
    *
    * @return 갱신된 TokenPair (accessToken + refreshToken)
    */

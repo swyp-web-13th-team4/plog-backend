@@ -4,8 +4,6 @@ import com.plog.plogbackend.domain.Member.dto.MemberSignupRequest;
 import com.plog.plogbackend.domain.Member.service.MemberImageService;
 import com.plog.plogbackend.domain.Member.service.MemberService;
 import com.plog.plogbackend.domain.image.dto.ImageUrlResponse;
-import com.plog.plogbackend.global.error.AppException;
-import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.global.response.ApiResponse;
 import com.plog.plogbackend.global.util.CookieUtil;
 import com.plog.plogbackend.security.jwt.JwtProvider;
@@ -13,20 +11,17 @@ import com.plog.plogbackend.security.jwt.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "회원", description = "로그인 인증/인가 , 로그아웃")
+@Tag(name = "회원 인증/인가", description = "로그인 인증/인가 , 로그아웃")
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
@@ -35,7 +30,6 @@ public class MemberController {
   private final MemberService memberService;
   private final MemberImageService memberImageService;
   private final JwtProvider jwtProvider;
-  private final RefreshTokenService refreshTokenService;
   private final CookieUtil cookieUtil;
 
   @Operation(
@@ -48,30 +42,19 @@ public class MemberController {
       @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
       HttpServletResponse response) {
 
-    if (registerToken == null) {
-      throw new AppException(ErrorType.INVALID_AUTH_HEADER); // token not found
-    }
+    RefreshTokenService.TokenPair tokenPair =
+        memberService.signup(registerToken, request, profileImage);
 
-    // 1. 회원 저장 후 memberKey 반환
-    UUID memberKey = memberService.signup(registerToken, request, profileImage);
+    cookieUtil.addCookie( // 엑세스 토큰
+        response, "accessToken", tokenPair.accessToken(), jwtProvider.getAccessTokenValidityInMs());
 
-    // 2. 컨트롤러에서 accessToken 생성 후 쿠키에 담음
-    String accessToken = jwtProvider.createAccessToken(memberKey);
-    ResponseCookie accessCookie =
-        cookieUtil.createCookie(
-            "accessToken", accessToken, jwtProvider.getAccessTokenValidityInMs());
-    response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+    cookieUtil.addCookie( // 리프레쉬 토큰
+        response,
+        "refreshToken",
+        tokenPair.refreshToken(),
+        jwtProvider.getRefreshTokenValidityInMs());
 
-    // 3. Refresh Token 발급 및 DB 저장
-    String refreshTokenValue = refreshTokenService.createRefreshToken(memberKey);
-    ResponseCookie refreshCookie =
-        cookieUtil.createCookie(
-            "refreshToken", refreshTokenValue, jwtProvider.getRefreshTokenValidityInMs());
-    response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-
-    // 4. 사용이 끝난 registerToken 쿠키 삭제 (즉시 만료)
-    ResponseCookie deleteRegisterCookie = cookieUtil.deleteCookie("registerToken");
-    response.addHeader(HttpHeaders.SET_COOKIE, deleteRegisterCookie.toString());
+    cookieUtil.expireCookie(response, "registerToken"); // 회원가입 전용 토큰 삭제
 
     return ResponseEntity.ok(ApiResponse.success());
   }
@@ -82,18 +65,13 @@ public class MemberController {
   @PostMapping("/logout")
   public ResponseEntity<ApiResponse<Void>> logout(
       Authentication authentication, HttpServletResponse response) {
-    // Access Token 쿠키 삭제
-    ResponseCookie deleteAccessCookie = cookieUtil.deleteCookie("accessToken");
-    response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessCookie.toString());
 
-    // Refresh Token 쿠키 삭제
-    ResponseCookie deleteRefreshCookie = cookieUtil.deleteCookie("refreshToken");
-    response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString());
-
-    // DB에서 Refresh Token 삭제
     if (authentication != null && authentication.getPrincipal() instanceof UUID memberKey) {
-      refreshTokenService.deleteRefreshToken(memberKey);
+      memberService.logout(memberKey);
     }
+
+    cookieUtil.expireCookie(response, "accessToken");
+    cookieUtil.expireCookie(response, "refreshToken");
 
     return ResponseEntity.ok(ApiResponse.success());
   }
@@ -107,23 +85,16 @@ public class MemberController {
   public ResponseEntity<ApiResponse<Void>> refreshToken(
       @CookieValue(value = "refreshToken", required = false) String refreshToken,
       HttpServletResponse response) {
-    if (refreshToken == null) {
-      throw new AppException(ErrorType.INVALID_REFRESH_TOKEN);
-    }
 
-    RefreshTokenService.TokenPair tokenPair = refreshTokenService.refreshAccessToken(refreshToken);
+    RefreshTokenService.TokenPair tokenPair = memberService.refreshToken(refreshToken);
 
-    // 새 Access Token 쿠키 설정
-    ResponseCookie newAccessCookie =
-        cookieUtil.createCookie(
-            "accessToken", tokenPair.accessToken(), jwtProvider.getAccessTokenValidityInMs());
-    response.addHeader(HttpHeaders.SET_COOKIE, newAccessCookie.toString());
-
-    // 새 Refresh Token 쿠키 설정 (Rotation)
-    ResponseCookie newRefreshCookie =
-        cookieUtil.createCookie(
-            "refreshToken", tokenPair.refreshToken(), jwtProvider.getRefreshTokenValidityInMs());
-    response.addHeader(HttpHeaders.SET_COOKIE, newRefreshCookie.toString());
+    cookieUtil.addCookie(
+        response, "accessToken", tokenPair.accessToken(), jwtProvider.getAccessTokenValidityInMs());
+    cookieUtil.addCookie(
+        response,
+        "refreshToken",
+        tokenPair.refreshToken(),
+        jwtProvider.getRefreshTokenValidityInMs());
 
     return ResponseEntity.ok(ApiResponse.success());
   }

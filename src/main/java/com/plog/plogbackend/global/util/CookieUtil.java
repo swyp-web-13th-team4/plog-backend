@@ -2,8 +2,10 @@ package com.plog.plogbackend.global.util;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +37,16 @@ public class CookieUtil {
         .sameSite(sameSite)
         .maxAge(0) // 쿠키 즉시 만료
         .build();
+  }
+
+  /** 토큰 쿠키를 response에 직접 추가합니다. */
+  public void addCookie(HttpServletResponse response, String name, String value, long maxAgeMs) {
+    response.addHeader(HttpHeaders.SET_COOKIE, createCookie(name, value, maxAgeMs).toString());
+  }
+
+  /** 쿠키를 response에서 즉시 만료시킵니다. */
+  public void expireCookie(HttpServletResponse response, String name) {
+    response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie(name).toString());
   }
 
   public static String getCookieValue(HttpServletRequest request, String name) {
