@@ -44,9 +44,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       return;
     }
 
-    // Case 2: Access Token이 만료되었고, Refresh Token이 존재하는 경우 → 자동 갱신
-    if (accessToken != null
-        && jwtProvider.isExpiredAccessToken(accessToken)
+    // Case 2: Access Token이 없거나 만료되었고, Refresh Token이 존재하는 경우 → 자동 갱신
+    if ((accessToken == null || jwtProvider.isExpiredAccessToken(accessToken))
         && refreshToken != null) {
       try {
         RefreshTokenService.TokenPair tokenPair =
