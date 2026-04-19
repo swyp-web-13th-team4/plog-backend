@@ -511,7 +511,7 @@
         submitBtn.textContent = '가입 처리 중...';
 
         try {
-          const res = await fetch('https://plog-dev.duckdns.org/api/members/signup', {
+          const res = await fetch('http://localhost:8080/api/members/signup', {
             method: 'POST',
             credentials: 'include',
             body: formData

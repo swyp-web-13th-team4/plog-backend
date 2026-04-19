@@ -4,6 +4,7 @@ import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.global.util.CookieUtil;
 import com.plog.plogbackend.security.jwt.JwtProvider;
+import com.plog.plogbackend.security.jwt.RefreshTokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -25,6 +26,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
   private final MemberRepository memberRepository;
   private final JwtProvider jwtProvider; // JWT 생성 유틸리티 클래스 (가정)
+  private final RefreshTokenService refreshTokenService;
   private final CookieUtil cookieUtil;
 
   @Override
@@ -47,13 +49,20 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
       Member member = memberOpt.get();
       String accessToken = jwtProvider.createAccessToken(member.getMemberKey());
 
-      org.springframework.http.ResponseCookie cookie =
+      org.springframework.http.ResponseCookie accessCookie =
           cookieUtil.createCookie(
               "accessToken", accessToken, jwtProvider.getAccessTokenValidityInMs());
-      response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, cookie.toString());
+      response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, accessCookie.toString());
+
+      // Refresh Token 발급 및 DB 저장
+      String refreshToken = refreshTokenService.createRefreshToken(member.getMemberKey());
+      org.springframework.http.ResponseCookie refreshCookie =
+          cookieUtil.createCookie(
+              "refreshToken", refreshToken, jwtProvider.getRefreshTokenValidityInMs());
+      response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
       // 프론트엔드의 메인 페이지(또는 로그인 성공 처리 페이지)로 리다이렉트
-      String redirectUrl = frontendUrl + "/success.html"; // 로컈 HTML 테스트 전용 경로
+      String redirectUrl = frontendUrl + "/success.html"; // 로컬 HTML 테스트 전용 경로
       //      String redirectUrl = frontendUrl+ "/login/success"; // TODO : 실 서비스 경로 수정 필요
       getRedirectStrategy().sendRedirect(request, response, redirectUrl);
 

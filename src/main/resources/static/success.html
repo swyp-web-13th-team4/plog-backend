@@ -453,7 +453,7 @@
     <div class="success-banner">
       <span class="success-icon">🎉</span>
       <div class="success-title">로그인 성공!</div>
-      <p class="success-sub">Access Token이 발급되었습니다</p>
+      <p class="success-sub">Access Token 및 Refresh Token이 발급되었습니다</p>
     </div>
 
     <!-- 인증 안내 -->
@@ -462,6 +462,16 @@
       <p style="font-size:0.85rem; color:var(--muted); line-height: 1.6;">
         안전한 <strong>HttpOnly 쿠키</strong>로 토큰이 관리됩니다.<br />
         API 요청 시 자동으로 인증 정보가 포함됩니다.
+      </p>
+    </div>
+
+    <!-- 리프레시 토큰 안내 -->
+    <div class="card">
+      <div class="card-title">🔄 리프레시 토큰 자동 갱신</div>
+      <p style="font-size:0.85rem; color:var(--muted); line-height: 1.6;">
+        별도의 <strong>토큰 갱신(Refresh) API</strong>를 호출할 필요가 없습니다!<br />
+        Access Token이 만료된 채로 API를 요청하면, 서버의 보안 필터가 알아서 유효한 Refresh Token을 검증하고 <strong style="color: #86efac;">토큰들을 자동 재발급(Rotation)</strong> 합니다.<br />
+        새로 발급된 토큰들은 HttpOnly 쿠키로 응답에 담겨 자동 저장되므로, <u>프론트엔드는 토큰 만료에 대한 고민 없이 API 요청을 이어가면 됩니다.</u>
       </p>
     </div>
 

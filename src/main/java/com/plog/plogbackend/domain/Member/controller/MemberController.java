@@ -9,9 +9,11 @@ import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.global.response.ApiResponse;
 import com.plog.plogbackend.global.util.CookieUtil;
 import com.plog.plogbackend.security.jwt.JwtProvider;
+import com.plog.plogbackend.security.jwt.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -33,6 +35,7 @@ public class MemberController {
   private final MemberService memberService;
   private final MemberImageService memberImageService;
   private final JwtProvider jwtProvider;
+  private final RefreshTokenService refreshTokenService;
   private final CookieUtil cookieUtil;
 
   @Operation(
@@ -59,18 +62,69 @@ public class MemberController {
             "accessToken", accessToken, jwtProvider.getAccessTokenValidityInMs());
     response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
 
-    // 3. 사용이 끝난 registerToken 쿠키 삭제 (즉시 만료)
+    // 3. Refresh Token 발급 및 DB 저장
+    String refreshTokenValue = refreshTokenService.createRefreshToken(memberKey);
+    ResponseCookie refreshCookie =
+        cookieUtil.createCookie(
+            "refreshToken", refreshTokenValue, jwtProvider.getRefreshTokenValidityInMs());
+    response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+    // 4. 사용이 끝난 registerToken 쿠키 삭제 (즉시 만료)
     ResponseCookie deleteRegisterCookie = cookieUtil.deleteCookie("registerToken");
     response.addHeader(HttpHeaders.SET_COOKIE, deleteRegisterCookie.toString());
 
     return ResponseEntity.ok(ApiResponse.success());
   }
 
-  @Operation(summary = "로그아웃", description = "accessToken 쿠키를 만료시켜 로그아웃 처리")
+  @Operation(
+      summary = "로그아웃",
+      description = "accessToken, refreshToken 쿠키를 만료시키고 DB에서 refresh token을 삭제하여 로그아웃 처리")
   @PostMapping("/logout")
-  public ResponseEntity<ApiResponse<Void>> logout(HttpServletResponse response) {
-    ResponseCookie deleteCookie = cookieUtil.deleteCookie("accessToken");
-    response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
+  public ResponseEntity<ApiResponse<Void>> logout(
+      Authentication authentication, HttpServletResponse response) {
+    // Access Token 쿠키 삭제
+    ResponseCookie deleteAccessCookie = cookieUtil.deleteCookie("accessToken");
+    response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessCookie.toString());
+
+    // Refresh Token 쿠키 삭제
+    ResponseCookie deleteRefreshCookie = cookieUtil.deleteCookie("refreshToken");
+    response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString());
+
+    // DB에서 Refresh Token 삭제
+    if (authentication != null && authentication.getPrincipal() instanceof UUID memberKey) {
+      refreshTokenService.deleteRefreshToken(memberKey);
+    }
+
+    return ResponseEntity.ok(ApiResponse.success());
+  }
+
+  @Operation(
+      summary = "토큰 갱신",
+      description =
+          "Refresh Token을 이용하여 새 Access Token과 Refresh Token을 발급합니다. "
+              + "필터에서 자동 갱신이 되지만, 프론트에서 명시적으로 갱신이 필요할 때 사용합니다.")
+  @PostMapping("/refresh")
+  public ResponseEntity<ApiResponse<Void>> refreshToken(
+      @CookieValue(value = "refreshToken", required = false) String refreshToken,
+      HttpServletResponse response) {
+    if (refreshToken == null) {
+      throw new AppException(ErrorType.INVALID_REFRESH_TOKEN);
+    }
+
+    RefreshTokenService.TokenPair tokenPair = refreshTokenService.refreshAccessToken(refreshToken);
+
+    // 새 Access Token 쿠키 설정
+    ResponseCookie newAccessCookie =
+        cookieUtil.createCookie(
+            "accessToken", tokenPair.accessToken(), jwtProvider.getAccessTokenValidityInMs());
+    response.addHeader(HttpHeaders.SET_COOKIE, newAccessCookie.toString());
+
+    // 새 Refresh Token 쿠키 설정 (Rotation)
+    ResponseCookie newRefreshCookie =
+        cookieUtil.createCookie(
+            "refreshToken", tokenPair.refreshToken(), jwtProvider.getRefreshTokenValidityInMs());
+    response.addHeader(HttpHeaders.SET_COOKIE, newRefreshCookie.toString());
+
     return ResponseEntity.ok(ApiResponse.success());
   }
 
