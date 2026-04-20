@@ -2,8 +2,11 @@ package com.plog.plogbackend.domain.Member;
 
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.plog.plogbackend.domain.Member.enums.Role;
+import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -46,6 +49,10 @@ public class Member extends BaseTimeStatusEntity {
 
   @Enumerated(EnumType.STRING)
   private Role role;
+
+  // 추가
+  @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
+  private List<BookMark> bookMarks = new ArrayList<>();
 
   // ==========================================
   // 3. 빌더
