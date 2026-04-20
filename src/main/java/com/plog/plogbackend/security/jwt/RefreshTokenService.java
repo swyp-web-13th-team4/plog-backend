@@ -27,7 +27,7 @@ public class RefreshTokenService {
   // 1. Refresh Token 발급 (로그인/회원가입 시)
   // ==========================================
 
-  /** 회원의 refresh token을 생성하고 DB에 저장합니다. 기존 토큰이 있으면 갱신(Rotation)합니다. */
+  /** 회원의 refresh token을 생성하고 DB에 저장합니다. 기존 토큰이 있으면 갱신합니다. */
   @Transactional
   public String createRefreshToken(UUID memberKey) {
     String tokenValue = jwtProvider.createRefreshToken(memberKey);
@@ -36,7 +36,7 @@ public class RefreshTokenService {
     Optional<RefreshToken> existing = refreshTokenRepository.findByMemberKey(memberKey);
 
     if (existing.isPresent()) {
-      // 기존 토큰이 있으면 값만 교체 (Rotation)
+      // 기존 토큰이 있으면 값만 교체
       existing.get().updateToken(tokenValue, validityInMs);
     } else {
       // 최초 발급
