@@ -18,6 +18,10 @@ public enum ErrorType {
 
   INVALID_AUTH_HEADER(HttpStatus.BAD_REQUEST, ErrorCode.E1000, "올바르지 않은 인증 헤더입니다.", LogLevel.WARN),
   INVALID_SIGNUP_TOKEN(HttpStatus.BAD_REQUEST, ErrorCode.E1001, "유효하지 않은 가입 토큰입니다.", LogLevel.WARN),
+  INVALID_REFRESH_TOKEN(
+      HttpStatus.UNAUTHORIZED, ErrorCode.E1002, "유효하지 않은 리프레시 토큰입니다.", LogLevel.WARN),
+  EXPIRED_REFRESH_TOKEN(
+      HttpStatus.UNAUTHORIZED, ErrorCode.E1003, "만료된 리프레시 토큰입니다. 다시 로그인해주세요.", LogLevel.WARN),
 
   // 파일/이미지 관련
   FILE_EMPTY(HttpStatus.BAD_REQUEST, ErrorCode.E1100, "업로드할 파일이 없습니다.", LogLevel.WARN),

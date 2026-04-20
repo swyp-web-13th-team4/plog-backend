@@ -67,7 +67,12 @@ public class SecurityConfig {
                     .permitAll()
 
                     // 회원가입 API와 소셜 로그인
-                    .requestMatchers("/api/members/signup", "/oauth2/**", "/login/**")
+                    .requestMatchers(
+                        "/api/members/signup",
+                        "/api/members/refresh",
+                        "/api/members/logout",
+                        "/oauth2/**",
+                        "/login/**")
                     .permitAll()
 
                     // 테스트용 게시글 이미지 목록 조회 TODO: 게시글 API 구현 완료후 삭제

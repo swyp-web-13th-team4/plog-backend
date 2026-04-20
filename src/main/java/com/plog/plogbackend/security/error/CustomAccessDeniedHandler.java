@@ -12,6 +12,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.json.JsonMapper;
 
+/** 인증 싪패 */
 @Slf4j
 @Component
 @RequiredArgsConstructor
