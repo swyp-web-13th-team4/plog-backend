@@ -453,13 +453,7 @@
     <div class="success-banner">
       <span class="success-icon">🎉</span>
       <div class="success-title">로그인 성공!</div>
-      <p class="success-sub">Access Token이 발급되었습니다</p>
-    </div>
-
-    <!-- 유저 정보 카드 (JSON 응답 그대로 표시) -->
-    <div id="member-info-card" class="card" style="display: none;">
-      <div class="card-title">👤 내 정보 (Raw JSON)</div>
-      <pre id="user-json" style="font-size: 0.75rem; color: #86efac; background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: 10px; overflow-x: auto; margin-top: 8px;"></pre>
+      <p class="success-sub">Access Token 및 Refresh Token이 발급되었습니다</p>
     </div>
 
     <!-- 인증 안내 -->
@@ -471,21 +465,40 @@
       </p>
     </div>
 
-    <!-- API 테스트 (추후 구현될 API 미리 배치) -->
+    <!-- 리프레시 토큰 안내 -->
     <div class="card">
-      <div class="card-title">🧪 API 빠른 테스트</div>
-      <div id="api-tests">
+      <div class="card-title">🔄 리프레시 토큰 자동 갱신</div>
+      <p style="font-size:0.85rem; color:var(--muted); line-height: 1.6;">
+        별도의 <strong>토큰 갱신(Refresh) API</strong>를 호출할 필요가 없습니다!<br />
+        Access Token이 만료된 채로 API를 요청하면, 서버의 보안 필터가 알아서 유효한 Refresh Token을 검증하고 <strong style="color: #86efac;">토큰들을 자동 재발급(Rotation)</strong> 합니다.<br />
+        새로 발급된 토큰들은 HttpOnly 쿠키로 응답에 담겨 자동 저장되므로, <u>프론트엔드는 토큰 만료에 대한 고민 없이 API 요청을 이어가면 됩니다.</u>
+      </p>
+    </div>
+
+    <!-- 사용자 정보 테스트 -->
+    <div class="card">
+      <div class="card-title">👤 사용자 프로필 테스트</div>
+      <div style="margin-bottom: 8px;">
+        <p style="font-size:0.85rem; color:var(--muted); line-height: 1.6; margin-bottom: 16px;">
+          현재 로그인된 사용자의 <strong>닉네임</strong>과 <strong>프로필 이미지 URL</strong> 정보를 조회합니다.
+        </p>
         <div class="api-row">
           <span class="method-badge get">GET</span>
           <span class="api-path">/api/members/me</span>
-          <button class="api-run-btn" onclick="testApi('GET','/api/members/me','result-me')">실행</button>
+          <button class="api-run-btn" onclick="testApi('GET','/api/members/me','result-member-me-new')">내 정보 불러오기</button>
         </div>
-        <div class="api-result" id="result-me"></div>
+        <div class="api-result" id="result-member-me-new"></div>
+      </div>
+    </div>
 
+    <!-- API 테스트 (추후 구현될 API 미리 배치) -->
+    <div class="card">
+      <div class="card-title">🧪 시스템 및 기타 API</div>
+      <div id="api-tests">
         <div class="api-row">
           <span class="method-badge get">GET</span>
           <span class="api-path">/actuator/health</span>
-          <button class="api-run-btn" onclick="testApi('GET','/actuator/health','result-health')">실행</button>
+          <button class="api-run-btn" onclick="testApi('GET','/actuator/health','result-health')">헬스체크 실행</button>
         </div>
         <div class="api-result" id="result-health"></div>
       </div>
@@ -535,27 +548,12 @@
       starsEl.appendChild(s);
     }
 
-    // ── 내 정보 조회 (페이지 로드 시) ──
-    async function fetchMyInfo() {
-      try {
-        const res = await fetch('https://plog-dev.duckdns.org/api/members/me', {
-          method: 'GET',
-          credentials: 'include'
-        });
-        if (res.ok) {
-          const result = await res.json();
-          document.getElementById('member-info-card').style.display = 'block';
-          document.getElementById('user-json').textContent = JSON.stringify(result, null, 2);
-        }
-      } catch (err) {
-        console.error('내 정보 조회 실패:', err);
-      }
-    }
-
-    // 페이지 로드 시 실행
-    window.addEventListener('load', fetchMyInfo);
-
     // 토큰은 HttpOnly 쿠키로 관리되므로 JS에서 접근 및 파싱하지 않습니다.
+
+    // ── API 설정 ──
+    //const API_BASE = 'https://plog-dev.duckdns.org';
+    // 로컬 테스트 시 아래 주소 사용:
+    const API_BASE = 'http://localhost:8080';
 
     // ── API 테스트 ──
     async function testApi(method, path, resultId) {
@@ -567,7 +565,7 @@
       const headers = { 'Content-Type': 'application/json' };
 
       try {
-        const res = await fetch(`http://localhost:8080${path}`, {
+        const res = await fetch(`${API_BASE}${path}`, {
           method,
           headers,
           credentials: 'include' // 세션 쿠키 전송
@@ -583,7 +581,7 @@
 
     async function logout() {
       try {
-        await fetch('http://localhost:8080/api/members/logout', {
+        await fetch(`${API_BASE}/api/members/logout`, {
           method: 'POST',
           credentials: 'include'
         });
@@ -595,7 +593,7 @@
     }
 
     // ── 이미지 테스트 로직 ──
-    async function doImageFetch(url, method, formData, resultId) {
+    async function doImageFetch(urlPath, method, formData, resultId) {
       const resultEl = document.getElementById(resultId);
       resultEl.style.display = 'block';
       resultEl.style.color = '#a5b4fc';
@@ -603,9 +601,9 @@
 
       try {
         const options = { method, credentials: 'include' };
-        if (formData) options.body = formData; // FormData는 자동으로 content-type 및 boundary 설정됨
+        if (formData) options.body = formData; 
 
-        const res = await fetch(url, options);
+        const res = await fetch(`${API_BASE}${urlPath}`, options);
         const data = await res.json();
         resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
         resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(data, null, 2)}`;
@@ -620,12 +618,12 @@
       if (!fileInput.files.length) return alert('프로필 이미지를 선택해주세요.');
       const form = new FormData();
       form.append('image', fileInput.files[0]);
-      doImageFetch('http://localhost:8080/api/members/me/profile-image', 'PUT', form, 'result-profile-img');
+      doImageFetch('/api/members/me/profile-image', 'PUT', form, 'result-profile-img');
     }
 
     function deleteProfileImage() {
       if (!confirm('프로필 이미지를 삭제하시겠습니까?')) return;
-      doImageFetch('http://localhost:8080/api/members/me/profile-image', 'DELETE', null, 'result-profile-img');
+      doImageFetch('/api/members/me/profile-image', 'DELETE', null, 'result-profile-img');
       document.getElementById('profile-img-input').value = '';
     }
 
@@ -636,9 +634,8 @@
 
       const form = new FormData();
       Array.from(fileInput.files).forEach(file => form.append('images', file));
-      doImageFetch('http://localhost:8080/api/test/images/upload', 'POST', form, 'result-post-img');
+      doImageFetch('/api/test/images/upload', 'POST', form, 'result-post-img');
     }
-
 
   </script>
 </body>

@@ -27,7 +27,7 @@ public class MemberController {
   private final MemberService memberService;
 
   @Operation(
-      summary = "회원 정보 조회", // 테스트 전용
+      summary = "회원 정보 조회", // TODO : 정보 불러오기 테스트 이후 삭제
       description = "로그인한 회원의 닉네임과 프로필 이미지 URL을 조회합니다.")
   @GetMapping("/me")
   public ResponseEntity<ApiResponse<MyPageMemberDTO>> getMyPage(Authentication authentication) {

@@ -401,6 +401,11 @@
     </div>
 
     <script>
+      // ── API 설정 ──
+      //const API_BASE = 'https://plog-dev.duckdns.org';
+      // 로컬 테스트 시 아래 주소 사용:
+      const API_BASE = 'http://localhost:8080';
+
       const starsEl = document.getElementById('stars');
       for (let i = 0; i < 60; i++) {
         const s = document.createElement('div');
@@ -511,7 +516,7 @@
         submitBtn.textContent = '가입 처리 중...';
 
         try {
-          const res = await fetch('http://localhost:8080/api/members/signup', {
+          const res = await fetch(`${API_BASE}/api/members/signup`, {
             method: 'POST',
             credentials: 'include',
             body: formData
