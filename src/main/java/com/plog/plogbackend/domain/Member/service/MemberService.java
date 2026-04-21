@@ -2,6 +2,7 @@ package com.plog.plogbackend.domain.Member.service;
 
 import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.dto.MemberSignupRequest;
+import com.plog.plogbackend.domain.Member.dto.MyPageMemberDTO;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
@@ -40,6 +41,20 @@ public class MemberService {
     Member member = Member.createNewMember(request.nickname(), providerId, profileImageUrl);
     memberRepository.save(member);
 
+
     return member.getMemberKey(); // accessToken 생성은 컨트롤러에서 처리
+  }
+
+  // 회원 조회 (닉네임, 프로필 사진, 대표 뱃지)
+  @Transactional(readOnly = true)
+  public MyPageMemberDTO getMyPageInfo(UUID memberKey) {
+    Member member = memberRepository.findByMemberKey(memberKey)
+        .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
+
+    return MyPageMemberDTO.builder()
+        .nickname(member.getNickname())
+        .profileImageUrl(member.getProfileImage())
+            // TODO : 뱃지
+        .build();
   }
 }
