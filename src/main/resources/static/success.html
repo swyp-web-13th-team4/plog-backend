@@ -456,6 +456,12 @@
       <p class="success-sub">Access Token이 발급되었습니다</p>
     </div>
 
+    <!-- 유저 정보 카드 (JSON 응답 그대로 표시) -->
+    <div id="member-info-card" class="card" style="display: none;">
+      <div class="card-title">👤 내 정보 (Raw JSON)</div>
+      <pre id="user-json" style="font-size: 0.75rem; color: #86efac; background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: 10px; overflow-x: auto; margin-top: 8px;"></pre>
+    </div>
+
     <!-- 인증 안내 -->
     <div class="card">
       <div class="card-title">🛡️ 인증 상태</div>
@@ -529,6 +535,26 @@
       starsEl.appendChild(s);
     }
 
+    // ── 내 정보 조회 (페이지 로드 시) ──
+    async function fetchMyInfo() {
+      try {
+        const res = await fetch('https://plog-dev.duckdns.org/api/members/me', {
+          method: 'GET',
+          credentials: 'include'
+        });
+        if (res.ok) {
+          const result = await res.json();
+          document.getElementById('member-info-card').style.display = 'block';
+          document.getElementById('user-json').textContent = JSON.stringify(result, null, 2);
+        }
+      } catch (err) {
+        console.error('내 정보 조회 실패:', err);
+      }
+    }
+
+    // 페이지 로드 시 실행
+    window.addEventListener('load', fetchMyInfo);
+
     // 토큰은 HttpOnly 쿠키로 관리되므로 JS에서 접근 및 파싱하지 않습니다.
 
     // ── API 테스트 ──
@@ -541,7 +567,7 @@
       const headers = { 'Content-Type': 'application/json' };
 
       try {
-        const res = await fetch(`https://plog-dev.duckdns.org${path}`, {
+        const res = await fetch(`http://localhost:8080${path}`, {
           method,
           headers,
           credentials: 'include' // 세션 쿠키 전송
@@ -557,7 +583,7 @@
 
     async function logout() {
       try {
-        await fetch('https://plog-dev.duckdns.org/api/members/logout', {
+        await fetch('http://localhost:8080/api/members/logout', {
           method: 'POST',
           credentials: 'include'
         });
@@ -594,12 +620,12 @@
       if (!fileInput.files.length) return alert('프로필 이미지를 선택해주세요.');
       const form = new FormData();
       form.append('image', fileInput.files[0]);
-      doImageFetch('https://plog-dev.duckdns.org/api/members/me/profile-image', 'PUT', form, 'result-profile-img');
+      doImageFetch('http://localhost:8080/api/members/me/profile-image', 'PUT', form, 'result-profile-img');
     }
 
     function deleteProfileImage() {
       if (!confirm('프로필 이미지를 삭제하시겠습니까?')) return;
-      doImageFetch('https://plog-dev.duckdns.org/api/members/me/profile-image', 'DELETE', null, 'result-profile-img');
+      doImageFetch('http://localhost:8080/api/members/me/profile-image', 'DELETE', null, 'result-profile-img');
       document.getElementById('profile-img-input').value = '';
     }
 
@@ -610,7 +636,7 @@
 
       const form = new FormData();
       Array.from(fileInput.files).forEach(file => form.append('images', file));
-      doImageFetch('https://plog-dev.duckdns.org/api/test/images/upload', 'POST', form, 'result-post-img');
+      doImageFetch('http://localhost:8080/api/test/images/upload', 'POST', form, 'result-post-img');
     }
 
 
