@@ -90,6 +90,6 @@ public class Member extends BaseTimeStatusEntity {
 
   /** 프로필 이미지 URL 업데이트 */
   public void updateProfileImage(String imageUrl) {
-    this.profileImage = imageUrl;
+    this.profileImage = getOrDefaultImage(imageUrl);
   }
 }

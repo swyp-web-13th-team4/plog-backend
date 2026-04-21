@@ -1,6 +1,9 @@
 package com.plog.plogbackend.domain.Member.controller;
 
+import com.plog.plogbackend.domain.Member.Member;
+import com.plog.plogbackend.domain.Member.dto.MyPageMemberDTO;
 import com.plog.plogbackend.domain.Member.service.MemberImageService;
+import com.plog.plogbackend.domain.Member.service.MemberService;
 import com.plog.plogbackend.domain.image.dto.ImageUrlResponse;
 import com.plog.plogbackend.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +24,17 @@ import org.springframework.web.multipart.MultipartFile;
 public class MemberController {
 
   private final MemberImageService memberImageService;
+  private final MemberService memberService;
+
+  @Operation(
+      summary = "회원 정보 조회", // 테스트 전용
+      description = "로그인한 회원의 닉네임과 프로필 이미지 URL을 조회합니다.")
+  @GetMapping("/me")
+  public ResponseEntity<ApiResponse<MyPageMemberDTO>> getMyPage(Authentication authentication) {
+    UUID memberKey = (UUID) authentication.getPrincipal();
+    MyPageMemberDTO response = memberService.getMyPageInfo(memberKey);
+    return ResponseEntity.ok(ApiResponse.success(response));
+  }
 
   @Operation(
       summary = "프로필 이미지 업로드/수정",
@@ -36,7 +50,9 @@ public class MemberController {
     return ResponseEntity.ok(ApiResponse.success(imageResponse));
   }
 
-  @Operation(summary = "프로필 이미지 삭제", description = "로그인한 회원의 프로필 이미지를 삭제하고 기본 이미지로 초기화합니다.")
+  @Operation(
+          summary = "프로필 이미지 삭제",
+          description = "로그인한 회원의 프로필 이미지를 삭제하고 기본 이미지로 초기화합니다.")
   @DeleteMapping("/me/profile-image")
   public ResponseEntity<ApiResponse<Void>> deleteProfileImage(Authentication authentication) {
     UUID memberKey = (UUID) authentication.getPrincipal();
