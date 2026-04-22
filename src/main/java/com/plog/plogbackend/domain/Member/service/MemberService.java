@@ -63,10 +63,10 @@ public class MemberService {
    * 마이페이지 정보를 조회합니다.
    *
    * @param memberKey 회원 UUID
-   * @return 닉네임, 프로필 이미지 URL
+   * @return 닉네임, 프로필 이미지 URL , 소개글
    */
   @Transactional(readOnly = true)
-  public MyPageMemberResponse getMyPageInfo(UUID memberKey) {
+  public MyPageMemberResponse getMyPageInfo(UUID memberKey) { // TODO : 회원 정보 조회 메서드. 사용처 없으면 삭제
     Member member = memberRepository.findByMemberKey(memberKey)
         .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
 

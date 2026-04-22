@@ -28,7 +28,7 @@ public class MemberController {
   private final MemberImageService memberImageService;
   private final MemberService memberService;
 
-  @Operation(
+  @Operation( //TODO : 회원 정보 조회 엔드포인트. 사용처 없으면 삭제
       summary = "회원 정보 조회",
       description = "로그인한 회원의 닉네임, 프로필 이미지 URL, 소개글 등을 조회합니다.")
   @GetMapping("/me")
