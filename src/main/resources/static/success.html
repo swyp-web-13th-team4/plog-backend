@@ -440,6 +440,57 @@
       transform: translateY(-1px);
       box-shadow: 0 6px 28px rgba(99, 102, 241, 0.55);
     }
+
+    /* ── 프로필 이미지 그리드 ── */
+    .profile-selection-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .profile-item {
+      aspect-ratio: 1;
+      border-radius: 12px;
+      border: 2px solid transparent;
+      overflow: hidden;
+      cursor: pointer;
+      background: var(--surface);
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .profile-item:hover {
+      border-color: rgba(129, 140, 248, 0.5);
+      transform: scale(1.05);
+    }
+
+    .profile-item.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 15px rgba(129, 140, 248, 0.3);
+    }
+
+    .profile-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .plus-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px dashed var(--border);
+    }
+
+    .plus-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
   </style>
 </head>
 
@@ -510,13 +561,16 @@
 
       <!-- 프로필 이미지 -->
       <div style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
-        <h4 style="font-size: 0.85rem; color: #a5b4fc; margin-bottom: 10px;">1. 프로필 사진 변경 및 삭제</h4>
+        <h4 style="font-size: 0.85rem; color: #a5b4fc; margin-bottom: 10px;">1. 프로필 이미지 선택 (기본 6종 + 커스텀)</h4>
+        
+        <div class="profile-selection-grid" id="default-profile-list">
+          <!-- JS에서 채워짐 -->
+          <div class="profile-item plus-item" onclick="document.getElementById('profile-img-input').click()">+</div>
+        </div>
+
         <input type="file" id="profile-img-input" accept="image/*"
-          style="font-size: 0.8rem; margin-bottom: 12px; color: var(--muted);" />
-        <br />
-        <button class="api-run-btn" onclick="uploadProfileImage()">프로필 사진 변경(PUT)</button>
-        <button class="api-run-btn" onclick="deleteProfileImage()" style="border-color: #fca5a5; color: #fca5a5;">프로필 사진
-          삭제(DELETE)</button>
+          style="display: none;" onchange="uploadProfileImage()" />
+
         <div class="api-result" id="result-profile-img"></div>
       </div>
 
@@ -592,6 +646,62 @@
       }
     }
 
+    // ── 기본 프로필 이미지 로드 ──
+    async function fetchDefaultProfiles() {
+      const grid = document.getElementById('default-profile-list');
+      try {
+        const res = await fetch(`${API_BASE}/api/members/default-images`, { credentials: 'include' });
+        const json = await res.json();
+        if(json.data && Array.isArray(json.data)) {
+          // 기존 아이템들(Plus 제외) 삭제
+          const plusBtn = grid.querySelector('.plus-item');
+          grid.innerHTML = '';
+          
+          json.data.forEach(url => {
+            const div = document.createElement('div');
+            div.className = 'profile-item';
+            div.innerHTML = `<img src="${url}" alt="Profile">`;
+            div.onclick = () => selectProfileUrl(url, div);
+            grid.appendChild(div);
+          });
+          grid.appendChild(plusBtn);
+        }
+      } catch (err) {
+        console.error('기본 이미지 로드 실패:', err);
+      }
+    }
+
+    async function selectProfileUrl(url, element) {
+      // UI 표시
+      document.querySelectorAll('.profile-item').forEach(el => el.classList.remove('active'));
+      element.classList.add('active');
+
+      const resultEl = document.getElementById('result-profile-img');
+      resultEl.style.display = 'block';
+      resultEl.style.color = '#a5b4fc';
+      resultEl.textContent = '이미지 설정 중...';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/members/me/profile-image-url`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: url }),
+          credentials: 'include'
+        });
+        const data = await res.json();
+        resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
+        resultEl.textContent = `HTTP ${res.status} (URL 변경)\n${JSON.stringify(data, null, 2)}`;
+      } catch (err) {
+        resultEl.style.color = '#fca5a5';
+        resultEl.textContent = `연결 실패: ${err.message}`;
+      }
+    }
+
+    // 페이지 로드 시 실행
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchDefaultProfiles();
+    });
+
     // ── 이미지 테스트 로직 ──
     async function doImageFetch(urlPath, method, formData, resultId) {
       const resultEl = document.getElementById(resultId);
@@ -615,16 +725,12 @@
 
     function uploadProfileImage() {
       const fileInput = document.getElementById('profile-img-input');
-      if (!fileInput.files.length) return alert('프로필 이미지를 선택해주세요.');
+      if (!fileInput.files.length) return;
       const form = new FormData();
       form.append('image', fileInput.files[0]);
       doImageFetch('/api/members/me/profile-image', 'PUT', form, 'result-profile-img');
-    }
-
-    function deleteProfileImage() {
-      if (!confirm('프로필 이미지를 삭제하시겠습니까?')) return;
-      doImageFetch('/api/members/me/profile-image', 'DELETE', null, 'result-profile-img');
-      document.getElementById('profile-img-input').value = '';
+      // 파일 입력 초기화 (같은 파일 다시 선택 시 onchange 발생하도록)
+      fileInput.value = '';
     }
 
     function uploadTestImages() {

@@ -1,7 +1,7 @@
 package com.plog.plogbackend.domain.Member.controller;
 
-import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.dto.MyPageMemberDTO;
+import com.plog.plogbackend.domain.Member.dto.ProfileImageRequest;
 import com.plog.plogbackend.domain.Member.service.MemberImageService;
 import com.plog.plogbackend.domain.Member.service.MemberService;
 import com.plog.plogbackend.domain.image.dto.ImageUrlResponse;
@@ -9,6 +9,7 @@ import com.plog.plogbackend.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -51,12 +52,24 @@ public class MemberController {
   }
 
   @Operation(
-          summary = "프로필 이미지 삭제",
-          description = "로그인한 회원의 프로필 이미지를 삭제하고 기본 이미지로 초기화합니다.")
-  @DeleteMapping("/me/profile-image")
-  public ResponseEntity<ApiResponse<Void>> deleteProfileImage(Authentication authentication) {
+      summary = "기본 프로필 이미지 목록 조회",
+      description = "선택 가능한 6개의 기본 프로필 이미지 URL 목록을 조회합니다.")
+  @GetMapping("/default-images")
+  public ResponseEntity<ApiResponse<List<String>>> getDefaultProfileImages() {
+    List<String> defaultImages = memberImageService.getDefaultProfileImages();
+    return ResponseEntity.ok(ApiResponse.success(defaultImages));
+  }
+
+  @Operation(
+      summary = "프로필 이미지 URL 변경",
+      description = "선택한 기본 프로필 이미지 URL로 회원의 프로필 이미지를 변경합니다. (JWT 토큰 필요)")
+  @PatchMapping("/me/profile-image-url")
+  public ResponseEntity<ApiResponse<Void>> updateProfileImageUrl(
+      Authentication authentication, @RequestBody ProfileImageRequest request) {
     UUID memberKey = (UUID) authentication.getPrincipal();
-    memberImageService.deleteProfileImage(memberKey);
+    memberImageService.updateProfileImageByUrl(memberKey, request.getImageUrl());
     return ResponseEntity.ok(ApiResponse.success());
   }
+
+
 }
