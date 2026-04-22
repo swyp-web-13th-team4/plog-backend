@@ -47,6 +47,9 @@ public class Member extends BaseTimeStatusEntity {
   @Enumerated(EnumType.STRING)
   private Role role;
 
+  @Column(length = 130)
+  private String introduction;
+
   // 추가
   @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
   private List<BookMark> bookMarks = new ArrayList<>();
@@ -94,16 +97,18 @@ public class Member extends BaseTimeStatusEntity {
   }
 
   /**
-   * 프로필(닉네임 + 이미지)을 한 번에 업데이트합니다.
+   * 프로필(닉네임 + 이미지 + 소개글)을 한 번에 업데이트합니다.
    * null인 값은 변경하지 않습니다.
    */
-  public void updateProfile(String nickname, String imageUrl) {
+  public void updateProfile(String nickname, String imageUrl, String introduction) {
     if (nickname != null && !nickname.isBlank()) {
       this.nickname = nickname;
     }
     if (imageUrl != null && !imageUrl.isBlank()) {
       this.profileImage = imageUrl;
     }
-    // TODO : 소개글 수정 추가
+    if (introduction != null) {
+      this.introduction = introduction;
+    }
   }
 }

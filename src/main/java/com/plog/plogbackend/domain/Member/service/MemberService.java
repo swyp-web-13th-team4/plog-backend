@@ -73,6 +73,7 @@ public class MemberService {
     return MyPageMemberResponse.builder()
         .nickname(member.getNickname())
         .profileImageUrl(member.getProfileImage())
+        .introduction(member.getIntroduction())
         // TODO : 뱃지
         .build();
   }
@@ -103,11 +104,12 @@ public class MemberService {
     // 이미지 변경 처리 (변경 없으면 null 반환)
     String newImageUrl = memberImageService.resolveAndScheduleImageUpdate(member, file, defaultImageId);
 
-    // 닉네임 + 이미지 한 번에 적용
+    // 닉네임 + 이미지 + 소개글 한 번에 적용
     String newNickname = (request != null) ? request.nickname() : null;
-    member.updateProfile(newNickname, newImageUrl);
+    String newIntroduction = (request != null) ? request.introduction() : null;
+    member.updateProfile(newNickname, newImageUrl, newIntroduction);
 
-    log.info("프로필 수정 완료 - memberKey: {}, nickname: {}, imageUrl: {}",
-        memberKey, member.getNickname(), member.getProfileImage());
+    log.info("프로필 수정 완료 - memberKey: {}, nickname: {}, imageUrl: {}, introduction: {}",
+        memberKey, member.getNickname(), member.getProfileImage(), member.getIntroduction());
   }
 }
