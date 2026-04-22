@@ -45,8 +45,9 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET_KEY}
-  access-token-validity-in-ms: 7200000
-  register-token-validity-in-ms: 900000
+  access-token-validity-in-ms: 7200000 # 1시간
+  refresh-token-validity-in-ms: 604800000 # 1주일
+  register-token-validity-in-ms: 900000 # 15분
 
 management:
   endpoints:

@@ -12,6 +12,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.json.JsonMapper;
 
+/** 미인증 상태 */
 @Slf4j
 @Component
 @RequiredArgsConstructor

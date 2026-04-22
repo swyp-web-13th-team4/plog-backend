@@ -10,6 +10,8 @@ public enum ErrorCode {
 
   E1000,
   E1001,
+  E1002,
+  E1003,
 
   // 파일/이미지 관련
   E1100,

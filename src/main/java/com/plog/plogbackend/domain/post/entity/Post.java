@@ -1,6 +1,7 @@
 package com.plog.plogbackend.domain.post.entity;
 
 import com.plog.plogbackend.domain.Member.Member;
+import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
@@ -43,12 +44,17 @@ public class Post extends BaseTimeStatusEntity {
   @JoinColumn(name = "place_id")
   private Place place;
 
-  @OneToMany(mappedBy = "post")
+  private LocalDateTime createAt;
+
+  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
   private List<PostImage> images = new ArrayList<>();
 
-  @OneToMany(mappedBy = "post")
+  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
   private List<PostTag> tags = new ArrayList<>();
 
-  @OneToMany(mappedBy = "post")
+  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
   private List<PostCategory> categories = new ArrayList<>();
+
+  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
+  private List<BookMark> bookMarks = new ArrayList<>();
 }

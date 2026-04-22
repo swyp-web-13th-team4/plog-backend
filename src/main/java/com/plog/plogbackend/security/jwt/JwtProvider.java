@@ -27,6 +27,10 @@ public class JwtProvider {
   @Value("${jwt.register-token-validity-in-ms}")
   private long registerTokenValidityInMs;
 
+  @Getter
+  @Value("${jwt.refresh-token-validity-in-ms}")
+  private long refreshTokenValidityInMs;
+
   private SecretKey key; // Member UUID 식별키
 
   @PostConstruct // yml 에 저장된 JWT 토큰 시크릿 키를 메모리에 적제 (성능 향상 목적)
@@ -36,7 +40,7 @@ public class JwtProvider {
   }
 
   // ==========================================
-  // 1. 토큰 생성 (회원가입 전용 임시 토큰 , 회원 토큰)
+  // 1. 토큰 생성 (회원가입 전용 임시 토큰 , 회원 토큰 , 리프레시 토큰)
   // ==========================================
 
   public String createRegisterToken(String providerId) {
@@ -63,8 +67,20 @@ public class JwtProvider {
         .compact();
   }
 
+  public String createRefreshToken(UUID memberKey) {
+    Date now = new Date();
+    Date validity = new Date(now.getTime() + refreshTokenValidityInMs);
+    return Jwts.builder()
+        .subject("REFRESH")
+        .claim("memberKey", memberKey.toString())
+        .issuedAt(now)
+        .expiration(validity)
+        .signWith(key)
+        .compact();
+  }
+
   // ==========================================
-  // 2. 검증 메서드 (JWT 토큰 검증 , 일반/임시 토큰 검증)
+  // 2. 검증 메서드 (JWT 토큰 검증 , 일반/임시/리프레시 토큰 검증)
   // ==========================================
 
   public boolean isValidToken(String token) { // JWT 토큰 검증
@@ -74,6 +90,18 @@ public class JwtProvider {
     } catch (Exception e) {
       log.warn("JWT 검증 실패: {}", e.getMessage());
       return false;
+    }
+  }
+
+  /** JWT 토큰이 만료되었는지 확인 (서명은 유효하지만 만료된 경우 true) */
+  public boolean isExpiredToken(String token) {
+    try {
+      Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
+      return false; // 정상 파싱되면 만료되지 않음
+    } catch (ExpiredJwtException e) {
+      return true; // 만료된 경우
+    } catch (Exception e) {
+      return false; // 만료가 아닌 다른 에러 (서명 위조 등)
     }
   }
 
@@ -87,6 +115,18 @@ public class JwtProvider {
     String subject =
         Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload().getSubject();
     return "REGISTER".equals(subject);
+  }
+
+  /** 만료된 토큰에서도 subject를 읽어 ACCESS 토큰인지 확인 */
+  public boolean isExpiredAccessToken(String token) {
+    try {
+      Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
+      return false; // 만료되지 않았으면 false
+    } catch (ExpiredJwtException e) {
+      return "ACCESS".equals(e.getClaims().getSubject());
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   // ==========================================
