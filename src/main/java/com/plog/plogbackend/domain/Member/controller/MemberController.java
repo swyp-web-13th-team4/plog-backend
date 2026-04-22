@@ -65,7 +65,7 @@ public class MemberController {
           - `defaultImageId` 파트: 기본 이미지 ID (image가 없을 때 사용, 선택)
           - 이미지 파라미터가 모두 없으면 이미지는 그대로 유지됩니다.
           """)
-  @PutMapping(value = "/me/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PatchMapping(value = "/me/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<Void>> updateProfile(
       Authentication authentication,
       @Parameter(description = "프로필 변경 정보 (JSON, 닉네임/소개글)")
