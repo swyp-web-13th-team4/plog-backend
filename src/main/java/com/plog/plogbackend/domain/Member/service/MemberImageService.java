@@ -1,18 +1,20 @@
 package com.plog.plogbackend.domain.Member.service;
 
 import com.plog.plogbackend.domain.Member.Member;
-import com.plog.plogbackend.domain.Member.repository.MemberRepository;
-import com.plog.plogbackend.domain.image.dto.ImageUrlResponse;
+import com.plog.plogbackend.domain.Member.entity.DefaultProfileImage;
+import com.plog.plogbackend.domain.Member.repository.DefaultProfileImageRepository;
+import com.plog.plogbackend.domain.Member.dto.DefaultProfileImageDTO;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.global.util.GcsService;
 
 import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
@@ -23,93 +25,133 @@ public class MemberImageService {
   private static final String PROFILE_DIR = "profiles";
 
   private final GcsService gcsService;
-  private final MemberRepository memberRepository;
-
-  private static final List<String> DEFAULT_IMAGES = List.of(
-      "https://storage.googleapis.com/plog-bucket/profiles/default/profile1.png",
-      "https://storage.googleapis.com/plog-bucket/profiles/default/profile2.png",
-      "https://storage.googleapis.com/plog-bucket/profiles/default/profile3.png",
-      "https://storage.googleapis.com/plog-bucket/profiles/default/profile4.png",
-      "https://storage.googleapis.com/plog-bucket/profiles/default/profile5.png",
-      "https://storage.googleapis.com/plog-bucket/profiles/default/profile6.png"
-  );
+  private final DefaultProfileImageRepository defaultProfileImageRepository;
+  // yaml 설정은 DataInitializer에서 DB 동기화 용도로만 사용 (직접 검증은 DB로)
 
   // ==========================================
-  // 프로필 이미지
+  // 기본 이미지 조회 / 검증 (DB 기반)
   // ==========================================
 
-  public List<String> getDefaultProfileImages() {
-    return DEFAULT_IMAGES;
+  /**
+   * DB에 저장된 기본 프로필 이미지 목록(식별키와 URL 쌍)을 반환합니다.
+   */
+  @Transactional(readOnly = true)
+  public List<DefaultProfileImageDTO> getDefaultProfileImages() {
+    return defaultProfileImageRepository.findAllByOrderByIdAsc()
+        .stream()
+        .map(entity -> DefaultProfileImageDTO.builder()
+            .id(entity.getId())
+            .imageUrl(entity.getImageUrl())
+            .build())
+        .toList();
   }
 
   /**
-   * 회원가입 시 프로필 이미지를 GCS에 업로드하고 URL을 반환합니다. 최초 회원가입
-   *
-   * <p>이미지가 없으면 null을 반환 — Member 엔티티가 기본 이미지로 처리합니다.
-   *
-   * @param profileImage 업로드할 이미지 파일 (nullable)
-   * @return GCS 업로드 URL, 이미지 없으면 null
+   * 전달된 ID가 DB에 등록된 기본 이미지인지 검증하고 URL을 반환합니다.
    */
-  public String uploadSignupProfileImage(MultipartFile profileImage) {
-    if (profileImage == null || profileImage.isEmpty()) {
+  private String getDefaultImageUrl(Long defaultImageId) {
+    DefaultProfileImage image = defaultProfileImageRepository.findById(defaultImageId)
+        .orElseThrow(() -> new AppException(ErrorType.INVALID_DEFAULT_IMAGE_URL));
+    return image.getImageUrl();
+  }
+
+  /** 주어진 URL이 사용자가 직접 업로드한 GCS 파일인지 판단합니다. (기본 이미지이면 false) */
+  private boolean isCustomImage(String imageUrl) {
+    if (imageUrl == null) return false;
+    return !defaultProfileImageRepository.existsByImageUrl(imageUrl);
+  }
+
+  // ==========================================
+  // 프로필 이미지 결정 (공통 로직)
+  // ==========================================
+
+  /**
+   * 파일 또는 기본 이미지 ID로부터 최종 저장할 프로필 이미지 URL을 결정합니다.
+   *
+   * <ul>
+   *   <li>파일이 있으면: GCS에 업로드하고 업로드된 URL을 반환</li>
+   *   <li>파일이 없고 defaultImageId가 있으면: DB에 등록된 기본 이미지인지 검증 후 해당 URL 반환</li>
+   *   <li>둘 다 없으면: FILE_EMPTY 에러</li>
+   * </ul>
+   *
+   * @param file           업로드할 이미지 파일 (nullable)
+   * @param defaultImageId 기본 이미지 ID (file이 없을 때 사용, nullable)
+   * @return 최종 프로필 이미지 URL
+   */
+  public String resolveProfileImageUrl(MultipartFile file, Long defaultImageId) {
+    if (file != null && !file.isEmpty()) {
+      String url = gcsService.upload(file, PROFILE_DIR);
+      log.info("프로필 이미지 업로드 완료 - url: {}", url);
+      return url;
+    }
+    if (defaultImageId != null) {
+      return getDefaultImageUrl(defaultImageId);
+    }
+    throw new AppException(ErrorType.FILE_EMPTY);
+  }
+
+  // ==========================================
+  // 회원가입 프로필 이미지 처리
+  // ==========================================
+
+  /**
+   * 회원가입 시 프로필 이미지를 결정합니다. (공통 resolveProfileImageUrl 위임)
+   *
+   * @param profileImage   업로드 파일 (nullable)
+   * @param defaultImageId 기본 이미지 ID (nullable)
+   * @return 최종 프로필 이미지 URL
+   */
+  public String resolveSignupProfileImage(MultipartFile profileImage, Long defaultImageId) {
+    return resolveProfileImageUrl(profileImage, defaultImageId);
+  }
+
+  // ==========================================
+  // 프로필 이미지 변경 (내부 공통 처리)
+  // ==========================================
+
+  /**
+   * 구 프로필 이미지를 GCS에서 삭제합니다 (커스텀 이미지인 경우에만, DB 커밋 이후 실행).
+   * 트랜잭션 밖에서 호출해야 하며, 이미 afterCommit 훅 내부에서 호출됩니다.
+   */
+  private void scheduleOldImageDeletion(String oldImageUrl) {
+    if (isCustomImage(oldImageUrl)) {
+      TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+        @Override
+        public void afterCommit() {
+          try {
+            gcsService.delete(oldImageUrl);
+            log.info("구 프로필 이미지 GCS 삭제 완료 - url: {}", oldImageUrl);
+          } catch (Exception e) {
+            log.warn("구 프로필 이미지 GCS 삭제 실패 - url: {}, error: {}",
+                oldImageUrl, e.getMessage());
+          }
+        }
+      });
+    }
+  }
+
+  /**
+   * 프로필 이미지 URL을 결정하고 구 이미지 삭제를 예약합니다.
+   * Member 엔티티 업데이트는 호출부(MemberService)에서 수행합니다.
+   *
+   * <p><b>GCS 삭제 순서 보장:</b><br>
+   * DB 저장(커밋)을 먼저 완료한 뒤 구 파일을 GCS에서 삭제합니다.
+   *
+   * @param member         대상 회원 엔티티
+   * @param file           업로드할 이미지 파일 (nullable)
+   * @param defaultImageId 기본 이미지 ID (file이 없을 때 사용, nullable)
+   * @return 새 프로필 이미지 URL (이미지를 변경하지 않는 경우 null)
+   */
+  public String resolveAndScheduleImageUpdate(Member member, MultipartFile file, Long defaultImageId) {
+    // 둘 다 없으면 이미지 변경 없음
+    if ((file == null || file.isEmpty()) && defaultImageId == null) {
       return null;
     }
-    String url = gcsService.upload(profileImage, PROFILE_DIR);
-    log.info("회원가입 프로필 이미지 업로드 완료 - url: {}", url);
-    return url;
-  }
 
-  /**
-   * 프로필 이미지를 GCS에 업로드하고 Member 엔티티를 갱신합니다. 프로필 이미지 수정
-   *
-   * <p>기존 이미지가 GCS에 저장된 파일이면 먼저 삭제 후 새 이미지를 업로드합니다.
-   *
-   * @param memberKey 회원 UUID
-   * @param file 업로드할 이미지 파일
-   * @return 업로드된 이미지 공개 URL
-   */
-  @Transactional
-  public ImageUrlResponse uploadProfileImage(UUID memberKey, MultipartFile file) {
-    Member member =
-        memberRepository
-            .findByMemberKey(memberKey)
-            .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
+    String oldImageUrl = member.getProfileImage();
+    String newImageUrl = resolveProfileImageUrl(file, defaultImageId);
 
-    // 기존 프로필 이미지 삭제 (GCS 파일인 경우에만, 기본 이미지가 아닌 경우)
-    String currentImage = member.getProfileImage();
-    if (currentImage != null && !DEFAULT_IMAGES.contains(currentImage)) {
-      gcsService.delete(currentImage);
-    }
-
-    String newImageUrl = gcsService.upload(file, PROFILE_DIR);
-    member.updateProfileImage(newImageUrl);
-
-    log.info("프로필 이미지 업로드 완료 - memberKey: {}, url: {}", memberKey, newImageUrl);
-    return new ImageUrlResponse(newImageUrl);
-  }
-
-
-
-  /**
-   * 선택한 기본 프로필 이미지 URL로 회원 프로필을 갱신합니다.
-   *
-   * @param memberKey 회원 UUID
-   * @param imageUrl 선택한 이미지 URL
-   */
-  @Transactional
-  public void updateProfileImageByUrl(UUID memberKey, String imageUrl) {
-    Member member =
-        memberRepository
-            .findByMemberKey(memberKey)
-            .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
-
-    // 기존 이미지가 GCS 업로드 파일이면 삭제 (기본 이미지가 아닌 경우)
-    String currentImage = member.getProfileImage();
-    if (currentImage != null && !DEFAULT_IMAGES.contains(currentImage)) {
-      gcsService.delete(currentImage);
-    }
-
-    member.updateProfileImage(imageUrl);
-    log.info("프로필 이미지 URL 변경 완료 - memberKey: {}, url: {}", memberKey, imageUrl);
+    scheduleOldImageDeletion(oldImageUrl);
+    return newImageUrl;
   }
 }

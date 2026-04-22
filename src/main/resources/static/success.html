@@ -559,19 +559,28 @@
     <div class="card">
       <div class="card-title">🖼️ 이미지 관리 테스트</div>
 
-      <!-- 프로필 이미지 -->
+      <!-- 프로필 (닉네임 + 이미지) 변경 테스트 -->
       <div style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
-        <h4 style="font-size: 0.85rem; color: #a5b4fc; margin-bottom: 10px;">1. 프로필 이미지 선택 (기본 6종 + 커스텀)</h4>
-        
+        <h4 style="font-size: 0.85rem; color: #a5b4fc; margin-bottom: 4px;">1. 프로필 수정 (닉네임 + 이미지 통합)</h4>
+        <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 12px;">단일 API <code style="color:#a5b4fc">PUT /me/profile</code> 로 한 번에 변경합니다.</p>
+
+        <div style="margin-bottom: 12px;">
+          <input type="text" id="update-nickname-input" placeholder="새로운 닉네임 (변경하지 않으려면 비워둠)" 
+                 style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); font-family: 'Outfit'; outline: none;">
+        </div>
+
+        <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 8px;">변경할 프로필 이미지 선택 (선택 사항)</p>
         <div class="profile-selection-grid" id="default-profile-list">
           <!-- JS에서 채워짐 -->
-          <div class="profile-item plus-item" onclick="document.getElementById('profile-img-input').click()">+</div>
+          <div class="profile-item plus-item" onclick="document.getElementById('profile-img-input').click()" id="upload-btn-item">+</div>
         </div>
 
         <input type="file" id="profile-img-input" accept="image/*"
-          style="display: none;" onchange="uploadProfileImage()" />
+          style="display: none;" onchange="previewSelectedFile()" />
 
-        <div class="api-result" id="result-profile-img"></div>
+        <button class="api-run-btn" onclick="submitProfileUpdate()" style="margin-top: 12px; margin-bottom: 12px; width: 100%; padding: 12px; font-weight: 600; background: rgba(129, 140, 248, 0.15); border-color: rgba(129, 140, 248, 0.3);">변경 내용 저장 (API 호출)</button>
+
+        <div class="api-result" id="result-profile"></div>
       </div>
 
       <!-- 게시글 이미지 테스트 (테스트 컨트롤러 연동) -->
@@ -646,22 +655,23 @@
       }
     }
 
-    // ── 기본 프로필 이미지 로드 ──
+    let selectedImageId = null;
+    let selectedFile = null;
+
     async function fetchDefaultProfiles() {
       const grid = document.getElementById('default-profile-list');
       try {
         const res = await fetch(`${API_BASE}/api/members/default-images`, { credentials: 'include' });
         const json = await res.json();
         if(json.data && Array.isArray(json.data)) {
-          // 기존 아이템들(Plus 제외) 삭제
-          const plusBtn = grid.querySelector('.plus-item');
+          const plusBtn = grid.querySelector('#upload-btn-item');
           grid.innerHTML = '';
           
-          json.data.forEach(url => {
+          json.data.forEach(img => {
             const div = document.createElement('div');
             div.className = 'profile-item';
-            div.innerHTML = `<img src="${url}" alt="Profile">`;
-            div.onclick = () => selectProfileUrl(url, div);
+            div.innerHTML = `<img src="${img.imageUrl}" alt="Profile">`;
+            div.onclick = () => selectProfileUrl(img.id, div);
             grid.appendChild(div);
           });
           grid.appendChild(plusBtn);
@@ -671,26 +681,52 @@
       }
     }
 
-    async function selectProfileUrl(url, element) {
-      // UI 표시
+    function selectProfileUrl(id, element) {
       document.querySelectorAll('.profile-item').forEach(el => el.classList.remove('active'));
       element.classList.add('active');
+      selectedImageId = id;
+      selectedFile = null; // 파일 선택 초기화
+      document.getElementById('profile-img-input').value = '';
+    }
 
-      const resultEl = document.getElementById('result-profile-img');
+    function previewSelectedFile() {
+      const fileInput = document.getElementById('profile-img-input');
+      if (!fileInput.files.length) return;
+      
+      document.querySelectorAll('.profile-item').forEach(el => el.classList.remove('active'));
+      document.getElementById('upload-btn-item').classList.add('active'); // [+] 버튼 표시
+      
+      selectedFile = fileInput.files[0];
+      selectedImageId = null;
+    }
+
+    async function submitProfileUpdate() {
+      const resultEl = document.getElementById('result-profile');
       resultEl.style.display = 'block';
       resultEl.style.color = '#a5b4fc';
-      resultEl.textContent = '이미지 설정 중...';
+      resultEl.textContent = '프로필 업데이트 중...';
+
+      const nickname = document.getElementById('update-nickname-input').value.trim();
+      const form = new FormData();
+      
+      if (nickname) {
+        form.append('request', new Blob([JSON.stringify({ nickname })], { type: 'application/json' }));
+      }
+      if (selectedFile) {
+        form.append('image', selectedFile);
+      } else if (selectedImageId) {
+        form.append('defaultImageId', selectedImageId);
+      }
 
       try {
-        const res = await fetch(`${API_BASE}/api/members/me/profile-image-url`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageUrl: url }),
+        const res = await fetch(`${API_BASE}/api/members/me/profile`, {
+          method: 'PUT',
+          body: form,
           credentials: 'include'
         });
         const data = await res.json();
         resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
-        resultEl.textContent = `HTTP ${res.status} (URL 변경)\n${JSON.stringify(data, null, 2)}`;
+        resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(data, null, 2)}`;
       } catch (err) {
         resultEl.style.color = '#fca5a5';
         resultEl.textContent = `연결 실패: ${err.message}`;
@@ -723,15 +759,7 @@
       }
     }
 
-    function uploadProfileImage() {
-      const fileInput = document.getElementById('profile-img-input');
-      if (!fileInput.files.length) return;
-      const form = new FormData();
-      form.append('image', fileInput.files[0]);
-      doImageFetch('/api/members/me/profile-image', 'PUT', form, 'result-profile-img');
-      // 파일 입력 초기화 (같은 파일 다시 선택 시 onchange 발생하도록)
-      fileInput.value = '';
-    }
+
 
     function uploadTestImages() {
       const fileInput = document.getElementById('post-img-input');

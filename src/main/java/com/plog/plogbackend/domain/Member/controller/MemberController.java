@@ -1,14 +1,15 @@
 package com.plog.plogbackend.domain.Member.controller;
 
-import com.plog.plogbackend.domain.Member.dto.MyPageMemberDTO;
-import com.plog.plogbackend.domain.Member.dto.ProfileImageRequest;
+import com.plog.plogbackend.domain.Member.dto.DefaultProfileImageDTO;
+import com.plog.plogbackend.domain.Member.dto.MyPageMemberResponse;
+import com.plog.plogbackend.domain.Member.dto.UpdateProfileRequest;
 import com.plog.plogbackend.domain.Member.service.MemberImageService;
 import com.plog.plogbackend.domain.Member.service.MemberService;
-import com.plog.plogbackend.domain.image.dto.ImageUrlResponse;
 import com.plog.plogbackend.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -28,48 +29,54 @@ public class MemberController {
   private final MemberService memberService;
 
   @Operation(
-      summary = "회원 정보 조회", // TODO : 정보 불러오기 테스트 이후 삭제
+      summary = "회원 정보 조회",
       description = "로그인한 회원의 닉네임과 프로필 이미지 URL을 조회합니다.")
   @GetMapping("/me")
-  public ResponseEntity<ApiResponse<MyPageMemberDTO>> getMyPage(Authentication authentication) {
+  public ResponseEntity<ApiResponse<MyPageMemberResponse>> getMember(Authentication authentication) {
     UUID memberKey = (UUID) authentication.getPrincipal();
-    MyPageMemberDTO response = memberService.getMyPageInfo(memberKey);
+    MyPageMemberResponse response = memberService.getMyPageInfo(memberKey);
     return ResponseEntity.ok(ApiResponse.success(response));
   }
 
   @Operation(
-      summary = "프로필 이미지 업로드/수정",
-      description = "로그인한 회원의 프로필 이미지를 업로드합니다. 기존 이미지가 있으면 자동으로 교체됩니다.")
-  @PutMapping(value = "/me/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<ApiResponse<ImageUrlResponse>> uploadProfileImage(
-      Authentication authentication,
-      @Parameter(description = "업로드할 이미지 파일 (jpg, png 등, 최대 10MB)") @RequestPart("image")
-          MultipartFile image) {
-
-    UUID memberKey = (UUID) authentication.getPrincipal();
-    ImageUrlResponse imageResponse = memberImageService.uploadProfileImage(memberKey, image);
-    return ResponseEntity.ok(ApiResponse.success(imageResponse));
-  }
-
-  @Operation(
       summary = "기본 프로필 이미지 목록 조회",
-      description = "선택 가능한 6개의 기본 프로필 이미지 URL 목록을 조회합니다.")
+      description = "DB에서 관리되는 선택 가능한 기본 프로필 이미지 목록(ID 및 URL)을 조회합니다.")
   @GetMapping("/default-images")
-  public ResponseEntity<ApiResponse<List<String>>> getDefaultProfileImages() {
-    List<String> defaultImages = memberImageService.getDefaultProfileImages();
+  public ResponseEntity<ApiResponse<List<DefaultProfileImageDTO>>> getDefaultProfileImages() {
+    List<DefaultProfileImageDTO> defaultImages = memberImageService.getDefaultProfileImages();
     return ResponseEntity.ok(ApiResponse.success(defaultImages));
   }
 
+  /**
+   * 마이페이지 프로필 통합 수정 API.
+   *
+   * <p>닉네임, 프로필 이미지(파일 or 기본 이미지 URL)를 한 번의 요청으로 변경합니다.
+   * - 닉네임이 null이거나 비어 있으면 닉네임은 변경하지 않습니다.
+   * - 이미지 파일(image)이 있으면 GCS 업로드 후 저장합니다.
+   * - 파일이 없고 imageUrl만 있으면 DB에 등록된 기본 이미지인지 검증 후 저장합니다.
+   * - 이미지 관련 파라미터가 모두 없으면 이미지는 변경하지 않습니다.
+   */
   @Operation(
-      summary = "프로필 이미지 URL 변경",
-      description = "선택한 기본 프로필 이미지 URL로 회원의 프로필 이미지를 변경합니다. (JWT 토큰 필요)")
-  @PatchMapping("/me/profile-image-url")
-  public ResponseEntity<ApiResponse<Void>> updateProfileImageUrl(
-      Authentication authentication, @RequestBody ProfileImageRequest request) {
+      summary = "프로필 수정",
+      description = """
+          로그인한 회원의 프로필(닉네임 + 이미지)을 한 번에 변경합니다.
+          - `request` 파트: 닉네임 (null이면 변경 안 함)
+          - `image` 파트: 업로드할 이미지 파일 (선택)
+          - `defaultImageId` 파트: 기본 이미지 ID (image가 없을 때 사용, 선택)
+          - 이미지 파라미터가 모두 없으면 이미지는 그대로 유지됩니다.
+          """)
+  @PutMapping(value = "/me/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<ApiResponse<Void>> updateProfile(
+      Authentication authentication,
+      @Parameter(description = "닉네임 변경 정보 (JSON)")
+      @Valid @RequestPart(value = "request", required = false) UpdateProfileRequest request,
+      @Parameter(description = "업로드할 이미지 파일 (jpg, png 등, 최대 10MB, 선택)")
+      @RequestPart(value = "image", required = false) MultipartFile image,
+      @Parameter(description = "선택한 기본 이미지 ID (image가 없을 때 사용, 선택)")
+      @RequestParam(value = "defaultImageId", required = false) Long defaultImageId) {
+
     UUID memberKey = (UUID) authentication.getPrincipal();
-    memberImageService.updateProfileImageByUrl(memberKey, request.getImageUrl());
+    memberService.updateProfile(memberKey, request, image, defaultImageId);
     return ResponseEntity.ok(ApiResponse.success());
   }
-
-
 }

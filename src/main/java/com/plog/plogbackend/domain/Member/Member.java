@@ -19,9 +19,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseTimeStatusEntity {
 
-  // 기본 프로필 이미지
-  private static final String DEFAULT_PROFILE_URL =
-      "https://your-domain.com/images/default-profile.png"; // 예시 주소
 
   // ==========================================
   // 1. 내부 식별자 (조인, 인덱스 최적화용)
@@ -77,7 +74,7 @@ public class Member extends BaseTimeStatusEntity {
         .memberKey(UuidCreator.getTimeOrderedEpoch())
         .providerId(providerId)
         .nickname(nickname)
-        .profileImage(getOrDefaultImage(profileImage))
+        .profileImage(profileImage)
         .role(Role.ROLE_USER)
         .build();
   }
@@ -86,17 +83,27 @@ public class Member extends BaseTimeStatusEntity {
   // 5. 비즈니스 메서드
   // ==========================================
 
-  /** 기본 프로필 이미지 설정 */
-  private static String getOrDefaultImage(String imageUrl) {
-    // String이 null이거나 공백("")인 경우 기본 이미지 반환
-    if (imageUrl == null || imageUrl.isBlank()) {
-      return DEFAULT_PROFILE_URL;
-    }
-    return imageUrl;
-  }
-
   /** 프로필 이미지 URL 업데이트 */
   public void updateProfileImage(String imageUrl) {
-    this.profileImage = getOrDefaultImage(imageUrl);
+    this.profileImage = imageUrl;
+  }
+
+  /** 닉네임 업데이트 */
+  public void updateNickname(String nickname) {
+    this.nickname = nickname;
+  }
+
+  /**
+   * 프로필(닉네임 + 이미지)을 한 번에 업데이트합니다.
+   * null인 값은 변경하지 않습니다.
+   */
+  public void updateProfile(String nickname, String imageUrl) {
+    if (nickname != null && !nickname.isBlank()) {
+      this.nickname = nickname;
+    }
+    if (imageUrl != null && !imageUrl.isBlank()) {
+      this.profileImage = imageUrl;
+    }
+    // TODO : 소개글 수정 추가
   }
 }

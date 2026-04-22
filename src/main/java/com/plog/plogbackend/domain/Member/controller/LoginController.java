@@ -32,12 +32,13 @@ public class LoginController {
 
   @Operation(
       summary = "회원가입(카카오 인증 후)",
-      description = "닉네임, 약관동의, 프로필 이미지(선택)를 받아 가입 완료 (멀티파트 폼 데이터)")
+      description = "닉네임, 약관동의, 프로필 이미지(직접 업로드 또는 기본 이미지 URL 선택)를 받아 가입 완료 (멀티파트 폼 데이터)")
   @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<Void>> signup(
       @CookieValue(value = "registerToken", required = false) String registerToken,
       @Valid @RequestPart("request") MemberSignupRequest request,
       @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+      @RequestParam(value = "defaultImageId", required = false) Long defaultImageId,
       HttpServletResponse response) {
 
     if (registerToken == null) {
@@ -45,7 +46,7 @@ public class LoginController {
     }
 
     // 1. 회원 저장 후 memberKey 반환
-    UUID memberKey = memberService.signup(registerToken, request, profileImage);
+    UUID memberKey = memberService.signup(registerToken, request, profileImage, defaultImageId);
 
     // 2. 컨트롤러에서 accessToken 생성 후 쿠키에 담음
     String accessToken = jwtProvider.createAccessToken(memberKey);

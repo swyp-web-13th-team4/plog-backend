@@ -167,7 +167,56 @@
         transition: transform 0.2s;
       }
       .avatar-edit:hover { transform: scale(1.1); }
-      .avatar-hint { font-size: 0.75rem; color: var(--muted); }
+      .avatar-hint { font-size: 0.75rem; color: var(--muted); margin-bottom: 20px; }
+      
+      .default-images-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+        width: 100%;
+      }
+      .default-image-item {
+        aspect-ratio: 1;
+        border-radius: 12px;
+        border: 2px solid var(--border);
+        cursor: pointer;
+        overflow: hidden;
+        transition: all 0.2s;
+        background: rgba(255,255,255,0.03);
+      }
+      .default-image-item:hover {
+        border-color: var(--accent);
+        transform: scale(1.05);
+      }
+      .default-image-item.selected {
+        border-color: var(--accent);
+        box-shadow: 0 0 15px rgba(129, 140, 248, 0.4);
+        background: rgba(129, 140, 248, 0.1);
+      }
+      .default-image-item img {
+        width: 100%; height: 100%; object-fit: cover;
+      }
+      .plus-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: var(--muted);
+        border: 2px dashed var(--border) !important;
+        background: rgba(255,255,255,0.02) !important;
+      }
+      .plus-item:hover {
+        border-color: var(--accent) !important;
+        color: var(--accent);
+        background: rgba(129, 140, 248, 0.05) !important;
+      }
+      .plus-item.selected {
+        border-color: var(--accent) !important;
+        border-style: solid !important;
+        color: var(--accent);
+        background: rgba(129, 140, 248, 0.1) !important;
+      }
 
       .form-group { margin-bottom: 20px; }
       label {
@@ -345,7 +394,13 @@
           </div>
           <div class="avatar-edit" onclick="document.getElementById('img-url-group').scrollIntoView({behavior:'smooth'})">✏️</div>
         </div>
-        <span class="avatar-hint">아래에 이미지 URL을 입력하고 확인 버튼을 누르세요</span>
+        <span class="avatar-hint">아래에서 기본 이미지를 선택하거나 파일을 업로드하세요</span>
+
+        <div class="default-images-grid" id="default-images-grid">
+          <!-- 기본 이미지들이 여기에 렌더링됩니다 -->
+          <div class="default-image-item plus-item" id="plus-btn-item" onclick="document.getElementById('profile-image-file').click()">+</div>
+        </div>
+        <input type="file" id="profile-image-file" accept="image/*" style="display: none;"/>
       </div>
 
       <form id="signup-form" novalidate>
@@ -359,16 +414,7 @@
           <div class="field-error" id="nick-error">닉네임은 2자 이상 20자 이하여야 합니다.</div>
         </div>
 
-        <div class="form-group" id="img-url-group">
-          <label for="profile-image-file">프로필 이미지 파일 <span style="color:var(--muted);font-size:0.75rem">(선택)</span></label>
-          <div class="input-with-btn">
-            <input
-              type="file" id="profile-image-file" accept="image/*"
-              style="padding: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; color: var(--text); width: 100%; cursor: pointer;"
-            />
-          </div>
-          <div class="field-error" id="img-error">이미지 파일을 선택해주세요.</div>
-        </div>
+
 
         <div class="terms-section">
           <div class="terms-item" onclick="toggleCheck('check-all')">
@@ -433,20 +479,82 @@
 
       const nicknameInput = document.getElementById('nickname');
       const nickCount     = document.getElementById('nick-count');
+      const profileFileInput = document.getElementById('profile-image-file');
+      const avatarImg = document.getElementById('avatar-img');
+      const avatarPreview = document.getElementById('avatar-preview');
+      
       nicknameInput.addEventListener('input', () => {
         nickCount.textContent = nicknameInput.value.length;
         validateNickname();
         updateSubmitState();
       });
 
-      // ── 프로필 이미지 수동 로드 로직 ──
-      const profileFileInput = document.getElementById('profile-image-file');
-      const avatarImg    = document.getElementById('avatar-img');
-      const avatarPreview = document.getElementById('avatar-preview');
+      let selectedDefaultId = null;
+      let selectedDefaultUrl = null;
+      const defaultImagesGrid = document.getElementById('default-images-grid');
+
+      async function loadDefaultImages() {
+        try {
+          const res = await fetch(`${API_BASE}/api/members/default-images`);
+          const data = await res.json();
+          if (data.resultType === 'SUCCESS') {
+            renderDefaultImages(data.data);
+          }
+        } catch (err) {
+          console.error('기본 이미지 로드 실패:', err);
+        }
+      }
+
+      function renderDefaultImages(images) {
+        const plusBtn = document.getElementById('plus-btn-item');
+        defaultImagesGrid.innerHTML = '';
+        images.forEach((img, index) => {
+          const div = document.createElement('div');
+          div.className = 'default-image-item';
+          div.innerHTML = `<img src="${img.imageUrl}" alt="Default ${index+1}">`;
+          div.onclick = () => selectDefaultImage(img.id, img.imageUrl, div);
+          defaultImagesGrid.appendChild(div);
+          
+          // 첫 번째 이미지 자동 선택 (선택 사항)
+          if (index === 0 && !selectedDefaultId) {
+            selectDefaultImage(img.id, img.imageUrl, div);
+          }
+        });
+        defaultImagesGrid.appendChild(plusBtn);
+      }
+
+      function selectDefaultImage(id, url, element) {
+        // 기존 선택 해제 (플러스 버튼 포함)
+        document.querySelectorAll('.default-image-item').forEach(el => el.classList.remove('selected'));
+        // 새 선택 설정
+        element.classList.add('selected');
+        selectedDefaultId = id;
+        selectedDefaultUrl = url;
+        
+        // 파일 선택 해제
+        profileFileInput.value = '';
+        
+        // 프리뷰 업데이트
+        avatarImg.src = url;
+        avatarImg.style.display = 'block';
+        if (avatarPreview.firstChild.nodeType === Node.TEXT_NODE) {
+          avatarPreview.firstChild.nodeValue = '';
+        }
+      }
+
+      loadDefaultImages();
 
       profileFileInput.addEventListener('change', () => {
         const file = profileFileInput.files[0];
         if (file) {
+          // 기존 선택 해제
+          document.querySelectorAll('.default-image-item').forEach(el => el.classList.remove('selected'));
+          // 플러스 버튼 선택 표시
+          document.getElementById('plus-btn-item').classList.add('selected');
+          
+          selectedDefaultId = null;
+          selectedDefaultUrl = null;
+          
           const reader = new FileReader();
           reader.onload = function(e) {
             avatarImg.src = e.target.result;
@@ -457,10 +565,16 @@
           };
           reader.readAsDataURL(file);
         } else {
-          avatarImg.style.display = 'none';
-          avatarImg.src = '';
-          if (avatarPreview.firstChild.nodeType === Node.TEXT_NODE) {
-            avatarPreview.firstChild.nodeValue = '🙂';
+          // 파일 선택 취소 시 다시 선택된 기본 이미지로 복구
+          if (selectedDefaultUrl) {
+            avatarImg.src = selectedDefaultUrl;
+            avatarImg.style.display = 'block';
+          } else {
+            avatarImg.style.display = 'none';
+            avatarImg.src = '';
+            if (avatarPreview.firstChild.nodeType === Node.TEXT_NODE) {
+              avatarPreview.firstChild.nodeValue = '🙂';
+            }
           }
         }
       });
@@ -508,8 +622,13 @@
 
         const file = profileFileInput.files[0];
         if (file) {
+          // 파일 업로드 선택 시: profileImage 파트로 전송
           formData.append('profileImage', file);
+        } else if (selectedDefaultId) {
+          // 기본 이미지 선택 시: defaultImageId 파트로 전송
+          formData.append('defaultImageId', selectedDefaultId);
         }
+
 
         submitBtn.classList.add('loading');
         submitBtn.disabled  = true;
