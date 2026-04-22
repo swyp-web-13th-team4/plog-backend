@@ -36,7 +36,8 @@ public enum ErrorType {
   // 도메인 NOT_FOUND 세분화
   MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 회원을 찾을 수 없습니다.", LogLevel.WARN),
   POST_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 게시글을 찾을 수 없습니다.", LogLevel.WARN),
-  INVALID_DEFAULT_IMAGE_URL(HttpStatus.BAD_REQUEST, ErrorCode.E1105, "등록되지 않은 기본 프로필 이미지 URL입니다.", LogLevel.WARN);
+  INVALID_DEFAULT_IMAGE_URL(
+      HttpStatus.BAD_REQUEST, ErrorCode.E1105, "등록되지 않은 기본 프로필 이미지 URL입니다.", LogLevel.WARN);
 
   // 여기에 추가해주시고 사용하시면 됩니다.
 

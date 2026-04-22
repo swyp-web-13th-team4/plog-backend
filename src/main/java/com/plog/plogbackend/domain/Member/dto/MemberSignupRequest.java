@@ -3,8 +3,5 @@ package com.plog.plogbackend.domain.Member.dto;
 import jakarta.validation.constraints.Size;
 
 public record MemberSignupRequest(
-    @Size(min = 2, max = 10, message = "닉네임은 2자 이상 10자 이하여야 합니다.")
-    String nickname, 
-    boolean marketingAgreed
-) {}
-
+    @Size(min = 2, max = 10, message = "닉네임은 2자 이상 10자 이하여야 합니다.") String nickname,
+    boolean marketingAgreed) {}

@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 애플리케이션 시작 시 {@code application.yml}의 기본 프로필 이미지 URL 목록을
- * {@code default_profile_image} 테이블에 동기화합니다.
+ * 애플리케이션 시작 시 {@code application.yml}의 기본 프로필 이미지 URL 목록을 {@code default_profile_image} 테이블에
+ * 동기화합니다.
  *
  * <p>이미 존재하는 URL은 중복 삽입하지 않으므로 재시작해도 안전합니다.
  */

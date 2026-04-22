@@ -19,7 +19,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseTimeStatusEntity {
 
-
   // ==========================================
   // 1. 내부 식별자 (조인, 인덱스 최적화용)
   // ==========================================
@@ -96,10 +95,7 @@ public class Member extends BaseTimeStatusEntity {
     this.nickname = nickname;
   }
 
-  /**
-   * 프로필(닉네임 + 이미지 + 소개글)을 한 번에 업데이트합니다.
-   * null인 값은 변경하지 않습니다.
-   */
+  /** 프로필(닉네임 + 이미지 + 소개글)을 한 번에 업데이트합니다. null인 값은 변경하지 않습니다. */
   public void updateProfile(String nickname, String imageUrl, String introduction) {
     if (nickname != null && !nickname.isBlank()) {
       this.nickname = nickname;
