@@ -604,7 +604,6 @@
   </div>
 
   <script>
-    // ── 별 ──
     const starsEl = document.getElementById('stars');
     for (let i = 0; i < 70; i++) {
       const s = document.createElement('div'); s.className = 'star';
@@ -616,9 +615,9 @@
     // 토큰은 HttpOnly 쿠키로 관리되므로 JS에서 접근 및 파싱하지 않습니다.
 
     // ── API 설정 ──
-    //const API_BASE = 'https://plog-dev.duckdns.org';
+    const API_BASE = 'https://plog-dev.duckdns.org';
     // 로컬 테스트 시 아래 주소 사용:
-    const API_BASE = 'http://localhost:8080';
+    //const API_BASE = 'http://localhost:8080';
 
     // ── API 테스트 ──
     async function testApi(method, path, resultId) {
