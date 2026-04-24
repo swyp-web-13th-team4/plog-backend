@@ -20,7 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DefaultProfileImageInitializer implements ApplicationRunner {
+public class DefaultProfileImageInitializer
+    implements ApplicationRunner { // TODO : 기본 프로필 이미지 완성 및 통합 테스트 직전에 삭제후, DB 직접 입력 방식으로 변경 (yml 도
+  // 변경)
 
   private final DefaultProfileImageRepository defaultProfileImageRepository;
   private final PlogProperties plogProperties;
