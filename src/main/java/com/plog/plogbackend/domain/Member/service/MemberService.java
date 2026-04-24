@@ -115,18 +115,14 @@ public class MemberService {
     String newImageUrl =
         memberImageService.resolveAndScheduleImageUpdate(member, file, defaultImageId);
 
-    String newNickname = (request != null) ? request.nickname() : null;
-    String newIntroduction = (request != null) ? request.introduction() : null;
+    String newNickname = request.nickname();
+    String newIntroduction = request.introduction();
 
     // 닉네임 유효성 검사 및 중복 확인
-    if (newNickname != null) {
-      validateNickname(newNickname, memberKey);
-    }
+    validateNickname(newNickname, memberKey);
 
     // 소개글 유효성 검사 (개인정보 및 SNS 계정 포함 방지)
-    if (newIntroduction != null) {
-      validateIntroduction(newIntroduction);
-    }
+    validateIntroduction(newIntroduction);
 
     // 닉네임 + 이미지 + 소개글 한 번에 적용
     member.updateProfile(newNickname, newImageUrl, newIntroduction);
