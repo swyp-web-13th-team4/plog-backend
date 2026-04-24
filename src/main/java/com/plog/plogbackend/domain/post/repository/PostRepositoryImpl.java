@@ -59,12 +59,16 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
   }
 
   @Override
-  public List<Post> findAllByFeed(LocalDateTime lastStudyDate, Long lastPostId) {
+  public List<Post> findAllByFeed(LocalDateTime lastStudyDate, Long lastPostId, int size) {
     return queryFactory
         .selectFrom(post)
+        .join(post.member)
+        .fetchJoin()
+        .join(post.place)
+        .fetchJoin()
         .where(post.scope.eq(PublicScope.PUBLIC), scroll(lastStudyDate, lastPostId))
-        .limit(10)
-        .orderBy(post.createAt.desc(), post.id.desc())
+        .limit(size)
+        .orderBy(post.createdAt.desc(), post.id.desc())
         .fetch();
   }
 
@@ -83,16 +87,16 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
     if (startDate == null || endDate == null) return null;
 
-    return post.createAt.between(startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
+    return post.createdAt.between(startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
   }
 
   private BooleanExpression scroll(LocalDateTime lastStudyDate, Long lastPostId) {
 
     if (lastStudyDate == null || lastPostId == null) return null;
 
-    return post.createAt
+    return post.createdAt
         .lt(lastStudyDate)
-        .or(post.createAt.eq(lastStudyDate).and(post.id.lt(lastPostId)));
+        .or(post.createdAt.eq(lastStudyDate).and(post.id.lt(lastPostId)));
   }
 
   private BooleanExpression memberIdEq(Long memberId) {
