@@ -115,9 +115,20 @@ public class MemberService {
     String newImageUrl =
         memberImageService.resolveAndScheduleImageUpdate(member, file, defaultImageId);
 
-    // 닉네임 + 이미지 + 소개글 한 번에 적용
     String newNickname = (request != null) ? request.nickname() : null;
     String newIntroduction = (request != null) ? request.introduction() : null;
+
+    // 닉네임 유효성 검사 및 중복 확인
+    if (newNickname != null && !newNickname.isBlank()) {
+      if (!newNickname.matches("^[가-힣a-zA-Z0-9_]+$")) {
+        throw new AppException(ErrorType.INVALID_NICKNAME_FORMAT);
+      }
+      if (!newNickname.equals(member.getNickname()) && memberRepository.existsByNickname(newNickname)) {
+        throw new AppException(ErrorType.DUPLICATE_NICKNAME);
+      }
+    }
+
+    // 닉네임 + 이미지 + 소개글 한 번에 적용
     member.updateProfile(newNickname, newImageUrl, newIntroduction);
 
     log.info(
