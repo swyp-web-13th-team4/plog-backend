@@ -7,6 +7,7 @@ import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.global.response.ApiResponse;
 import com.plog.plogbackend.global.util.CookieUtil;
 import com.plog.plogbackend.security.jwt.JwtProvider;
+import com.plog.plogbackend.security.jwt.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,6 +29,7 @@ public class LoginController {
 
   private final MemberService memberService;
   private final JwtProvider jwtProvider;
+  private final RefreshTokenService refreshTokenService;
   private final CookieUtil cookieUtil;
 
   @Operation(
@@ -55,7 +57,14 @@ public class LoginController {
             "accessToken", accessToken, jwtProvider.getAccessTokenValidityInMs());
     response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
 
-    // 3. 사용이 끝난 registerToken 쿠키 삭제 (즉시 만료)
+    // 3. Refresh Token 발급 및 DB 저장 후 쿠키에 담음
+    String refreshToken = refreshTokenService.createRefreshToken(memberKey);
+    ResponseCookie refreshCookie =
+        cookieUtil.createCookie(
+            "refreshToken", refreshToken, jwtProvider.getRefreshTokenValidityInMs());
+    response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+    // 4. 사용이 끝난 registerToken 쿠키 삭제 (즉시 만료)
     ResponseCookie deleteRegisterCookie = cookieUtil.deleteCookie("registerToken");
     response.addHeader(HttpHeaders.SET_COOKIE, deleteRegisterCookie.toString());
 
