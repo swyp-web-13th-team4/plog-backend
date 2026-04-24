@@ -2,8 +2,10 @@ package com.plog.plogbackend.domain.post.entity;
 
 import com.plog.plogbackend.domain.tag.Tag;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
+@Getter
 public class PostTag {
 
   @GeneratedValue(strategy = GenerationType.IDENTITY)
