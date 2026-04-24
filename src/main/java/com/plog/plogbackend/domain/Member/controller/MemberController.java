@@ -1,18 +1,16 @@
 package com.plog.plogbackend.domain.Member.controller;
 
-import com.plog.plogbackend.domain.Member.dto.MemberSignupRequest;
+import com.plog.plogbackend.domain.Member.dto.DefaultProfileImageDTO;
+import com.plog.plogbackend.domain.Member.dto.MyPageMemberResponse;
+import com.plog.plogbackend.domain.Member.dto.UpdateProfileRequest;
 import com.plog.plogbackend.domain.Member.service.MemberImageService;
 import com.plog.plogbackend.domain.Member.service.MemberService;
-import com.plog.plogbackend.domain.image.dto.ImageUrlResponse;
 import com.plog.plogbackend.global.response.ApiResponse;
-import com.plog.plogbackend.global.util.CookieUtil;
-import com.plog.plogbackend.security.jwt.JwtProvider;
-import com.plog.plogbackend.security.jwt.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -21,103 +19,66 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "회원 인증/인가", description = "로그인 인증/인가 , 로그아웃")
+@Tag(name = "회원", description = "회원 정보 관련 API")
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
 public class MemberController {
 
-  private final MemberService memberService;
   private final MemberImageService memberImageService;
-  private final JwtProvider jwtProvider;
-  private final CookieUtil cookieUtil;
+  private final MemberService memberService;
 
-  @Operation(
-      summary = "회원가입(카카오 인증 후)",
-      description = "닉네임, 약관동의, 프로필 이미지(선택)를 받아 가입 완료 (멀티파트 폼 데이터)")
-  @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<ApiResponse<Void>> signup(
-      @CookieValue(value = "registerToken", required = false) String registerToken,
-      @Valid @RequestPart("request") MemberSignupRequest request,
-      @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
-      HttpServletResponse response) {
-
-    RefreshTokenService.TokenPair tokenPair =
-        memberService.signup(registerToken, request, profileImage);
-
-    cookieUtil.addCookie( // 엑세스 토큰
-        response, "accessToken", tokenPair.accessToken(), jwtProvider.getAccessTokenValidityInMs());
-
-    cookieUtil.addCookie( // 리프레쉬 토큰
-        response,
-        "refreshToken",
-        tokenPair.refreshToken(),
-        jwtProvider.getRefreshTokenValidityInMs());
-
-    cookieUtil.expireCookie(response, "registerToken"); // 회원가입 전용 토큰 삭제
-
-    return ResponseEntity.ok(ApiResponse.success());
+  @Operation( // TODO : 회원 정보 조회 엔드포인트. 사용처 없으면 삭제
+      summary = "회원 정보 조회",
+      description = "로그인한 회원의 닉네임, 프로필 이미지 URL, 소개글 등을 조회합니다.")
+  @GetMapping("/me")
+  public ResponseEntity<ApiResponse<MyPageMemberResponse>> getMember(
+      Authentication authentication) {
+    UUID memberKey = (UUID) authentication.getPrincipal();
+    MyPageMemberResponse response = memberService.getMyPageInfo(memberKey);
+    return ResponseEntity.ok(ApiResponse.success(response));
   }
 
   @Operation(
-      summary = "로그아웃",
-      description = "accessToken, refreshToken 쿠키를 만료시키고 DB에서 refresh token을 삭제하여 로그아웃 처리")
-  @PostMapping("/logout")
-  public ResponseEntity<ApiResponse<Void>> logout(
-      Authentication authentication, HttpServletResponse response) {
-
-    if (authentication != null && authentication.getPrincipal() instanceof UUID memberKey) {
-      memberService.logout(memberKey);
-    }
-
-    cookieUtil.expireCookie(response, "accessToken");
-    cookieUtil.expireCookie(response, "refreshToken");
-
-    return ResponseEntity.ok(ApiResponse.success());
+      summary = "기본 프로필 이미지 목록 조회",
+      description = "DB에서 관리되는 선택 가능한 기본 프로필 이미지 목록(ID 및 URL)을 조회합니다.")
+  @GetMapping("/default-images")
+  public ResponseEntity<ApiResponse<List<DefaultProfileImageDTO>>> getDefaultProfileImages() {
+    List<DefaultProfileImageDTO> defaultImages = memberImageService.getDefaultProfileImages();
+    return ResponseEntity.ok(ApiResponse.success(defaultImages));
   }
 
+  /**
+   * 마이페이지 프로필 통합 수정 API.
+   *
+   * <p>닉네임, 소개글, 프로필 이미지(파일 or 기본 이미지 URL)를 한 번의 요청으로 변경합니다. - 닉네임이나 소개글이 null이면 해당 항목은 변경하지 않습니다.
+   * - 이미지 파일(image)이 있으면 GCS 업로드 후 저장합니다. - 파일이 없고 imageUrl만 있으면 DB에 등록된 기본 이미지인지 검증 후 저장합니다. - 이미지
+   * 관련 파라미터가 모두 없으면 이미지는 변경하지 않습니다.
+   */
   @Operation(
-      summary = "토큰 갱신",
+      summary = "프로필 수정",
       description =
-          "Refresh Token을 이용하여 새 Access Token과 Refresh Token을 발급합니다. "
-              + "필터에서 자동 갱신이 되지만, 프론트에서 명시적으로 갱신이 필요할 때 사용합니다.")
-  @PostMapping("/refresh")
-  public ResponseEntity<ApiResponse<Void>> refreshToken(
-      @CookieValue(value = "refreshToken", required = false) String refreshToken,
-      HttpServletResponse response) {
-
-    RefreshTokenService.TokenPair tokenPair = memberService.refreshToken(refreshToken);
-
-    cookieUtil.addCookie(
-        response, "accessToken", tokenPair.accessToken(), jwtProvider.getAccessTokenValidityInMs());
-    cookieUtil.addCookie(
-        response,
-        "refreshToken",
-        tokenPair.refreshToken(),
-        jwtProvider.getRefreshTokenValidityInMs());
-
-    return ResponseEntity.ok(ApiResponse.success());
-  }
-
-  @Operation(
-      summary = "프로필 이미지 업로드/수정",
-      description = "로그인한 회원의 프로필 이미지를 업로드합니다. 기존 이미지가 있으면 자동으로 교체됩니다.")
-  @PutMapping(value = "/me/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<ApiResponse<ImageUrlResponse>> uploadProfileImage(
+          """
+          로그인한 회원의 프로필(닉네임, 소개글, 이미지)을 한 번에 변경합니다.
+          - `request` 파트: 닉네임, 소개글 (multipart form-data 파라미터)
+          - `image` 파트: 업로드할 이미지 파일 (선택)
+          - `defaultImageId` 파트: 기본 이미지 ID (image가 없을 때 사용, 선택)
+          - 이미지 파라미터가 모두 없으면 이미지는 그대로 유지됩니다.
+          """)
+  @PatchMapping(value = "/me/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<ApiResponse<Void>> updateProfile(
       Authentication authentication,
-      @Parameter(description = "업로드할 이미지 파일 (jpg, png 등, 최대 10MB)") @RequestPart("image")
-          MultipartFile image) {
+      @Parameter(description = "프로필 변경 정보 (닉네임, 소개글)") @Valid @ModelAttribute
+          UpdateProfileRequest request,
+      @Parameter(description = "업로드할 이미지 파일 (jpg, png 등, 최대 10MB, 선택)")
+          @RequestPart(value = "image", required = false)
+          MultipartFile image,
+      @Parameter(description = "선택한 기본 이미지 ID (image가 없을 때 사용, 선택)")
+          @RequestParam(value = "defaultImageId", required = false)
+          Long defaultImageId) {
 
     UUID memberKey = (UUID) authentication.getPrincipal();
-    ImageUrlResponse imageResponse = memberImageService.uploadProfileImage(memberKey, image);
-    return ResponseEntity.ok(ApiResponse.success(imageResponse));
-  }
-
-  @Operation(summary = "프로필 이미지 삭제", description = "로그인한 회원의 프로필 이미지를 삭제하고 기본 이미지로 초기화합니다.")
-  @DeleteMapping("/me/profile-image")
-  public ResponseEntity<ApiResponse<Void>> deleteProfileImage(Authentication authentication) {
-    UUID memberKey = (UUID) authentication.getPrincipal();
-    memberImageService.deleteProfileImage(memberKey);
+    memberService.updateProfile(memberKey, request, image, defaultImageId);
     return ResponseEntity.ok(ApiResponse.success());
   }
 }

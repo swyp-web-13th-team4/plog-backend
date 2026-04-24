@@ -440,6 +440,57 @@
       transform: translateY(-1px);
       box-shadow: 0 6px 28px rgba(99, 102, 241, 0.55);
     }
+
+    /* ── 프로필 이미지 그리드 ── */
+    .profile-selection-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .profile-item {
+      aspect-ratio: 1;
+      border-radius: 12px;
+      border: 2px solid transparent;
+      overflow: hidden;
+      cursor: pointer;
+      background: var(--surface);
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .profile-item:hover {
+      border-color: rgba(129, 140, 248, 0.5);
+      transform: scale(1.05);
+    }
+
+    .profile-item.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 15px rgba(129, 140, 248, 0.3);
+    }
+
+    .profile-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .plus-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px dashed var(--border);
+    }
+
+    .plus-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
   </style>
 </head>
 
@@ -475,21 +526,30 @@
       </p>
     </div>
 
-    <!-- API 테스트 (추후 구현될 API 미리 배치) -->
+    <!-- 사용자 정보 테스트 -->
     <div class="card">
-      <div class="card-title">🧪 API 빠른 테스트</div>
-      <div id="api-tests">
+      <div class="card-title">👤 사용자 프로필 테스트</div>
+      <div style="margin-bottom: 8px;">
+        <p style="font-size:0.85rem; color:var(--muted); line-height: 1.6; margin-bottom: 16px;">
+          현재 로그인된 사용자의 <strong>닉네임</strong>과 <strong>프로필 이미지 URL</strong> 정보를 조회합니다.
+        </p>
         <div class="api-row">
           <span class="method-badge get">GET</span>
           <span class="api-path">/api/members/me</span>
-          <button class="api-run-btn" onclick="testApi('GET','/api/members/me','result-me')">실행</button>
+          <button class="api-run-btn" onclick="testApi('GET','/api/members/me','result-member-me-new')">내 정보 불러오기</button>
         </div>
-        <div class="api-result" id="result-me"></div>
+        <div class="api-result" id="result-member-me-new"></div>
+      </div>
+    </div>
 
+    <!-- API 테스트 (추후 구현될 API 미리 배치) -->
+    <div class="card">
+      <div class="card-title">🧪 시스템 및 기타 API</div>
+      <div id="api-tests">
         <div class="api-row">
           <span class="method-badge get">GET</span>
           <span class="api-path">/actuator/health</span>
-          <button class="api-run-btn" onclick="testApi('GET','/actuator/health','result-health')">실행</button>
+          <button class="api-run-btn" onclick="testApi('GET','/actuator/health','result-health')">헬스체크 실행</button>
         </div>
         <div class="api-result" id="result-health"></div>
       </div>
@@ -499,16 +559,30 @@
     <div class="card">
       <div class="card-title">🖼️ 이미지 관리 테스트</div>
 
-      <!-- 프로필 이미지 -->
+      <!-- 프로필 (닉네임 + 이미지) 변경 테스트 -->
       <div style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
-        <h4 style="font-size: 0.85rem; color: #a5b4fc; margin-bottom: 10px;">1. 프로필 사진 변경 및 삭제</h4>
+        <h4 style="font-size: 0.85rem; color: #a5b4fc; margin-bottom: 4px;">1. 프로필 수정 (닉네임 + 이미지 통합)</h4>
+        <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 12px;">단일 API <code style="color:#a5b4fc">Patch /me/profile</code> 로 한 번에 변경합니다.</p>
+
+        <div style="margin-bottom: 12px;">
+          <input type="text" id="update-nickname-input" placeholder="새로운 닉네임 (2~10자, 변경하지 않으려면 비워둠)" 
+                 style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); font-family: 'Outfit'; outline: none; margin-bottom: 8px;" minlength="2" maxlength="10">
+          <textarea id="update-introduction-input" placeholder="소개글 (최대 100자, 변경하지 않으려면 비워둠)" 
+                 style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); font-family: 'Outfit'; outline: none; resize: vertical; min-height: 60px;" maxlength="100"></textarea>
+        </div>
+
+        <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 8px;">변경할 프로필 이미지 선택 (선택 사항)</p>
+        <div class="profile-selection-grid" id="default-profile-list">
+          <!-- JS에서 채워짐 -->
+          <div class="profile-item plus-item" onclick="document.getElementById('profile-img-input').click()" id="upload-btn-item">+</div>
+        </div>
+
         <input type="file" id="profile-img-input" accept="image/*"
-          style="font-size: 0.8rem; margin-bottom: 12px; color: var(--muted);" />
-        <br />
-        <button class="api-run-btn" onclick="uploadProfileImage()">프로필 사진 변경(PUT)</button>
-        <button class="api-run-btn" onclick="deleteProfileImage()" style="border-color: #fca5a5; color: #fca5a5;">프로필 사진
-          삭제(DELETE)</button>
-        <div class="api-result" id="result-profile-img"></div>
+          style="display: none;" onchange="previewSelectedFile()" />
+
+        <button class="api-run-btn" onclick="submitProfileUpdate()" style="margin-top: 12px; margin-bottom: 12px; width: 100%; padding: 12px; font-weight: 600; background: rgba(129, 140, 248, 0.15); border-color: rgba(129, 140, 248, 0.3);">변경 내용 저장 (API 호출)</button>
+
+        <div class="api-result" id="result-profile"></div>
       </div>
 
       <!-- 게시글 이미지 테스트 (테스트 컨트롤러 연동) -->
@@ -530,7 +604,6 @@
   </div>
 
   <script>
-    // ── 별 ──
     const starsEl = document.getElementById('stars');
     for (let i = 0; i < 70; i++) {
       const s = document.createElement('div'); s.className = 'star';
@@ -540,6 +613,11 @@
     }
 
     // 토큰은 HttpOnly 쿠키로 관리되므로 JS에서 접근 및 파싱하지 않습니다.
+
+    // ── API 설정 ──
+    const API_BASE = 'https://plog-dev.duckdns.org';
+    // 로컬 테스트 시 아래 주소 사용:
+    // const API_BASE = 'http://localhost:8080';
 
     // ── API 테스트 ──
     async function testApi(method, path, resultId) {
@@ -551,7 +629,7 @@
       const headers = { 'Content-Type': 'application/json' };
 
       try {
-        const res = await fetch(`https://plog-dev.duckdns.org${path}`, {
+        const res = await fetch(`${API_BASE}${path}`, {
           method,
           headers,
           credentials: 'include' // 세션 쿠키 전송
@@ -567,7 +645,7 @@
 
     async function logout() {
       try {
-        await fetch('https://plog-dev.duckdns.org/api/members/logout', {
+        await fetch(`${API_BASE}/api/members/logout`, {
           method: 'POST',
           credentials: 'include'
         });
@@ -578,18 +656,75 @@
       }
     }
 
-    // ── 이미지 테스트 로직 ──
-    async function doImageFetch(url, method, formData, resultId) {
-      const resultEl = document.getElementById(resultId);
+    let selectedImageId = null;
+    let selectedFile = null;
+
+    async function fetchDefaultProfiles() {
+      const grid = document.getElementById('default-profile-list');
+      try {
+        const res = await fetch(`${API_BASE}/api/members/default-images`, { credentials: 'include' });
+        const json = await res.json();
+        if(json.data && Array.isArray(json.data)) {
+          const plusBtn = grid.querySelector('#upload-btn-item');
+          grid.innerHTML = '';
+          
+          json.data.forEach(img => {
+            const div = document.createElement('div');
+            div.className = 'profile-item';
+            div.innerHTML = `<img src="${img.imageUrl}" alt="Profile">`;
+            div.onclick = () => selectProfileUrl(img.id, div);
+            grid.appendChild(div);
+          });
+          grid.appendChild(plusBtn);
+        }
+      } catch (err) {
+        console.error('기본 이미지 로드 실패:', err);
+      }
+    }
+
+    function selectProfileUrl(id, element) {
+      document.querySelectorAll('.profile-item').forEach(el => el.classList.remove('active'));
+      element.classList.add('active');
+      selectedImageId = id;
+      selectedFile = null; // 파일 선택 초기화
+      document.getElementById('profile-img-input').value = '';
+    }
+
+    function previewSelectedFile() {
+      const fileInput = document.getElementById('profile-img-input');
+      if (!fileInput.files.length) return;
+      
+      document.querySelectorAll('.profile-item').forEach(el => el.classList.remove('active'));
+      document.getElementById('upload-btn-item').classList.add('active'); // [+] 버튼 표시
+      
+      selectedFile = fileInput.files[0];
+      selectedImageId = null;
+    }
+
+    async function submitProfileUpdate() {
+      const resultEl = document.getElementById('result-profile');
       resultEl.style.display = 'block';
       resultEl.style.color = '#a5b4fc';
-      resultEl.textContent = '요청 중...';
+      resultEl.textContent = '프로필 업데이트 중...';
+
+      const nickname = document.getElementById('update-nickname-input').value.trim();
+      const introduction = document.getElementById('update-introduction-input').value.trim();
+      const form = new FormData();
+      
+      if (nickname) form.append('nickname', nickname);
+      if (introduction) form.append('introduction', introduction);
+      if (selectedFile) {
+        form.append('image', selectedFile);
+      } else if (selectedImageId) {
+        form.append('defaultImageId', selectedImageId);
+      }
 
       try {
-        const options = { method, credentials: 'include' };
-        if (formData) options.body = formData; // FormData는 자동으로 content-type 및 boundary 설정됨
-
-        const res = await fetch(url, options);
+        const res = await fetch(`${API_BASE}/api/members/me/profile`, {
+          method: 'PATCH',
+          body: form,
+          credentials: 'include'
+        });
         const data = await res.json();
         resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
         resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(data, null, 2)}`;
@@ -599,43 +734,33 @@
       }
     }
 
-    function uploadProfileImage() {
-      const fileInput = document.getElementById('profile-img-input');
-      if (!fileInput.files.length) return alert('프로필 이미지를 선택해주세요.');
-      const form = new FormData();
-      form.append('image', fileInput.files[0]);
-      doImageFetch('https://plog-dev.duckdns.org/api/members/me/profile-image', 'PUT', form, 'result-profile-img');
+    // 페이지 로드 시 실행
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchDefaultProfiles();
+    });
+
+    // ── 이미지 테스트 로직 ──
+    async function doImageFetch(urlPath, method, formData, resultId) {
+      const resultEl = document.getElementById(resultId);
+      resultEl.style.display = 'block';
+      resultEl.style.color = '#a5b4fc';
+      resultEl.textContent = '요청 중...';
+
+      try {
+        const options = { method, credentials: 'include' };
+        if (formData) options.body = formData; 
+
+        const res = await fetch(`${API_BASE}${urlPath}`, options);
+        const data = await res.json();
+        resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
+        resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(data, null, 2)}`;
+      } catch (err) {
+        resultEl.style.color = '#fca5a5';
+        resultEl.textContent = `연결 실패: ${err.message}`;
+      }
     }
 
-    function deleteProfileImage() {
-      if (!confirm('프로필 이미지를 삭제하시겠습니까?')) return;
-      doImageFetch('https://plog-dev.duckdns.org/api/members/me/profile-image', 'DELETE', null, 'result-profile-img');
-      document.getElementById('profile-img-input').value = '';
-    }
 
-    function uploadTestImages() {
-      const fileInput = document.getElementById('post-img-input');
-      if (!fileInput.files.length) return alert('이미지를 1개 이상 선택해주세요.');
-      if (fileInput.files.length > 5) return alert('이미지는 최대 5개까지만 업로드 가능합니다.');
-
-      const form = new FormData();
-      Array.from(fileInput.files).forEach(file => form.append('images', file));
-      doImageFetch('https://plog-dev.duckdns.org/api/test/images/upload', 'POST', form, 'result-post-img');
-    }
-    /*
-     function uploadProfileImage() {
-      const fileInput = document.getElementById('profile-img-input');
-      if (!fileInput.files.length) return alert('프로필 이미지를 선택해주세요.');
-      const form = new FormData();
-      form.append('image', fileInput.files[0]);
-      doImageFetch('http://localhost:8080/api/members/me/profile-image', 'PUT', form, 'result-profile-img');
-    }
-
-    function deleteProfileImage() {
-      if (!confirm('프로필 이미지를 삭제하시겠습니까?')) return;
-      doImageFetch('http://localhost:8080/api/members/me/profile-image', 'DELETE', null, 'result-profile-img');
-      document.getElementById('profile-img-input').value = '';
-    }
 
     function uploadTestImages() {
       const fileInput = document.getElementById('post-img-input');
@@ -644,9 +769,8 @@
 
       const form = new FormData();
       Array.from(fileInput.files).forEach(file => form.append('images', file));
-      doImageFetch('http://localhost:8080/api/test/images/upload', 'POST', form, 'result-post-img');
+      doImageFetch('/api/test/images/upload', 'POST', form, 'result-post-img');
     }
-    */
 
   </script>
 </body>

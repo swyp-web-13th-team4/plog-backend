@@ -19,6 +19,7 @@ public enum ErrorCode {
   E1102,
   E1103,
   E1104,
+  E1105,
 
   /*
       E1000~E1999 Member / File

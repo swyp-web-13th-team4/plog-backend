@@ -47,7 +47,7 @@ public class SecurityConfig {
                     request -> {
                       CorsConfiguration config = new CorsConfiguration();
                       config.setAllowedOrigins(List.of(allowedOrigins)); // 허용 주소
-                      config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+                      config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
                       config.setAllowedHeaders(List.of("*"));
                       config.setAllowCredentials(true);
                       return config;
