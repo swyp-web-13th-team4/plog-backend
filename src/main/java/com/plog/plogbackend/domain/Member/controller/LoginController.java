@@ -1,6 +1,6 @@
 package com.plog.plogbackend.domain.Member.controller;
 
-import com.plog.plogbackend.domain.Member.dto.MemberSignupRequest;
+import com.plog.plogbackend.domain.Member.dto.request.MemberSignupRequest;
 import com.plog.plogbackend.domain.Member.service.MemberService;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;

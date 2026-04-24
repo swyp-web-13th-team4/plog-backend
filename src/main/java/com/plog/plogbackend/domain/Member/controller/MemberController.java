@@ -1,8 +1,8 @@
 package com.plog.plogbackend.domain.Member.controller;
 
 import com.plog.plogbackend.domain.Member.dto.DefaultProfileImageDTO;
-import com.plog.plogbackend.domain.Member.dto.MyPageMemberResponse;
-import com.plog.plogbackend.domain.Member.dto.UpdateProfileRequest;
+import com.plog.plogbackend.domain.Member.dto.response.MyPageMemberResponse;
+import com.plog.plogbackend.domain.Member.dto.request.UpdateProfileRequest;
 import com.plog.plogbackend.domain.Member.service.MemberImageService;
 import com.plog.plogbackend.domain.Member.service.MemberService;
 import com.plog.plogbackend.global.response.ApiResponse;
@@ -79,6 +79,31 @@ public class MemberController {
 
     UUID memberKey = (UUID) authentication.getPrincipal();
     memberService.updateProfile(memberKey, request, image, defaultImageId);
+    return ResponseEntity.ok(ApiResponse.success());
+  }
+
+  @Operation(
+      summary = "닉네임 유효성 검사",
+      description = "닉네임 형식 및 중복 여부를 검사합니다. 실시간 디바운싱 검사용으로 사용할 수 있습니다.")
+  @GetMapping("/validate/nickname")
+  public ResponseEntity<ApiResponse<Void>> validateNickname(
+      @Parameter(description = "검사할 닉네임") @RequestParam("nickname") String nickname,
+      Authentication authentication) {
+    UUID memberKey = null;
+    if (authentication != null && authentication.getPrincipal() instanceof UUID) {
+      memberKey = (UUID) authentication.getPrincipal();
+    }
+    memberService.validateNickname(nickname, memberKey);
+    return ResponseEntity.ok(ApiResponse.success());
+  }
+
+  @Operation(
+      summary = "소개글 유효성 검사",
+      description = "소개글에 개인정보(연락처, 이메일) 및 SNS 계정이 포함되어 있는지 검사합니다.")
+  @GetMapping("/validate/introduction")
+  public ResponseEntity<ApiResponse<Void>> validateIntroduction(
+      @Parameter(description = "검사할 소개글") @RequestParam("introduction") String introduction) {
+    memberService.validateIntroduction(introduction);
     return ResponseEntity.ok(ApiResponse.success());
   }
 }

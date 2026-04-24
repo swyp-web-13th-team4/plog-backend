@@ -1,9 +1,9 @@
 package com.plog.plogbackend.domain.Member.service;
 
 import com.plog.plogbackend.domain.Member.Member;
-import com.plog.plogbackend.domain.Member.dto.MemberSignupRequest;
-import com.plog.plogbackend.domain.Member.dto.MyPageMemberResponse;
-import com.plog.plogbackend.domain.Member.dto.UpdateProfileRequest;
+import com.plog.plogbackend.domain.Member.dto.request.MemberSignupRequest;
+import com.plog.plogbackend.domain.Member.dto.response.MyPageMemberResponse;
+import com.plog.plogbackend.domain.Member.dto.request.UpdateProfileRequest;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
@@ -119,13 +119,13 @@ public class MemberService {
     String newIntroduction = (request != null) ? request.introduction() : null;
 
     // 닉네임 유효성 검사 및 중복 확인
-    if (newNickname != null && !newNickname.isBlank()) {
-      if (!newNickname.matches("^[가-힣a-zA-Z0-9_]+$")) {
-        throw new AppException(ErrorType.INVALID_NICKNAME_FORMAT);
-      }
-      if (!newNickname.equals(member.getNickname()) && memberRepository.existsByNickname(newNickname)) {
-        throw new AppException(ErrorType.DUPLICATE_NICKNAME);
-      }
+    if (newNickname != null) {
+      validateNickname(newNickname, memberKey);
+    }
+
+    // 소개글 유효성 검사 (개인정보 및 SNS 계정 포함 방지)
+    if (newIntroduction != null) {
+      validateIntroduction(newIntroduction);
     }
 
     // 닉네임 + 이미지 + 소개글 한 번에 적용
@@ -137,5 +137,44 @@ public class MemberService {
         member.getNickname(),
         member.getProfileImage(),
         member.getIntroduction());
+  }
+
+  /** 닉네임 유효성 검사 및 중복 확인 */
+  public void validateNickname(String nickname, UUID memberKey) {
+    if (nickname == null || nickname.isBlank()) {
+      return;
+    }
+
+    if (!nickname.matches("^[가-힣a-zA-Z0-9_]+$")) {
+      throw new AppException(ErrorType.INVALID_NICKNAME_FORMAT);
+    }
+
+    boolean isOwnNickname = false;
+    if (memberKey != null) {
+      Member member = memberRepository.findByMemberKey(memberKey).orElse(null);
+      if (member != null && nickname.equals(member.getNickname())) {
+        isOwnNickname = true;
+      }
+    }
+
+    if (!isOwnNickname && memberRepository.existsByNickname(nickname)) {
+      throw new AppException(ErrorType.DUPLICATE_NICKNAME);
+    }
+  }
+
+  /** 소개글 유효성 검사 (개인정보 및 SNS 방지) */
+  public void validateIntroduction(String introduction) {
+    if (introduction == null || introduction.isBlank()) {
+      return;
+    }
+
+    String lowerIntro = introduction.toLowerCase();
+    boolean hasPhoneNumber = lowerIntro.matches(".*(?:010|02|0[3-9]{2})[-.\\s]?\\d{3,4}[-.\\s]?\\d{4}.*");
+    boolean hasEmail = lowerIntro.matches(".*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}.*");
+    boolean hasSnsKeyword = lowerIntro.matches(".*(kakao|카카오|카톡|insta|인스타|facebook|페이스북|페북|twitter|트위터|telegram|텔레그램|line|라인|@).*");
+
+    if (hasPhoneNumber || hasEmail || hasSnsKeyword) {
+      throw new AppException(ErrorType.INVALID_INTRODUCTION_FORMAT);
+    }
   }
 }

@@ -23,8 +23,16 @@ public enum ErrorType {
   EXPIRED_REFRESH_TOKEN(
       HttpStatus.UNAUTHORIZED, ErrorCode.E1003, "만료된 리프레시 토큰입니다. 다시 로그인해주세요.", LogLevel.WARN),
   INVALID_NICKNAME_FORMAT(
-      HttpStatus.BAD_REQUEST, ErrorCode.E1004, "닉네임은 한글, 영문, 숫자, 언더바(_)만 사용할 수 있습니다.", LogLevel.WARN),
+      HttpStatus.BAD_REQUEST,
+      ErrorCode.E1004,
+      "닉네임은 한글, 영문, 숫자, 언더바(_)만 사용할 수 있습니다.",
+      LogLevel.WARN),
   DUPLICATE_NICKNAME(HttpStatus.CONFLICT, ErrorCode.E1005, "이미 사용 중인 닉네임입니다.", LogLevel.WARN),
+  INVALID_INTRODUCTION_FORMAT(
+      HttpStatus.BAD_REQUEST,
+      ErrorCode.E1006,
+      "소개글에 연락처, 이메일, SNS 계정 등 개인정보를 포함할 수 없습니다.",
+      LogLevel.WARN),
 
   // 파일/이미지 관련
   FILE_EMPTY(HttpStatus.BAD_REQUEST, ErrorCode.E1100, "업로드할 파일이 없습니다.", LogLevel.WARN),

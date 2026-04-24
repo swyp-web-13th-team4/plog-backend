@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.Member.dto;
+package com.plog.plogbackend.domain.Member.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
