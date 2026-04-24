@@ -68,9 +68,7 @@ public class MemberController {
   @PatchMapping(value = "/me/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<Void>> updateProfile(
       Authentication authentication,
-      @Parameter(description = "프로필 변경 정보 (닉네임, 소개글)")
-          @Valid
-          @ModelAttribute
+      @Parameter(description = "프로필 변경 정보 (닉네임, 소개글)") @Valid @ModelAttribute
           UpdateProfileRequest request,
       @Parameter(description = "업로드할 이미지 파일 (jpg, png 등, 최대 10MB, 선택)")
           @RequestPart(value = "image", required = false)
