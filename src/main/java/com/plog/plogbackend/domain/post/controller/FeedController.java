@@ -12,6 +12,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,7 +23,7 @@ public class FeedController {
 
   private final FeedService feedService;
 
-  @GetMapping("/list")
+  @GetMapping("/feed/list")
   public ResponseEntity<List<FeedFindResponse>> feedList(FeedFindRequest request) {
 
     FeedFindCommand command = PostMapper.from(request);
@@ -32,10 +33,10 @@ public class FeedController {
     return ResponseEntity.ok().body(feedFindResponses);
   }
 
-  @GetMapping("/list{id}")
-  public ResponseEntity<FeedDetailResponse> feedDetail(FeedDetailRequest request) {
+  @GetMapping("/feed/{postId}")
+  public ResponseEntity<FeedDetailResponse> feedDetail(@PathVariable("postId") Long id, Long memberId) {
 
-    FeedDetailCommand command = PostMapper.from(request);
+    FeedDetailCommand command = PostMapper.from(id,memberId);
     FeedDetailResponse response = feedService.feedDetail(command);
 
     return ResponseEntity.ok().body(response);

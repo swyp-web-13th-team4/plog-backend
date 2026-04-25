@@ -12,8 +12,8 @@ public class PostMapper {
     return new FeedFindCommand(request.lastPostId(), request.createAt());
   }
 
-  public static FeedDetailCommand from(FeedDetailRequest request) {
+  public static FeedDetailCommand from(Long postId,Long memberId) {
 
-    return new FeedDetailCommand(request.postId(), request.memberId());
+    return new FeedDetailCommand(postId,memberId);
   }
 }
