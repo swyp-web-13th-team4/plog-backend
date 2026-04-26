@@ -12,27 +12,27 @@ import lombok.NoArgsConstructor;
 @Table(name = "terms")
 public class Terms {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(nullable = false, length = 100)
-    private String name; // 약관명 (예: 서비스 이용약관 동의)
+  @Column(nullable = false, length = 100)
+  private String name; // 약관명 (예: 서비스 이용약관 동의)
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String content; // 약관 내용
+  @Column(nullable = false, columnDefinition = "TEXT")
+  private String content; // 약관 내용
 
-    @Column(nullable = false)
-    private boolean required; // 필수 여부
+  @Column(nullable = false)
+  private boolean required; // 필수 여부
 
-    @Column(nullable = false, length = 20)
-    private String version; // 버전 (예: v1.0)
+  @Column(nullable = false, length = 20)
+  private String version; // 버전 (예: v1.0)
 
-    @Builder
-    public Terms(String name, String content, boolean required, String version) {
-        this.name = name;
-        this.content = content;
-        this.required = required;
-        this.version = version;
-    }
+  @Builder
+  public Terms(String name, String content, boolean required, String version) {
+    this.name = name;
+    this.content = content;
+    this.required = required;
+    this.version = version;
+  }
 }

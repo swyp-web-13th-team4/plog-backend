@@ -1,8 +1,8 @@
 package com.plog.plogbackend.domain.Member.controller;
 
 import com.plog.plogbackend.domain.Member.dto.DefaultProfileImageDTO;
-import com.plog.plogbackend.domain.Member.dto.response.MyPageMemberResponse;
 import com.plog.plogbackend.domain.Member.dto.request.UpdateProfileRequest;
+import com.plog.plogbackend.domain.Member.dto.response.MyPageMemberResponse;
 import com.plog.plogbackend.domain.Member.service.MemberImageService;
 import com.plog.plogbackend.domain.Member.service.MemberService;
 import com.plog.plogbackend.global.response.ApiResponse;
@@ -97,9 +97,7 @@ public class MemberController {
     return ResponseEntity.ok(ApiResponse.success());
   }
 
-  @Operation(
-      summary = "소개글 유효성 검사",
-      description = "소개글에 개인정보(연락처, 이메일) 및 SNS 계정이 포함되어 있는지 검사합니다.")
+  @Operation(summary = "소개글 유효성 검사", description = "소개글에 개인정보(연락처, 이메일) 및 SNS 계정이 포함되어 있는지 검사합니다.")
   @GetMapping("/validate/introduction")
   public ResponseEntity<ApiResponse<Void>> validateIntroduction(
       @Parameter(description = "검사할 소개글") @RequestParam("introduction") String introduction) {

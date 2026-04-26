@@ -22,4 +22,3 @@ public record UpdateProfileRequest(
 
     // 이미지는 MultipartFile / defaultImageId 로 @RequestPart/@RequestParam으로 별도 수신
     ) {}
-

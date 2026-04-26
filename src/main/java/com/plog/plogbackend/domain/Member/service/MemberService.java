@@ -3,8 +3,8 @@ package com.plog.plogbackend.domain.Member.service;
 import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.MemberAgreement;
 import com.plog.plogbackend.domain.Member.dto.request.MemberSignupRequest;
-import com.plog.plogbackend.domain.Member.dto.response.MyPageMemberResponse;
 import com.plog.plogbackend.domain.Member.dto.request.UpdateProfileRequest;
+import com.plog.plogbackend.domain.Member.dto.response.MyPageMemberResponse;
 import com.plog.plogbackend.domain.Member.entity.Terms;
 import com.plog.plogbackend.domain.Member.repository.MemberAgreementRepository;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
@@ -67,23 +67,28 @@ public class MemberService {
     String profileImageUrl =
         memberImageService.resolveSignupProfileImage(profileImage, defaultImageId);
 
-    Member member = Member.createNewMember(request.nickname(), providerId, profileImageUrl, request.introduction());
+    Member member =
+        Member.createNewMember(
+            request.nickname(), providerId, profileImageUrl, request.introduction());
     memberRepository.save(member);
 
     if (request.termsAgreements() != null) {
       for (Map.Entry<Long, Boolean> entry : request.termsAgreements().entrySet()) {
-        Terms terms = termsRepository.findById(entry.getKey())
-            .orElseThrow(() -> new AppException(ErrorType.TERMS_NOT_FOUND));
-        
+        Terms terms =
+            termsRepository
+                .findById(entry.getKey())
+                .orElseThrow(() -> new AppException(ErrorType.TERMS_NOT_FOUND));
+
         if (terms.isRequired() && !entry.getValue()) {
           throw new AppException(ErrorType.REQUIRED_TERMS_NOT_AGREED);
         }
 
-        MemberAgreement agreement = MemberAgreement.builder()
-            .member(member)
-            .terms(terms)
-            .isAgreed(entry.getValue())
-            .build();
+        MemberAgreement agreement =
+            MemberAgreement.builder()
+                .member(member)
+                .terms(terms)
+                .isAgreed(entry.getValue())
+                .build();
         memberAgreementRepository.save(agreement);
       }
     }
@@ -194,9 +199,12 @@ public class MemberService {
     }
 
     String lowerIntro = introduction.toLowerCase();
-    boolean hasPhoneNumber = lowerIntro.matches(".*(?:010|02|0[3-9]{2})[-.\\s]?\\d{3,4}[-.\\s]?\\d{4}.*");
+    boolean hasPhoneNumber =
+        lowerIntro.matches(".*(?:010|02|0[3-9]{2})[-.\\s]?\\d{3,4}[-.\\s]?\\d{4}.*");
     boolean hasEmail = lowerIntro.matches(".*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}.*");
-    boolean hasSnsKeyword = lowerIntro.matches(".*(kakao|카카오|카톡|insta|인스타|facebook|페이스북|페북|twitter|트위터|telegram|텔레그램|line|라인|@[zA-Z0-9_]).*");
+    boolean hasSnsKeyword =
+        lowerIntro.matches(
+            ".*(kakao|카카오|카톡|insta|인스타|facebook|페이스북|페북|twitter|트위터|telegram|텔레그램|line|라인|@[zA-Z0-9_]).*");
 
     if (hasPhoneNumber || hasEmail || hasSnsKeyword) {
       throw new AppException(ErrorType.INVALID_INTRODUCTION_FORMAT);

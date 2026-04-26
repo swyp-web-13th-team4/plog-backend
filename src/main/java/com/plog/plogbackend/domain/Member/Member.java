@@ -42,7 +42,7 @@ public class Member extends BaseTimeStatusEntity {
   private String profileImage;
 
   @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name="mainBadge_id")
+  @JoinColumn(name = "mainBadge_id")
   private Badge mainBadge;
 
   @Column(nullable = false, unique = true)
@@ -64,7 +64,12 @@ public class Member extends BaseTimeStatusEntity {
 
   @Builder
   private Member(
-      UUID memberKey, String providerId, String nickname, String profileImage, Role role, String introduction) {
+      UUID memberKey,
+      String providerId,
+      String nickname,
+      String profileImage,
+      Role role,
+      String introduction) {
     this.memberKey = memberKey;
     this.providerId = providerId;
     this.nickname = nickname;
@@ -77,7 +82,8 @@ public class Member extends BaseTimeStatusEntity {
   // 4. 정적 팩토리 메서드
   // ==========================================
 
-  public static Member createNewMember(String nickname, String providerId, String profileImage, String introduction) {
+  public static Member createNewMember(
+      String nickname, String providerId, String profileImage, String introduction) {
     return Member.builder()
         .memberKey(UuidCreator.getTimeOrderedEpoch())
         .providerId(providerId)
@@ -92,7 +98,7 @@ public class Member extends BaseTimeStatusEntity {
   // 5. 비즈니스 메서드
   // ==========================================
 
-  /** 대표 뱃지 업데이트*/
+  /** 대표 뱃지 업데이트 */
   public void updateMainBadge(Badge badge) {
     this.mainBadge = badge;
   }

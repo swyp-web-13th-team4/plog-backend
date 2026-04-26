@@ -14,28 +14,28 @@ import lombok.NoArgsConstructor;
 @Table(name = "member_agreement")
 public class MemberAgreement {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "member_id", nullable = false)
+  private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "terms_id", nullable = false)
-    private Terms terms; // 동의한 약관
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "terms_id", nullable = false)
+  private Terms terms; // 동의한 약관
 
-    @Column(nullable = false)
-    private boolean isAgreed;
+  @Column(nullable = false)
+  private boolean isAgreed;
 
-    private LocalDateTime agreedAt;
+  private LocalDateTime agreedAt;
 
-    @Builder
-    public MemberAgreement(Member member, Terms terms, boolean isAgreed) {
-        this.member = member;
-        this.terms = terms;
-        this.isAgreed = isAgreed;
-        this.agreedAt = isAgreed ? LocalDateTime.now() : null;
-    }
+  @Builder
+  public MemberAgreement(Member member, Terms terms, boolean isAgreed) {
+    this.member = member;
+    this.terms = terms;
+    this.isAgreed = isAgreed;
+    this.agreedAt = isAgreed ? LocalDateTime.now() : null;
+  }
 }
