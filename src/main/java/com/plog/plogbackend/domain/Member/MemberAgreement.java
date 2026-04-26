@@ -1,7 +1,6 @@
 package com.plog.plogbackend.domain.Member;
 
-import com.plog.plogbackend.domain.Member.enums.Terms;
-import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
+import com.plog.plogbackend.domain.Member.entity.Terms;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -12,30 +11,31 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberAgreement extends BaseTimeStatusEntity {
+@Table(name = "member_agreement")
+public class MemberAgreement {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "member_id")
-  private Member member;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
-  @Column(nullable = false)
-  @Enumerated(EnumType.STRING)
-  private Terms agreementType; // 예: "MARKETING"
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "terms_id", nullable = false)
+    private Terms terms; // 동의한 약관
 
-  @Column(nullable = false)
-  private boolean isAgreed;
+    @Column(nullable = false)
+    private boolean isAgreed;
 
-  private LocalDateTime agreedAt;
+    private LocalDateTime agreedAt;
 
-  @Builder
-  public MemberAgreement(Member member, Terms agreementType, boolean isAgreed) {
-    this.member = member;
-    this.agreementType = agreementType;
-    this.isAgreed = isAgreed;
-    this.agreedAt = isAgreed ? LocalDateTime.now() : null;
-  }
+    @Builder
+    public MemberAgreement(Member member, Terms terms, boolean isAgreed) {
+        this.member = member;
+        this.terms = terms;
+        this.isAgreed = isAgreed;
+        this.agreedAt = isAgreed ? LocalDateTime.now() : null;
+    }
 }
