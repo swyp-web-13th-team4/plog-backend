@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.badge;
+package com.plog.plogbackend.domain.badge.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
