@@ -2,6 +2,7 @@ package com.plog.plogbackend.domain.Member;
 
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.plog.plogbackend.domain.Member.enums.Role;
+import com.plog.plogbackend.domain.badge.Badge;
 import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
@@ -39,6 +40,10 @@ public class Member extends BaseTimeStatusEntity {
 
   @Column(length = 500)
   private String profileImage;
+
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name="mainBadge_id")
+  private Badge mainBadge;
 
   @Column(nullable = false, unique = true)
   private String providerId; // 카카오 소셜 로그인 식별키
@@ -85,14 +90,9 @@ public class Member extends BaseTimeStatusEntity {
   // 5. 비즈니스 메서드
   // ==========================================
 
-  /** 프로필 이미지 URL 업데이트 */
-  public void updateProfileImage(String imageUrl) {
-    this.profileImage = imageUrl;
-  }
-
-  /** 닉네임 업데이트 */
-  public void updateNickname(String nickname) {
-    this.nickname = nickname;
+  /** 대표 뱃지 업데이트*/
+  public void updateMainBadge(Badge badge) {
+    this.mainBadge = badge;
   }
 
   /** 프로필(닉네임 + 이미지 + 소개글)을 한 번에 업데이트합니다. null인 값은 변경하지 않습니다. */

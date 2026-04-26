@@ -167,7 +167,7 @@ public class MemberService {
     String lowerIntro = introduction.toLowerCase();
     boolean hasPhoneNumber = lowerIntro.matches(".*(?:010|02|0[3-9]{2})[-.\\s]?\\d{3,4}[-.\\s]?\\d{4}.*");
     boolean hasEmail = lowerIntro.matches(".*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}.*");
-    boolean hasSnsKeyword = lowerIntro.matches(".*(kakao|카카오|카톡|insta|인스타|facebook|페이스북|페북|twitter|트위터|telegram|텔레그램|line|라인|@).*");
+    boolean hasSnsKeyword = lowerIntro.matches(".*(kakao|카카오|카톡|insta|인스타|facebook|페이스북|페북|twitter|트위터|telegram|텔레그램|line|라인|@[zA-Z0-9_]).*");
 
     if (hasPhoneNumber || hasEmail || hasSnsKeyword) {
       throw new AppException(ErrorType.INVALID_INTRODUCTION_FORMAT);
