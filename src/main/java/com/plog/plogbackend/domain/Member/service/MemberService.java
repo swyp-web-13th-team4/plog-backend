@@ -1,13 +1,18 @@
 package com.plog.plogbackend.domain.Member.service;
 
 import com.plog.plogbackend.domain.Member.Member;
+import com.plog.plogbackend.domain.Member.MemberAgreement;
 import com.plog.plogbackend.domain.Member.dto.request.MemberSignupRequest;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageMemberResponse;
 import com.plog.plogbackend.domain.Member.dto.request.UpdateProfileRequest;
+import com.plog.plogbackend.domain.Member.entity.Terms;
+import com.plog.plogbackend.domain.Member.repository.MemberAgreementRepository;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
+import com.plog.plogbackend.domain.Member.repository.TermsRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.security.jwt.JwtProvider;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +28,8 @@ public class MemberService {
   private final MemberRepository memberRepository;
   private final JwtProvider jwtProvider;
   private final MemberImageService memberImageService;
+  private final TermsRepository termsRepository;
+  private final MemberAgreementRepository memberAgreementRepository;
 
   /**
    * 회원가입을 처리합니다.
@@ -52,12 +59,34 @@ public class MemberService {
       throw new AppException(ErrorType.ALREADY_REGISTERED_MEMBER);
     }
 
+    // 닉네임, 소개글 유효성 검사
+    validateNickname(request.nickname(), null);
+    validateIntroduction(request.introduction());
+
     // 파일 또는 기본 이미지 ID 중 하나는 반드시 있어야 함 (없으면 FILE_EMPTY 예외)
     String profileImageUrl =
         memberImageService.resolveSignupProfileImage(profileImage, defaultImageId);
 
-    Member member = Member.createNewMember(request.nickname(), providerId, profileImageUrl);
+    Member member = Member.createNewMember(request.nickname(), providerId, profileImageUrl, request.introduction());
     memberRepository.save(member);
+
+    if (request.termsAgreements() != null) {
+      for (Map.Entry<Long, Boolean> entry : request.termsAgreements().entrySet()) {
+        Terms terms = termsRepository.findById(entry.getKey())
+            .orElseThrow(() -> new AppException(ErrorType.TERMS_NOT_FOUND));
+        
+        if (terms.isRequired() && !entry.getValue()) {
+          throw new AppException(ErrorType.REQUIRED_TERMS_NOT_AGREED);
+        }
+
+        MemberAgreement agreement = MemberAgreement.builder()
+            .member(member)
+            .terms(terms)
+            .isAgreed(entry.getValue())
+            .build();
+        memberAgreementRepository.save(agreement);
+      }
+    }
 
     return member.getMemberKey();
   }

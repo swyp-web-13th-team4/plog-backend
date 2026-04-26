@@ -1,7 +1,6 @@
 package com.plog.plogbackend.domain.Member.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,9 +25,6 @@ public class Terms {
     @Column(nullable = false)
     private boolean required; // 필수 여부
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt; // 생성일
-
     @Column(nullable = false, length = 20)
     private String version; // 버전 (예: v1.0)
 
@@ -38,6 +34,5 @@ public class Terms {
         this.content = content;
         this.required = required;
         this.version = version;
-        this.createdAt = LocalDateTime.now();
     }
 }

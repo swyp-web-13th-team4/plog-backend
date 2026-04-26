@@ -414,28 +414,25 @@
           <div class="field-error" id="nick-error">닉네임은 2자 이상 10자 이하여야 합니다.</div>
         </div>
 
+        <div class="form-group">
+          <label for="introduction">소개글 <span style="color:var(--error)">*</span></label>
+          <textarea
+            id="introduction" placeholder="100자 이내 소개글 (연락처 등 개인정보 금지)"
+            maxlength="100" autocomplete="off"
+            style="width: 100%; padding: 14px 16px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 0.95rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; resize: vertical; min-height: 80px;"
+          ></textarea>
+          <div class="char-count"><span id="intro-count">0</span> / 100</div>
+          <div class="field-error" id="intro-error">소개글을 1자 이상 입력해주세요.</div>
+        </div>
 
 
-        <div class="terms-section">
-          <div class="terms-item" onclick="toggleCheck('check-all')">
+
+        <div class="terms-section" id="terms-container">
+          <div class="terms-item" onclick="toggleCheckAll()">
             <div class="custom-check" id="check-all"></div>
             <span class="terms-label" style="font-weight:600">전체 동의</span>
           </div>
-          <div class="terms-item" onclick="toggleCheck('check-service')">
-            <div class="custom-check" id="check-service"></div>
-            <span class="terms-label">이용약관 동의</span>
-            <span class="terms-required">필수</span>
-          </div>
-          <div class="terms-item" onclick="toggleCheck('check-privacy')">
-            <div class="custom-check" id="check-privacy"></div>
-            <span class="terms-label">개인정보 수집·이용 동의</span>
-            <span class="terms-required">필수</span>
-          </div>
-          <div class="terms-item" onclick="toggleCheck('check-marketing')">
-            <div class="custom-check" id="check-marketing"></div>
-            <span class="terms-label">마케팅 정보 수신 동의</span>
-            <span class="terms-optional">선택</span>
-          </div>
+          <!-- 약관이 동적으로 렌더링됩니다 -->
         </div>
 
         <button type="submit" class="btn-submit" id="submit-btn" disabled>
@@ -450,7 +447,7 @@
       // ── API 설정 ──
       const API_BASE = 'https://plog-dev.duckdns.org';
       // 로컬 테스트 시 아래 주소 사용:
-      // const API_BASE = 'http://localhost:8080';
+      //const API_BASE = 'http://localhost:8080';
 
       const starsEl = document.getElementById('stars');
       for (let i = 0; i < 60; i++) {
@@ -479,6 +476,8 @@
 
       const nicknameInput = document.getElementById('nickname');
       const nickCount     = document.getElementById('nick-count');
+      const introInput    = document.getElementById('introduction');
+      const introCount    = document.getElementById('intro-count');
       const profileFileInput = document.getElementById('profile-image-file');
       const avatarImg = document.getElementById('avatar-img');
       const avatarPreview = document.getElementById('avatar-preview');
@@ -486,6 +485,12 @@
       nicknameInput.addEventListener('input', () => {
         nickCount.textContent = nicknameInput.value.length;
         validateNickname();
+        updateSubmitState();
+      });
+
+      introInput.addEventListener('input', () => {
+        introCount.textContent = introInput.value.length;
+        validateIntro();
         updateSubmitState();
       });
 
@@ -580,26 +585,77 @@
       });
 
 
-      const required = ['check-service', 'check-privacy'];
-      function toggleCheck(id) {
-        const el = document.getElementById(id);
-        const isChecked = el.classList.toggle('checked');
-        if (id === 'check-all') {
-          ['check-service','check-privacy','check-marketing'].forEach(c => {
-            document.getElementById(c).classList.toggle('checked', isChecked);
-          });
-        } else {
-          const allRequired = required.every(c => document.getElementById(c).classList.contains('checked'));
-          const allChecked  = allRequired && document.getElementById('check-marketing').classList.contains('checked');
-          document.getElementById('check-all').classList.toggle('checked', allChecked);
+      async function loadTerms() {
+        try {
+          const res = await fetch(`${API_BASE}/api/terms`);
+          const data = await res.json();
+          if (data.resultType === 'SUCCESS') {
+            renderTerms(data.data);
+          }
+        } catch (err) {
+          console.error('약관 로드 실패:', err);
         }
+      }
+
+      function renderTerms(terms) {
+        const container = document.getElementById('terms-container');
+        container.innerHTML = `
+          <div class="terms-item" onclick="toggleCheckAll()">
+            <div class="custom-check" id="check-all"></div>
+            <span class="terms-label" style="font-weight:600">전체 동의</span>
+          </div>
+        `;
+        terms.forEach(term => {
+          const div = document.createElement('div');
+          div.className = 'terms-item';
+          div.onclick = () => toggleTerm(term.id);
+          div.innerHTML = `
+            <div class="custom-check term-check" data-id="${term.id}" data-required="${term.required}"></div>
+            <span class="terms-label">${term.name}</span>
+            <span class="terms-${term.required ? 'required' : 'optional'}">${term.required ? '필수' : '선택'}</span>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      loadTerms();
+
+      function toggleTerm(id) {
+        const el = document.querySelector(`.term-check[data-id="${id}"]`);
+        if(el) {
+          el.classList.toggle('checked');
+          checkAllStatus();
+          updateSubmitState();
+        }
+      }
+
+      function toggleCheckAll() {
+        const allEl = document.getElementById('check-all');
+        const isChecked = allEl.classList.toggle('checked');
+        document.querySelectorAll('.term-check').forEach(el => {
+          if (isChecked) el.classList.add('checked');
+          else el.classList.remove('checked');
+        });
         updateSubmitState();
+      }
+
+      function checkAllStatus() {
+        const checks = Array.from(document.querySelectorAll('.term-check'));
+        if (checks.length === 0) return;
+        const allChecked = checks.every(c => c.classList.contains('checked'));
+        const allEl = document.getElementById('check-all');
+        if (allChecked) allEl.classList.add('checked');
+        else allEl.classList.remove('checked');
       }
 
       function updateSubmitState() {
         const nickOk = nicknameInput.value.trim().length >= 2;
-        const termsOk = required.every(c => document.getElementById(c).classList.contains('checked'));
-        submitBtn.disabled = !(nickOk && termsOk);
+        const introOk = introInput.value.trim().length > 0;
+        
+        const requiredChecks = Array.from(document.querySelectorAll('.term-check[data-required="true"]'));
+        const termsOk = requiredChecks.length === 0 || requiredChecks.every(c => c.classList.contains('checked'));
+        
+        submitBtn.disabled = !(nickOk && introOk && termsOk);
       }
 
       function validateNickname() {
@@ -609,15 +665,28 @@
         err.style.display = 'none'; return true;
       }
 
+      function validateIntro() {
+        const v = introInput.value.trim();
+        const err = document.getElementById('intro-error');
+        if (v.length === 0) { err.style.display = 'block'; return false; }
+        err.style.display = 'none'; return true;
+      }
+
       document.getElementById('signup-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (!validateNickname()) return;
+        if (!validateNickname() || !validateIntro()) return;
 
         const nickname     = nicknameInput.value.trim();
-        const marketing    = document.getElementById('check-marketing').classList.contains('checked');
+        const introduction = introInput.value.trim();
+        
+        const termsAgreements = {};
+        document.querySelectorAll('.term-check').forEach(el => {
+          const id = el.getAttribute('data-id');
+          termsAgreements[id] = el.classList.contains('checked');
+        });
 
         const formData = new FormData();
-        const requestData = { nickname, marketingAgreed: marketing };
+        const requestData = { nickname, introduction, termsAgreements };
         formData.append('request', new Blob([JSON.stringify(requestData)], { type: 'application/json' }));
 
         const file = profileFileInput.files[0];

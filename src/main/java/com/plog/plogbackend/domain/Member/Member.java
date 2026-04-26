@@ -64,25 +64,27 @@ public class Member extends BaseTimeStatusEntity {
 
   @Builder
   private Member(
-      UUID memberKey, String providerId, String nickname, String profileImage, Role role) {
+      UUID memberKey, String providerId, String nickname, String profileImage, Role role, String introduction) {
     this.memberKey = memberKey;
     this.providerId = providerId;
     this.nickname = nickname;
     this.profileImage = profileImage;
     this.role = role;
+    this.introduction = introduction;
   }
 
   // ==========================================
   // 4. 정적 팩토리 메서드
   // ==========================================
 
-  public static Member createNewMember(String nickname, String providerId, String profileImage) {
+  public static Member createNewMember(String nickname, String providerId, String profileImage, String introduction) {
     return Member.builder()
         .memberKey(UuidCreator.getTimeOrderedEpoch())
         .providerId(providerId)
         .nickname(nickname)
         .profileImage(profileImage)
         .role(Role.ROLE_USER)
+        .introduction(introduction)
         .build();
   }
 
