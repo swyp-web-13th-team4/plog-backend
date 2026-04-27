@@ -26,8 +26,6 @@ public class MemberImageService {
   private final GcsService gcsService;
   private final DefaultProfileImageRepository defaultProfileImageRepository;
 
-  // yaml 설정은 DataInitializer에서 DB 동기화 용도로만 사용 (직접 검증은 DB로)
-
   // ==========================================
   // 기본 이미지 조회 / 검증 (DB 기반)
   // ==========================================

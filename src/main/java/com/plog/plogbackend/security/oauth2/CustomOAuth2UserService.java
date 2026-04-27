@@ -1,4 +1,4 @@
-package com.plog.plogbackend.security;
+package com.plog.plogbackend.security.oauth2;
 
 import java.util.Collections;
 import java.util.Map;

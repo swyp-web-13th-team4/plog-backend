@@ -1,13 +1,18 @@
 package com.plog.plogbackend.domain.Member.service;
 
 import com.plog.plogbackend.domain.Member.Member;
-import com.plog.plogbackend.domain.Member.dto.MemberSignupRequest;
-import com.plog.plogbackend.domain.Member.dto.MyPageMemberResponse;
-import com.plog.plogbackend.domain.Member.dto.UpdateProfileRequest;
+import com.plog.plogbackend.domain.Member.MemberAgreement;
+import com.plog.plogbackend.domain.Member.dto.request.MemberSignupRequest;
+import com.plog.plogbackend.domain.Member.dto.request.UpdateProfileRequest;
+import com.plog.plogbackend.domain.Member.dto.response.MyPageMemberResponse;
+import com.plog.plogbackend.domain.Member.entity.Terms;
+import com.plog.plogbackend.domain.Member.repository.MemberAgreementRepository;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
+import com.plog.plogbackend.domain.Member.repository.TermsRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.security.jwt.JwtProvider;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +28,8 @@ public class MemberService {
   private final MemberRepository memberRepository;
   private final JwtProvider jwtProvider;
   private final MemberImageService memberImageService;
+  private final TermsRepository termsRepository;
+  private final MemberAgreementRepository memberAgreementRepository;
 
   /**
    * 회원가입을 처리합니다.
@@ -52,12 +59,39 @@ public class MemberService {
       throw new AppException(ErrorType.ALREADY_REGISTERED_MEMBER);
     }
 
+    // 닉네임, 소개글 유효성 검사
+    validateNickname(request.nickname(), null);
+    validateIntroduction(request.introduction());
+
     // 파일 또는 기본 이미지 ID 중 하나는 반드시 있어야 함 (없으면 FILE_EMPTY 예외)
     String profileImageUrl =
         memberImageService.resolveSignupProfileImage(profileImage, defaultImageId);
 
-    Member member = Member.createNewMember(request.nickname(), providerId, profileImageUrl);
+    Member member =
+        Member.createNewMember(
+            request.nickname(), providerId, profileImageUrl, request.introduction());
     memberRepository.save(member);
+
+    if (request.termsAgreements() != null) {
+      for (Map.Entry<Long, Boolean> entry : request.termsAgreements().entrySet()) {
+        Terms terms =
+            termsRepository
+                .findById(entry.getKey())
+                .orElseThrow(() -> new AppException(ErrorType.TERMS_NOT_FOUND));
+
+        if (terms.isRequired() && !entry.getValue()) {
+          throw new AppException(ErrorType.REQUIRED_TERMS_NOT_AGREED);
+        }
+
+        MemberAgreement agreement =
+            MemberAgreement.builder()
+                .member(member)
+                .terms(terms)
+                .isAgreed(entry.getValue())
+                .build();
+        memberAgreementRepository.save(agreement);
+      }
+    }
 
     return member.getMemberKey();
   }
@@ -115,9 +149,16 @@ public class MemberService {
     String newImageUrl =
         memberImageService.resolveAndScheduleImageUpdate(member, file, defaultImageId);
 
+    String newNickname = request.nickname();
+    String newIntroduction = request.introduction();
+
+    // 닉네임 유효성 검사 및 중복 확인
+    validateNickname(newNickname, memberKey);
+
+    // 소개글 유효성 검사 (개인정보 및 SNS 계정 포함 방지)
+    validateIntroduction(newIntroduction);
+
     // 닉네임 + 이미지 + 소개글 한 번에 적용
-    String newNickname = (request != null) ? request.nickname() : null;
-    String newIntroduction = (request != null) ? request.introduction() : null;
     member.updateProfile(newNickname, newImageUrl, newIntroduction);
 
     log.info(
@@ -126,5 +167,47 @@ public class MemberService {
         member.getNickname(),
         member.getProfileImage(),
         member.getIntroduction());
+  }
+
+  /** 닉네임 유효성 검사 및 중복 확인 */
+  public void validateNickname(String nickname, UUID memberKey) {
+    if (nickname == null || nickname.isBlank()) {
+      return;
+    }
+
+    if (!nickname.matches("^[가-힣a-zA-Z0-9_]+$")) {
+      throw new AppException(ErrorType.INVALID_NICKNAME_FORMAT);
+    }
+
+    boolean isOwnNickname = false;
+    if (memberKey != null) {
+      Member member = memberRepository.findByMemberKey(memberKey).orElse(null);
+      if (member != null && nickname.equals(member.getNickname())) {
+        isOwnNickname = true;
+      }
+    }
+
+    if (!isOwnNickname && memberRepository.existsByNickname(nickname)) {
+      throw new AppException(ErrorType.DUPLICATE_NICKNAME);
+    }
+  }
+
+  /** 소개글 유효성 검사 (개인정보 및 SNS 방지) */
+  public void validateIntroduction(String introduction) {
+    if (introduction == null || introduction.isBlank()) {
+      return;
+    }
+
+    String lowerIntro = introduction.toLowerCase();
+    boolean hasPhoneNumber =
+        lowerIntro.matches(".*(?:010|02|0[3-9]{2})[-.\\s]?\\d{3,4}[-.\\s]?\\d{4}.*");
+    boolean hasEmail = lowerIntro.matches(".*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}.*");
+    boolean hasSnsKeyword =
+        lowerIntro.matches(
+            ".*(kakao|카카오|카톡|insta|인스타|facebook|페이스북|페북|twitter|트위터|telegram|텔레그램|line|라인|@[zA-Z0-9_]).*");
+
+    if (hasPhoneNumber || hasEmail || hasSnsKeyword) {
+      throw new AppException(ErrorType.INVALID_INTRODUCTION_FORMAT);
+    }
   }
 }
