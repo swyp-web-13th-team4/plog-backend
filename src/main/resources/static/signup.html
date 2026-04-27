@@ -415,14 +415,13 @@
         </div>
 
         <div class="form-group">
-          <label for="introduction">소개글 <span style="color:var(--error)">*</span></label>
+          <label for="introduction">소개글 <span class="terms-optional" style="margin-left: 4px;">선택</span></label>
           <textarea
             id="introduction" placeholder="100자 이내 소개글 (연락처 등 개인정보 금지)"
             maxlength="100" autocomplete="off"
             style="width: 100%; padding: 14px 16px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 0.95rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; resize: vertical; min-height: 80px;"
           ></textarea>
           <div class="char-count"><span id="intro-count">0</span> / 100</div>
-          <div class="field-error" id="intro-error">소개글을 1자 이상 입력해주세요.</div>
         </div>
 
 
@@ -650,12 +649,11 @@
 
       function updateSubmitState() {
         const nickOk = nicknameInput.value.trim().length >= 2;
-        const introOk = introInput.value.trim().length > 0;
         
         const requiredChecks = Array.from(document.querySelectorAll('.term-check[data-required="true"]'));
         const termsOk = requiredChecks.length === 0 || requiredChecks.every(c => c.classList.contains('checked'));
         
-        submitBtn.disabled = !(nickOk && introOk && termsOk);
+        submitBtn.disabled = !(nickOk && termsOk);
       }
 
       function validateNickname() {
@@ -666,10 +664,7 @@
       }
 
       function validateIntro() {
-        const v = introInput.value.trim();
-        const err = document.getElementById('intro-error');
-        if (v.length === 0) { err.style.display = 'block'; return false; }
-        err.style.display = 'none'; return true;
+        return true;
       }
 
       document.getElementById('signup-form').addEventListener('submit', async (e) => {
