@@ -1,5 +1,6 @@
 package com.plog.plogbackend.domain.post.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.domain.place.entity.Place;
@@ -44,7 +45,13 @@ public class Post extends BaseTimeStatusEntity {
   @JoinColumn(name = "place_id")
   private Place place;
 
-  private LocalDateTime createAt;
+  @JsonFormat(
+      shape = JsonFormat.Shape.STRING,
+      pattern = "yyyy.MM.dd HH:mm",
+      timezone = "Asia/Seoul")
+  private LocalDateTime createdAt;
+
+  private Long likes;
 
   @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
   private List<PostImage> images = new ArrayList<>();
