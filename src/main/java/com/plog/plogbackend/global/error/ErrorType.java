@@ -52,7 +52,12 @@ public enum ErrorType {
   REQUIRED_TERMS_NOT_AGREED(
       HttpStatus.BAD_REQUEST, ErrorCode.E400, "필수 약관에 동의해야 합니다.", LogLevel.WARN),
   INVALID_DEFAULT_IMAGE_URL(
-      HttpStatus.BAD_REQUEST, ErrorCode.E1105, "등록되지 않은 기본 프로필 이미지 URL입니다.", LogLevel.WARN);
+      HttpStatus.BAD_REQUEST, ErrorCode.E1105, "등록되지 않은 기본 프로필 이미지 URL입니다.", LogLevel.WARN),
+
+  // 뱃지 관련
+  BADGE_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E1200, "해당 뱃지를 찾을 수 없습니다.", LogLevel.WARN),
+  BADGE_NOT_OWNED(
+      HttpStatus.FORBIDDEN, ErrorCode.E1201, "보유하지 않은 뱃지는 대표 뱃지로 설정할 수 없습니다.", LogLevel.WARN);
 
   // 여기에 추가해주시고 사용하시면 됩니다.
 

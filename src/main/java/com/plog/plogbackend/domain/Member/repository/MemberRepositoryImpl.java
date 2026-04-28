@@ -60,4 +60,16 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         .orderBy(memberBadge.createdAt.desc())
         .fetch();
   }
+
+  @Override
+  public boolean existsMemberBadge(UUID memberKey, Long badgeId) {
+    Integer result =
+        queryFactory
+            .selectOne()
+            .from(memberBadge)
+            .join(memberBadge.member, member)
+            .where(member.memberKey.eq(memberKey).and(memberBadge.badge.id.eq(badgeId)))
+            .fetchFirst();
+    return result != null;
+  }
 }

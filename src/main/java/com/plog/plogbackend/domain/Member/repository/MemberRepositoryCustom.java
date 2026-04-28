@@ -11,4 +11,6 @@ public interface MemberRepositoryCustom {
   List<Post> findMyBookmarks(UUID memberKey);
 
   List<Badge> findMyBadges(UUID memberKey);
+
+  boolean existsMemberBadge(UUID memberKey, Long badgeId);
 }

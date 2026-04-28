@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "마이페이지", description = "마이페이지 관련 API")
@@ -49,6 +51,19 @@ public class MyPageController {
       Authentication authentication) {
     UUID memberKey = (UUID) authentication.getPrincipal();
     return ResponseEntity.ok(ApiResponse.success(myPageService.getMyBadges(memberKey)));
+  }
+
+  /** 대표 배지 설정 PATCH /api/members/badge/main */
+  @Operation(
+      summary = "대표 배지 설정",
+      description =
+          "로그인한 회원의 대표 배지를 변경합니다. 해당 배지가 존재하지 않거나 보유하지 않은 배지인 경우 오류를 반환합니다.")
+  @PatchMapping("/badge/main")
+  public ResponseEntity<ApiResponse<Void>> updateMainBadge(
+      Authentication authentication, @RequestParam Long badgeId) {
+    UUID memberKey = (UUID) authentication.getPrincipal();
+    myPageService.updateMainBadge(memberKey, badgeId);
+    return ResponseEntity.ok(ApiResponse.success(null));
   }
 
   // TODO: GET /api/members/analytics - 분석 정보 API 추가 예정

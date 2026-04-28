@@ -6,7 +6,11 @@ import com.plog.plogbackend.domain.Member.dto.response.MyPageMemberResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsResponse;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.badge.dto.BadgeResponse;
+import com.plog.plogbackend.domain.badge.entity.Badge;
+import com.plog.plogbackend.domain.badge.repository.BadgeRepository;
 import com.plog.plogbackend.domain.post.controller.dto.response.FeedFindResponse;
+import com.plog.plogbackend.global.error.AppException;
+import com.plog.plogbackend.global.error.ErrorType;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +23,7 @@ public class MyPageService {
 
   private final MemberRepository memberRepository;
   private final MemberService memberService;
+  private final BadgeRepository badgeRepository;
 
   /**
    * GET /api/members/mypage 회원 기본 정보 + 내가 작성한 게시글 목록을 반환합니다.
@@ -62,6 +67,35 @@ public class MyPageService {
         memberRepository.findMyBadges(memberKey).stream().map(BadgeResponse::from).toList();
 
     return new MyPageBadgeResponse(badges);
+  }
+
+  /**
+   * PATCH /api/members/badge/main 대표 뱃지를 변경합니다.
+   *
+   * <p>해당 뱃지가 존재하는지, 로그인한 회원이 해당 뱃지를 보유하고 있는지 검증한 뒤 {@link
+   * com.plog.plogbackend.domain.Member.Member#updateMainBadge(Badge)}를 호출합니다.
+   *
+   * @param memberKey 회원 UUID
+   * @param badgeId 대표로 설정할 뱃지 PK
+   */
+  @Transactional
+  public void updateMainBadge(UUID memberKey, Long badgeId) {
+    // 1. 뱃지 존재 여부 확인
+    Badge badge =
+        badgeRepository
+            .findById(badgeId)
+            .orElseThrow(() -> new AppException(ErrorType.BADGE_NOT_FOUND));
+
+    // 2. 사용자가 해당 뱃지를 보유하는지 확인
+    if (!memberRepository.existsMemberBadge(memberKey, badgeId)) {
+      throw new AppException(ErrorType.BADGE_NOT_OWNED);
+    }
+
+    // 3. 대표 뱃지 업데이트
+    memberRepository
+        .findByMemberKey(memberKey)
+        .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND))
+        .updateMainBadge(badge);
   }
 
   // TODO: GET /api/members/analytics - 분석 정보 메서드 추가 예정
