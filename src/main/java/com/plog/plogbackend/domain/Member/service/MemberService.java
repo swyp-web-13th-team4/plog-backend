@@ -104,7 +104,7 @@ public class MemberService {
    * @return 닉네임, 프로필 이미지 URL , 소개글
    */
   @Transactional(readOnly = true)
-  public MyPageMemberResponse getMyPageInfo(UUID memberKey) { // TODO : 회원 정보 조회 메서드. 사용처 없으면 삭제
+  public MyPageMemberResponse getMyPageInfo(UUID memberKey) {
     Member member =
         memberRepository
             .findByMemberKey(memberKey)
@@ -114,7 +114,7 @@ public class MemberService {
         .nickname(member.getNickname())
         .profileImageUrl(member.getProfileImage())
         .introduction(member.getIntroduction())
-        // TODO : 뱃지
+        .mainBadge(member.getMainBadge())
         .build();
   }
 
