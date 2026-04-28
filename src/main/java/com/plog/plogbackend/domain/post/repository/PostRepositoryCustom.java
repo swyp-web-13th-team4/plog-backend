@@ -16,7 +16,7 @@ public interface PostRepositoryCustom {
 
   // 피드 글 조회
 
-  List<Post> findAllByFeed(LocalDateTime lastStudyDate, Long lastPostId);
+  List<Post> findAllByFeed(LocalDateTime lastStudyDate, Long lastPostId, int size);
 
   // 북마크
   List<Post> bookMarkPost(Long memberId);

@@ -59,7 +59,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
   }
 
   @Override
-  public List<Post> findAllByFeed(LocalDateTime lastStudyDate, Long lastPostId) {
+  public List<Post> findAllByFeed(LocalDateTime lastStudyDate, Long lastPostId, int size) {
     return queryFactory
         .selectFrom(post)
         .join(post.member)
@@ -67,7 +67,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         .join(post.place)
         .fetchJoin()
         .where(post.scope.eq(PublicScope.PUBLIC), scroll(lastStudyDate, lastPostId))
-        .limit(10)
+        .limit(size)
         .orderBy(post.createdAt.desc(), post.id.desc())
         .fetch();
   }
