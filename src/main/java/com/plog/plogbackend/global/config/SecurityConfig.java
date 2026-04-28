@@ -1,8 +1,8 @@
 package com.plog.plogbackend.global.config;
 
-import com.plog.plogbackend.security.CustomOAuth2UserService;
 import com.plog.plogbackend.security.error.OAuth2FailureHandler;
 import com.plog.plogbackend.security.jwt.JwtAuthenticationFilter;
+import com.plog.plogbackend.security.oauth2.CustomOAuth2UserService;
 import com.plog.plogbackend.security.oauth2.OAuth2SuccessHandler;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +47,7 @@ public class SecurityConfig {
                     request -> {
                       CorsConfiguration config = new CorsConfiguration();
                       config.setAllowedOrigins(List.of(allowedOrigins)); // 허용 주소
-                      config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+                      config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
                       config.setAllowedHeaders(List.of("*"));
                       config.setAllowCredentials(true);
                       return config;

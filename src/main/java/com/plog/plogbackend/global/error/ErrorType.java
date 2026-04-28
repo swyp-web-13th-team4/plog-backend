@@ -22,6 +22,17 @@ public enum ErrorType {
       HttpStatus.UNAUTHORIZED, ErrorCode.E1002, "유효하지 않은 리프레시 토큰입니다.", LogLevel.WARN),
   EXPIRED_REFRESH_TOKEN(
       HttpStatus.UNAUTHORIZED, ErrorCode.E1003, "만료된 리프레시 토큰입니다. 다시 로그인해주세요.", LogLevel.WARN),
+  INVALID_NICKNAME_FORMAT(
+      HttpStatus.BAD_REQUEST,
+      ErrorCode.E1004,
+      "닉네임은 한글, 영문, 숫자, 언더바(_)만 사용할 수 있습니다.",
+      LogLevel.WARN),
+  DUPLICATE_NICKNAME(HttpStatus.CONFLICT, ErrorCode.E1005, "이미 사용 중인 닉네임입니다.", LogLevel.WARN),
+  INVALID_INTRODUCTION_FORMAT(
+      HttpStatus.BAD_REQUEST,
+      ErrorCode.E1006,
+      "소개글에 연락처, 이메일, SNS 계정 등 개인정보를 포함할 수 없습니다.",
+      LogLevel.WARN),
 
   // 파일/이미지 관련
   FILE_EMPTY(HttpStatus.BAD_REQUEST, ErrorCode.E1100, "업로드할 파일이 없습니다.", LogLevel.WARN),
@@ -35,7 +46,12 @@ public enum ErrorType {
 
   // 도메인 NOT_FOUND 세분화
   MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 회원을 찾을 수 없습니다.", LogLevel.WARN),
-  POST_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 게시글을 찾을 수 없습니다.", LogLevel.WARN);
+  POST_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 게시글을 찾을 수 없습니다.", LogLevel.WARN),
+  TERMS_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 약관을 찾을 수 없습니다.", LogLevel.WARN),
+  REQUIRED_TERMS_NOT_AGREED(
+      HttpStatus.BAD_REQUEST, ErrorCode.E400, "필수 약관에 동의해야 합니다.", LogLevel.WARN),
+  INVALID_DEFAULT_IMAGE_URL(
+      HttpStatus.BAD_REQUEST, ErrorCode.E1105, "등록되지 않은 기본 프로필 이미지 URL입니다.", LogLevel.WARN);
 
   // 여기에 추가해주시고 사용하시면 됩니다.
 

@@ -33,3 +33,5 @@ cookie:
 logging:
   level:
     com.plog: debug
+    org.springframework.web: debug
+    org.springframework.web.servlet.mvc.method.annotation: debug

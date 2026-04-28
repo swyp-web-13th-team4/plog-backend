@@ -167,7 +167,56 @@
         transition: transform 0.2s;
       }
       .avatar-edit:hover { transform: scale(1.1); }
-      .avatar-hint { font-size: 0.75rem; color: var(--muted); }
+      .avatar-hint { font-size: 0.75rem; color: var(--muted); margin-bottom: 20px; }
+      
+      .default-images-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+        width: 100%;
+      }
+      .default-image-item {
+        aspect-ratio: 1;
+        border-radius: 12px;
+        border: 2px solid var(--border);
+        cursor: pointer;
+        overflow: hidden;
+        transition: all 0.2s;
+        background: rgba(255,255,255,0.03);
+      }
+      .default-image-item:hover {
+        border-color: var(--accent);
+        transform: scale(1.05);
+      }
+      .default-image-item.selected {
+        border-color: var(--accent);
+        box-shadow: 0 0 15px rgba(129, 140, 248, 0.4);
+        background: rgba(129, 140, 248, 0.1);
+      }
+      .default-image-item img {
+        width: 100%; height: 100%; object-fit: cover;
+      }
+      .plus-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: var(--muted);
+        border: 2px dashed var(--border) !important;
+        background: rgba(255,255,255,0.02) !important;
+      }
+      .plus-item:hover {
+        border-color: var(--accent) !important;
+        color: var(--accent);
+        background: rgba(129, 140, 248, 0.05) !important;
+      }
+      .plus-item.selected {
+        border-color: var(--accent) !important;
+        border-style: solid !important;
+        color: var(--accent);
+        background: rgba(129, 140, 248, 0.1) !important;
+      }
 
       .form-group { margin-bottom: 20px; }
       label {
@@ -345,51 +394,44 @@
           </div>
           <div class="avatar-edit" onclick="document.getElementById('img-url-group').scrollIntoView({behavior:'smooth'})">✏️</div>
         </div>
-        <span class="avatar-hint">아래에 이미지 URL을 입력하고 확인 버튼을 누르세요</span>
+        <span class="avatar-hint">아래에서 기본 이미지를 선택하거나 파일을 업로드하세요</span>
+
+        <div class="default-images-grid" id="default-images-grid">
+          <!-- 기본 이미지들이 여기에 렌더링됩니다 -->
+          <div class="default-image-item plus-item" id="plus-btn-item" onclick="document.getElementById('profile-image-file').click()">+</div>
+        </div>
+        <input type="file" id="profile-image-file" accept="image/*" style="display: none;"/>
       </div>
 
       <form id="signup-form" novalidate>
         <div class="form-group">
           <label for="nickname">닉네임 <span style="color:var(--error)">*</span></label>
           <input
-            type="text" id="nickname" placeholder="2~20자 한글/영문/숫자"
-            maxlength="20" autocomplete="off"
+            type="text" id="nickname" placeholder="2~10자 한글/영문/숫자"
+            maxlength="10" autocomplete="off"
           />
-          <div class="char-count"><span id="nick-count">0</span> / 20</div>
-          <div class="field-error" id="nick-error">닉네임은 2자 이상 20자 이하여야 합니다.</div>
+          <div class="char-count"><span id="nick-count">0</span> / 10</div>
+          <div class="field-error" id="nick-error">닉네임은 2자 이상 10자 이하여야 합니다.</div>
         </div>
 
-        <div class="form-group" id="img-url-group">
-          <label for="profile-image-file">프로필 이미지 파일 <span style="color:var(--muted);font-size:0.75rem">(선택)</span></label>
-          <div class="input-with-btn">
-            <input
-              type="file" id="profile-image-file" accept="image/*"
-              style="padding: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; color: var(--text); width: 100%; cursor: pointer;"
-            />
-          </div>
-          <div class="field-error" id="img-error">이미지 파일을 선택해주세요.</div>
+        <div class="form-group">
+          <label for="introduction">소개글 <span class="terms-optional" style="margin-left: 4px;">선택</span></label>
+          <textarea
+            id="introduction" placeholder="100자 이내 소개글 (연락처 등 개인정보 금지)"
+            maxlength="100" autocomplete="off"
+            style="width: 100%; padding: 14px 16px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 0.95rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; resize: vertical; min-height: 80px;"
+          ></textarea>
+          <div class="char-count"><span id="intro-count">0</span> / 100</div>
         </div>
 
-        <div class="terms-section">
-          <div class="terms-item" onclick="toggleCheck('check-all')">
+
+
+        <div class="terms-section" id="terms-container">
+          <div class="terms-item" onclick="toggleCheckAll()">
             <div class="custom-check" id="check-all"></div>
             <span class="terms-label" style="font-weight:600">전체 동의</span>
           </div>
-          <div class="terms-item" onclick="toggleCheck('check-service')">
-            <div class="custom-check" id="check-service"></div>
-            <span class="terms-label">이용약관 동의</span>
-            <span class="terms-required">필수</span>
-          </div>
-          <div class="terms-item" onclick="toggleCheck('check-privacy')">
-            <div class="custom-check" id="check-privacy"></div>
-            <span class="terms-label">개인정보 수집·이용 동의</span>
-            <span class="terms-required">필수</span>
-          </div>
-          <div class="terms-item" onclick="toggleCheck('check-marketing')">
-            <div class="custom-check" id="check-marketing"></div>
-            <span class="terms-label">마케팅 정보 수신 동의</span>
-            <span class="terms-optional">선택</span>
-          </div>
+          <!-- 약관이 동적으로 렌더링됩니다 -->
         </div>
 
         <button type="submit" class="btn-submit" id="submit-btn" disabled>
@@ -401,6 +443,11 @@
     </div>
 
     <script>
+      // ── API 설정 ──
+      const API_BASE = 'https://plog-dev.duckdns.org';
+      // 로컬 테스트 시 아래 주소 사용:
+      //const API_BASE = 'http://localhost:8080';
+
       const starsEl = document.getElementById('stars');
       for (let i = 0; i < 60; i++) {
         const s = document.createElement('div');
@@ -428,20 +475,90 @@
 
       const nicknameInput = document.getElementById('nickname');
       const nickCount     = document.getElementById('nick-count');
+      const introInput    = document.getElementById('introduction');
+      const introCount    = document.getElementById('intro-count');
+      const profileFileInput = document.getElementById('profile-image-file');
+      const avatarImg = document.getElementById('avatar-img');
+      const avatarPreview = document.getElementById('avatar-preview');
+      
       nicknameInput.addEventListener('input', () => {
         nickCount.textContent = nicknameInput.value.length;
         validateNickname();
         updateSubmitState();
       });
 
-      // ── 프로필 이미지 수동 로드 로직 ──
-      const profileFileInput = document.getElementById('profile-image-file');
-      const avatarImg    = document.getElementById('avatar-img');
-      const avatarPreview = document.getElementById('avatar-preview');
+      introInput.addEventListener('input', () => {
+        introCount.textContent = introInput.value.length;
+        validateIntro();
+        updateSubmitState();
+      });
+
+      let selectedDefaultId = null;
+      let selectedDefaultUrl = null;
+      const defaultImagesGrid = document.getElementById('default-images-grid');
+
+      async function loadDefaultImages() {
+        try {
+          const res = await fetch(`${API_BASE}/api/members/default-images`);
+          const data = await res.json();
+          if (data.resultType === 'SUCCESS') {
+            renderDefaultImages(data.data);
+          }
+        } catch (err) {
+          console.error('기본 이미지 로드 실패:', err);
+        }
+      }
+
+      function renderDefaultImages(images) {
+        const plusBtn = document.getElementById('plus-btn-item');
+        defaultImagesGrid.innerHTML = '';
+        images.forEach((img, index) => {
+          const div = document.createElement('div');
+          div.className = 'default-image-item';
+          div.innerHTML = `<img src="${img.imageUrl}" alt="Default ${index+1}">`;
+          div.onclick = () => selectDefaultImage(img.id, img.imageUrl, div);
+          defaultImagesGrid.appendChild(div);
+          
+          // 첫 번째 이미지 자동 선택 (선택 사항)
+          if (index === 0 && !selectedDefaultId) {
+            selectDefaultImage(img.id, img.imageUrl, div);
+          }
+        });
+        defaultImagesGrid.appendChild(plusBtn);
+      }
+
+      function selectDefaultImage(id, url, element) {
+        // 기존 선택 해제 (플러스 버튼 포함)
+        document.querySelectorAll('.default-image-item').forEach(el => el.classList.remove('selected'));
+        // 새 선택 설정
+        element.classList.add('selected');
+        selectedDefaultId = id;
+        selectedDefaultUrl = url;
+        
+        // 파일 선택 해제
+        profileFileInput.value = '';
+        
+        // 프리뷰 업데이트
+        avatarImg.src = url;
+        avatarImg.style.display = 'block';
+        if (avatarPreview.firstChild.nodeType === Node.TEXT_NODE) {
+          avatarPreview.firstChild.nodeValue = '';
+        }
+      }
+
+      loadDefaultImages();
 
       profileFileInput.addEventListener('change', () => {
         const file = profileFileInput.files[0];
         if (file) {
+          // 기존 선택 해제
+          document.querySelectorAll('.default-image-item').forEach(el => el.classList.remove('selected'));
+          // 플러스 버튼 선택 표시
+          document.getElementById('plus-btn-item').classList.add('selected');
+          
+          selectedDefaultId = null;
+          selectedDefaultUrl = null;
+          
           const reader = new FileReader();
           reader.onload = function(e) {
             avatarImg.src = e.target.result;
@@ -452,34 +569,90 @@
           };
           reader.readAsDataURL(file);
         } else {
-          avatarImg.style.display = 'none';
-          avatarImg.src = '';
-          if (avatarPreview.firstChild.nodeType === Node.TEXT_NODE) {
-            avatarPreview.firstChild.nodeValue = '🙂';
+          // 파일 선택 취소 시 다시 선택된 기본 이미지로 복구
+          if (selectedDefaultUrl) {
+            avatarImg.src = selectedDefaultUrl;
+            avatarImg.style.display = 'block';
+          } else {
+            avatarImg.style.display = 'none';
+            avatarImg.src = '';
+            if (avatarPreview.firstChild.nodeType === Node.TEXT_NODE) {
+              avatarPreview.firstChild.nodeValue = '🙂';
+            }
           }
         }
       });
 
 
-      const required = ['check-service', 'check-privacy'];
-      function toggleCheck(id) {
-        const el = document.getElementById(id);
-        const isChecked = el.classList.toggle('checked');
-        if (id === 'check-all') {
-          ['check-service','check-privacy','check-marketing'].forEach(c => {
-            document.getElementById(c).classList.toggle('checked', isChecked);
-          });
-        } else {
-          const allRequired = required.every(c => document.getElementById(c).classList.contains('checked'));
-          const allChecked  = allRequired && document.getElementById('check-marketing').classList.contains('checked');
-          document.getElementById('check-all').classList.toggle('checked', allChecked);
+      async function loadTerms() {
+        try {
+          const res = await fetch(`${API_BASE}/api/terms`);
+          const data = await res.json();
+          if (data.resultType === 'SUCCESS') {
+            renderTerms(data.data);
+          }
+        } catch (err) {
+          console.error('약관 로드 실패:', err);
         }
+      }
+
+      function renderTerms(terms) {
+        const container = document.getElementById('terms-container');
+        container.innerHTML = `
+          <div class="terms-item" onclick="toggleCheckAll()">
+            <div class="custom-check" id="check-all"></div>
+            <span class="terms-label" style="font-weight:600">전체 동의</span>
+          </div>
+        `;
+        terms.forEach(term => {
+          const div = document.createElement('div');
+          div.className = 'terms-item';
+          div.onclick = () => toggleTerm(term.id);
+          div.innerHTML = `
+            <div class="custom-check term-check" data-id="${term.id}" data-required="${term.required}"></div>
+            <span class="terms-label">${term.name}</span>
+            <span class="terms-${term.required ? 'required' : 'optional'}">${term.required ? '필수' : '선택'}</span>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      loadTerms();
+
+      function toggleTerm(id) {
+        const el = document.querySelector(`.term-check[data-id="${id}"]`);
+        if(el) {
+          el.classList.toggle('checked');
+          checkAllStatus();
+          updateSubmitState();
+        }
+      }
+
+      function toggleCheckAll() {
+        const allEl = document.getElementById('check-all');
+        const isChecked = allEl.classList.toggle('checked');
+        document.querySelectorAll('.term-check').forEach(el => {
+          if (isChecked) el.classList.add('checked');
+          else el.classList.remove('checked');
+        });
         updateSubmitState();
+      }
+
+      function checkAllStatus() {
+        const checks = Array.from(document.querySelectorAll('.term-check'));
+        if (checks.length === 0) return;
+        const allChecked = checks.every(c => c.classList.contains('checked'));
+        const allEl = document.getElementById('check-all');
+        if (allChecked) allEl.classList.add('checked');
+        else allEl.classList.remove('checked');
       }
 
       function updateSubmitState() {
         const nickOk = nicknameInput.value.trim().length >= 2;
-        const termsOk = required.every(c => document.getElementById(c).classList.contains('checked'));
+        
+        const requiredChecks = Array.from(document.querySelectorAll('.term-check[data-required="true"]'));
+        const termsOk = requiredChecks.length === 0 || requiredChecks.every(c => c.classList.contains('checked'));
+        
         submitBtn.disabled = !(nickOk && termsOk);
       }
 
@@ -490,29 +663,43 @@
         err.style.display = 'none'; return true;
       }
 
+      function validateIntro() {
+        return true;
+      }
+
       document.getElementById('signup-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (!validateNickname()) return;
+        if (!validateNickname() || !validateIntro()) return;
 
         const nickname     = nicknameInput.value.trim();
-        const marketing    = document.getElementById('check-marketing').classList.contains('checked');
+        const introduction = introInput.value.trim();
+        
+        const termsAgreements = {};
+        document.querySelectorAll('.term-check').forEach(el => {
+          const id = el.getAttribute('data-id');
+          termsAgreements[id] = el.classList.contains('checked');
+        });
 
         const formData = new FormData();
-        const requestData = { nickname, marketingAgreed: marketing };
+        const requestData = { nickname, introduction, termsAgreements };
         formData.append('request', new Blob([JSON.stringify(requestData)], { type: 'application/json' }));
 
         const file = profileFileInput.files[0];
         if (file) {
+          // 파일 업로드 선택 시: profileImage 파트로 전송
           formData.append('profileImage', file);
+        } else if (selectedDefaultId) {
+          // 기본 이미지 선택 시: defaultImageId 파트로 전송
+          formData.append('defaultImageId', selectedDefaultId);
         }
+
 
         submitBtn.classList.add('loading');
         submitBtn.disabled  = true;
         submitBtn.textContent = '가입 처리 중...';
 
         try {
-            const res = await fetch('https://plog-dev.duckdns.org/api/members/signup', {
-          //const res = await fetch('http://localhost:8080/api/members/signup', {
+          const res = await fetch(`${API_BASE}/api/members/signup`, {
             method: 'POST',
             credentials: 'include',
             body: formData

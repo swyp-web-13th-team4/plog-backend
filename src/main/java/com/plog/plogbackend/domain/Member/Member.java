@@ -2,6 +2,7 @@ package com.plog.plogbackend.domain.Member;
 
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.plog.plogbackend.domain.Member.enums.Role;
+import com.plog.plogbackend.domain.badge.entity.Badge;
 import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
@@ -18,10 +19,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseTimeStatusEntity {
-
-  // 기본 프로필 이미지
-  private static final String DEFAULT_PROFILE_URL =
-      "https://your-domain.com/images/default-profile.png"; // 예시 주소
 
   // ==========================================
   // 1. 내부 식별자 (조인, 인덱스 최적화용)
@@ -44,11 +41,18 @@ public class Member extends BaseTimeStatusEntity {
   @Column(length = 500)
   private String profileImage;
 
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "mainBadge_id")
+  private Badge mainBadge;
+
   @Column(nullable = false, unique = true)
   private String providerId; // 카카오 소셜 로그인 식별키
 
   @Enumerated(EnumType.STRING)
   private Role role;
+
+  @Column(length = 130)
+  private String introduction;
 
   // 추가
   @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
@@ -60,25 +64,33 @@ public class Member extends BaseTimeStatusEntity {
 
   @Builder
   private Member(
-      UUID memberKey, String providerId, String nickname, String profileImage, Role role) {
+      UUID memberKey,
+      String providerId,
+      String nickname,
+      String profileImage,
+      Role role,
+      String introduction) {
     this.memberKey = memberKey;
     this.providerId = providerId;
     this.nickname = nickname;
     this.profileImage = profileImage;
     this.role = role;
+    this.introduction = introduction;
   }
 
   // ==========================================
   // 4. 정적 팩토리 메서드
   // ==========================================
 
-  public static Member createNewMember(String nickname, String providerId, String profileImage) {
+  public static Member createNewMember(
+      String nickname, String providerId, String profileImage, String introduction) {
     return Member.builder()
         .memberKey(UuidCreator.getTimeOrderedEpoch())
         .providerId(providerId)
         .nickname(nickname)
-        .profileImage(getOrDefaultImage(profileImage))
+        .profileImage(profileImage)
         .role(Role.ROLE_USER)
+        .introduction(introduction)
         .build();
   }
 
@@ -86,17 +98,21 @@ public class Member extends BaseTimeStatusEntity {
   // 5. 비즈니스 메서드
   // ==========================================
 
-  /** 기본 프로필 이미지 설정 */
-  private static String getOrDefaultImage(String imageUrl) {
-    // String이 null이거나 공백("")인 경우 기본 이미지 반환
-    if (imageUrl == null || imageUrl.isBlank()) {
-      return DEFAULT_PROFILE_URL;
-    }
-    return imageUrl;
+  /** 대표 뱃지 업데이트 */
+  public void updateMainBadge(Badge badge) {
+    this.mainBadge = badge;
   }
 
-  /** 프로필 이미지 URL 업데이트 */
-  public void updateProfileImage(String imageUrl) {
-    this.profileImage = imageUrl;
+  /** 프로필(닉네임 + 이미지 + 소개글)을 한 번에 업데이트합니다. null인 값은 변경하지 않습니다. */
+  public void updateProfile(String nickname, String imageUrl, String introduction) {
+    if (nickname != null && !nickname.isBlank()) {
+      this.nickname = nickname;
+    }
+    if (imageUrl != null && !imageUrl.isBlank()) {
+      this.profileImage = imageUrl;
+    }
+    if (introduction != null) {
+      this.introduction = introduction;
+    }
   }
 }
