@@ -30,6 +30,7 @@ public class MemberService {
   private final MemberImageService memberImageService;
   private final TermsRepository termsRepository;
   private final MemberAgreementRepository memberAgreementRepository;
+  private final BadWordFilterService badWordFilterService;
 
   /**
    * 회원가입을 처리합니다.
@@ -179,6 +180,9 @@ public class MemberService {
       throw new AppException(ErrorType.INVALID_NICKNAME_FORMAT);
     }
 
+    // 금칙어 검사
+    badWordFilterService.validate(nickname);
+
     boolean isOwnNickname = false;
     if (memberKey != null) {
       Member member = memberRepository.findByMemberKey(memberKey).orElse(null);
@@ -204,10 +208,13 @@ public class MemberService {
     boolean hasEmail = lowerIntro.matches(".*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}.*");
     boolean hasSnsKeyword =
         lowerIntro.matches(
-            ".*(kakao|카카오|카톡|insta|인스타|facebook|페이스북|페북|twitter|트위터|telegram|텔레그램|line|라인|@[zA-Z0-9_]).*");
+            ".*(kakao|카카오|카톡|insta|인스타|facebook|페이스북|페북|twitter|트위터|telegram|텔레그램|line|라인|@*[a-zA-Z0-9._%+-]).*");
 
     if (hasPhoneNumber || hasEmail || hasSnsKeyword) {
       throw new AppException(ErrorType.INVALID_INTRODUCTION_FORMAT);
     }
+
+    // 금칙어 검사
+    badWordFilterService.validate(introduction);
   }
 }
