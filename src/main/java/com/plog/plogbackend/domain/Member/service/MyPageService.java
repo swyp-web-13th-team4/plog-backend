@@ -21,8 +21,7 @@ public class MyPageService {
   private final MemberService memberService;
 
   /**
-   * GET /api/members/mypage
-   * 회원 기본 정보 + 내가 작성한 게시글 목록을 반환합니다.
+   * GET /api/members/mypage 회원 기본 정보 + 내가 작성한 게시글 목록을 반환합니다.
    *
    * @param memberKey 회원 UUID
    * @return 회원 정보 + 게시글 목록
@@ -32,16 +31,13 @@ public class MyPageService {
     MyPageMemberResponse memberInfo = memberService.getMyPageInfo(memberKey);
 
     List<FeedFindResponse> posts =
-        memberRepository.findMyPosts(memberKey).stream()
-            .map(FeedFindResponse::from)
-            .toList();
+        memberRepository.findMyPosts(memberKey).stream().map(FeedFindResponse::from).toList();
 
     return new MyPagePostsResponse(memberInfo, posts);
   }
 
   /**
-   * GET /api/members/bookmark
-   * 내가 북마크한 게시글 목록을 반환합니다.
+   * GET /api/members/bookmark 내가 북마크한 게시글 목록을 반환합니다.
    *
    * @param memberKey 회원 UUID
    * @return 북마크 게시글 목록
@@ -49,16 +45,13 @@ public class MyPageService {
   @Transactional(readOnly = true)
   public MyPageBookmarkResponse getMyBookmarks(UUID memberKey) {
     List<FeedFindResponse> bookmarks =
-        memberRepository.findMyBookmarks(memberKey).stream()
-            .map(FeedFindResponse::from)
-            .toList();
+        memberRepository.findMyBookmarks(memberKey).stream().map(FeedFindResponse::from).toList();
 
     return new MyPageBookmarkResponse(bookmarks);
   }
 
   /**
-   * GET /api/members/badge
-   * 내가 획득한 배지 목록을 반환합니다.
+   * GET /api/members/badge 내가 획득한 배지 목록을 반환합니다.
    *
    * @param memberKey 회원 UUID
    * @return 배지 목록
@@ -66,9 +59,7 @@ public class MyPageService {
   @Transactional(readOnly = true)
   public MyPageBadgeResponse getMyBadges(UUID memberKey) {
     List<BadgeResponse> badges =
-        memberRepository.findMyBadges(memberKey).stream()
-            .map(BadgeResponse::from)
-            .toList();
+        memberRepository.findMyBadges(memberKey).stream().map(BadgeResponse::from).toList();
 
     return new MyPageBadgeResponse(badges);
   }

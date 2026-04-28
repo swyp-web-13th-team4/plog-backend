@@ -33,11 +33,7 @@ public enum ErrorType {
       ErrorCode.E1006,
       "소개글에 연락처, 이메일, SNS 계정 등 개인정보를 포함할 수 없습니다.",
       LogLevel.WARN),
-  CONTAINS_BAD_WORD(
-      HttpStatus.BAD_REQUEST,
-      ErrorCode.E1007,
-      "금칙어가 포함되어 있습니다.",
-      LogLevel.WARN),
+  CONTAINS_BAD_WORD(HttpStatus.BAD_REQUEST, ErrorCode.E1007, "금칙어가 포함되어 있습니다.", LogLevel.WARN),
 
   // 파일/이미지 관련
   FILE_EMPTY(HttpStatus.BAD_REQUEST, ErrorCode.E1100, "업로드할 파일이 없습니다.", LogLevel.WARN),

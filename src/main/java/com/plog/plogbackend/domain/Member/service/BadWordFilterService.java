@@ -36,10 +36,7 @@ public class BadWordFilterService {
   @Transactional(readOnly = true)
   public void loadBadWords() {
     List<String> words = badWordRepository.findAllWords();
-    badWords =
-        words.stream()
-            .map(String::toLowerCase)
-            .collect(Collectors.toSet());
+    badWords = words.stream().map(String::toLowerCase).collect(Collectors.toSet());
     log.info("금칙어 목록 로드 완료 - 총 {}개", badWords.size());
   }
 
@@ -63,9 +60,7 @@ public class BadWordFilterService {
     }
   }
 
-  /**
-   * 런타임에 금칙어 목록을 재로드합니다.
-   */
+  /** 런타임에 금칙어 목록을 재로드합니다. */
   @Transactional(readOnly = true)
   public void refresh() {
     loadBadWords();

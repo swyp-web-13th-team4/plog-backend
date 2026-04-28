@@ -23,27 +23,18 @@ public class MyPageController {
 
   private final MyPageService myPageService;
 
-  /**
-   * 회원 기본 정보 + 내가 작성한 게시글 목록 조회
-   * GET /api/members/mypage
-   */
+  /** 회원 기본 정보 + 내가 작성한 게시글 목록 조회 GET /api/members/mypage */
   @Operation(
       summary = "마이페이지 기본 정보 조회",
       description = "로그인한 회원의 기본 정보(닉네임·프로필·소개글)와 내가 작성한 게시글 목록을 조회합니다.")
   @GetMapping("/mypage")
-  public ResponseEntity<ApiResponse<MyPagePostsResponse>> getMyPage(
-      Authentication authentication) {
+  public ResponseEntity<ApiResponse<MyPagePostsResponse>> getMyPage(Authentication authentication) {
     UUID memberKey = (UUID) authentication.getPrincipal();
     return ResponseEntity.ok(ApiResponse.success(myPageService.getMyPageData(memberKey)));
   }
 
-  /**
-   * 북마크한 게시글 목록 조회
-   * GET /api/members/bookmark
-   */
-  @Operation(
-      summary = "북마크 목록 조회",
-      description = "로그인한 회원이 북마크한 게시글 목록을 조회합니다.")
+  /** 북마크한 게시글 목록 조회 GET /api/members/bookmark */
+  @Operation(summary = "북마크 목록 조회", description = "로그인한 회원이 북마크한 게시글 목록을 조회합니다.")
   @GetMapping("/bookmark")
   public ResponseEntity<ApiResponse<MyPageBookmarkResponse>> getMyBookmarks(
       Authentication authentication) {
@@ -51,13 +42,8 @@ public class MyPageController {
     return ResponseEntity.ok(ApiResponse.success(myPageService.getMyBookmarks(memberKey)));
   }
 
-  /**
-   * 획득한 배지 목록 조회
-   * GET /api/members/badge
-   */
-  @Operation(
-      summary = "배지 목록 조회",
-      description = "로그인한 회원이 획득한 배지 목록을 조회합니다.")
+  /** 획득한 배지 목록 조회 GET /api/members/badge */
+  @Operation(summary = "배지 목록 조회", description = "로그인한 회원이 획득한 배지 목록을 조회합니다.")
   @GetMapping("/badge")
   public ResponseEntity<ApiResponse<MyPageBadgeResponse>> getMyBadges(
       Authentication authentication) {
