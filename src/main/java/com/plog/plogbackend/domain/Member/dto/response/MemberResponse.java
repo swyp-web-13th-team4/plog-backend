@@ -1,13 +1,14 @@
 package com.plog.plogbackend.domain.Member.dto.response;
 
+import com.plog.plogbackend.domain.badge.entity.Badge;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
-public class MyPageMemberResponse {
+public class MemberResponse {
   private String nickname;
   private String profileImageUrl;
   private String introduction;
-  // TODO : 대표 뱃지 or 대표 뱃지 + 모든 뱃지
+  private Badge mainBadge;
 }

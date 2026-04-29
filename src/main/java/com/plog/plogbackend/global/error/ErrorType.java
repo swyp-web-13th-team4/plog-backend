@@ -33,6 +33,7 @@ public enum ErrorType {
       ErrorCode.E1006,
       "소개글에 연락처, 이메일, SNS 계정 등 개인정보를 포함할 수 없습니다.",
       LogLevel.WARN),
+  CONTAINS_BAD_WORD(HttpStatus.BAD_REQUEST, ErrorCode.E1007, "금칙어가 포함되어 있습니다.", LogLevel.WARN),
 
   // 파일/이미지 관련
   FILE_EMPTY(HttpStatus.BAD_REQUEST, ErrorCode.E1100, "업로드할 파일이 없습니다.", LogLevel.WARN),
@@ -51,7 +52,12 @@ public enum ErrorType {
   REQUIRED_TERMS_NOT_AGREED(
       HttpStatus.BAD_REQUEST, ErrorCode.E400, "필수 약관에 동의해야 합니다.", LogLevel.WARN),
   INVALID_DEFAULT_IMAGE_URL(
-      HttpStatus.BAD_REQUEST, ErrorCode.E1105, "등록되지 않은 기본 프로필 이미지 URL입니다.", LogLevel.WARN);
+      HttpStatus.BAD_REQUEST, ErrorCode.E1105, "등록되지 않은 기본 프로필 이미지 URL입니다.", LogLevel.WARN),
+
+  // 뱃지 관련
+  BADGE_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E1200, "해당 뱃지를 찾을 수 없습니다.", LogLevel.WARN),
+  BADGE_NOT_OWNED(
+      HttpStatus.FORBIDDEN, ErrorCode.E1201, "보유하지 않은 뱃지는 대표 뱃지로 설정할 수 없습니다.", LogLevel.WARN);
 
   // 여기에 추가해주시고 사용하시면 됩니다.
 

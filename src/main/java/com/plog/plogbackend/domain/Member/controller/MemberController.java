@@ -2,7 +2,7 @@ package com.plog.plogbackend.domain.Member.controller;
 
 import com.plog.plogbackend.domain.Member.dto.DefaultProfileImageDTO;
 import com.plog.plogbackend.domain.Member.dto.request.UpdateProfileRequest;
-import com.plog.plogbackend.domain.Member.dto.response.MyPageMemberResponse;
+import com.plog.plogbackend.domain.Member.dto.response.MemberResponse;
 import com.plog.plogbackend.domain.Member.service.MemberImageService;
 import com.plog.plogbackend.domain.Member.service.MemberService;
 import com.plog.plogbackend.global.response.ApiResponse;
@@ -32,10 +32,9 @@ public class MemberController {
       summary = "회원 정보 조회",
       description = "로그인한 회원의 닉네임, 프로필 이미지 URL, 소개글 등을 조회합니다.")
   @GetMapping("/me")
-  public ResponseEntity<ApiResponse<MyPageMemberResponse>> getMember(
-      Authentication authentication) {
+  public ResponseEntity<ApiResponse<MemberResponse>> getMember(Authentication authentication) {
     UUID memberKey = (UUID) authentication.getPrincipal();
-    MyPageMemberResponse response = memberService.getMyPageInfo(memberKey);
+    MemberResponse response = memberService.getMyPageInfo(memberKey);
     return ResponseEntity.ok(ApiResponse.success(response));
   }
 
