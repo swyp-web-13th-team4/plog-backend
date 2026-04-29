@@ -4,7 +4,7 @@ import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.MemberAgreement;
 import com.plog.plogbackend.domain.Member.dto.request.MemberSignupRequest;
 import com.plog.plogbackend.domain.Member.dto.request.UpdateProfileRequest;
-import com.plog.plogbackend.domain.Member.dto.response.MyPageMemberResponse;
+import com.plog.plogbackend.domain.Member.dto.response.MemberResponse;
 import com.plog.plogbackend.domain.Member.entity.Terms;
 import com.plog.plogbackend.domain.Member.repository.MemberAgreementRepository;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
@@ -104,13 +104,13 @@ public class MemberService {
    * @return 닉네임, 프로필 이미지 URL , 소개글
    */
   @Transactional(readOnly = true)
-  public MyPageMemberResponse getMyPageInfo(UUID memberKey) {
+  public MemberResponse getMyPageInfo(UUID memberKey) {
     Member member =
         memberRepository
             .findByMemberKey(memberKey)
             .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
 
-    return MyPageMemberResponse.builder()
+    return MemberResponse.builder()
         .nickname(member.getNickname())
         .profileImageUrl(member.getProfileImage())
         .introduction(member.getIntroduction())

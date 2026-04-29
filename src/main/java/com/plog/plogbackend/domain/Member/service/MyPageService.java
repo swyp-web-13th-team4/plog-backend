@@ -2,7 +2,7 @@ package com.plog.plogbackend.domain.Member.service;
 
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBadgeResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBookmarkResponse;
-import com.plog.plogbackend.domain.Member.dto.response.MyPageMemberResponse;
+import com.plog.plogbackend.domain.Member.dto.response.MemberResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsResponse;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.badge.dto.BadgeResponse;
@@ -33,7 +33,7 @@ public class MyPageService {
    */
   @Transactional(readOnly = true)
   public MyPagePostsResponse getMyPageData(UUID memberKey) {
-    MyPageMemberResponse memberInfo = memberService.getMyPageInfo(memberKey);
+    MemberResponse memberInfo = memberService.getMyPageInfo(memberKey);
 
     List<FeedFindResponse> posts =
         memberRepository.findMyPosts(memberKey).stream().map(FeedFindResponse::from).toList();

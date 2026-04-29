@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class MyPageMemberResponse {
+public class MemberResponse {
   private String nickname;
   private String profileImageUrl;
   private String introduction;
