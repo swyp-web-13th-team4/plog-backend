@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.post.controller.dto.feed.response;
+package com.plog.plogbackend.domain.post.controller.dto.response;
 
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
