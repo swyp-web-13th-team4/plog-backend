@@ -1,8 +1,8 @@
 package com.plog.plogbackend.domain.Member.service;
 
+import com.plog.plogbackend.domain.Member.dto.response.MemberResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBadgeResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBookmarkResponse;
-import com.plog.plogbackend.domain.Member.dto.response.MemberResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsResponse;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.badge.dto.BadgeResponse;

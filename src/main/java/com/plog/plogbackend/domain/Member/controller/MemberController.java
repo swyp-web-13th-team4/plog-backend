@@ -32,8 +32,7 @@ public class MemberController {
       summary = "회원 정보 조회",
       description = "로그인한 회원의 닉네임, 프로필 이미지 URL, 소개글 등을 조회합니다.")
   @GetMapping("/me")
-  public ResponseEntity<ApiResponse<MemberResponse>> getMember(
-      Authentication authentication) {
+  public ResponseEntity<ApiResponse<MemberResponse>> getMember(Authentication authentication) {
     UUID memberKey = (UUID) authentication.getPrincipal();
     MemberResponse response = memberService.getMyPageInfo(memberKey);
     return ResponseEntity.ok(ApiResponse.success(response));
