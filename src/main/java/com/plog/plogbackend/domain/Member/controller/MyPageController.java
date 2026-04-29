@@ -56,8 +56,7 @@ public class MyPageController {
   /** 대표 배지 설정 PATCH /api/members/badge/main */
   @Operation(
       summary = "대표 배지 설정",
-      description =
-          "로그인한 회원의 대표 배지를 변경합니다. 해당 배지가 존재하지 않거나 보유하지 않은 배지인 경우 오류를 반환합니다.")
+      description = "로그인한 회원의 대표 배지를 변경합니다. 해당 배지가 존재하지 않거나 보유하지 않은 배지인 경우 오류를 반환합니다.")
   @PatchMapping("/badge/main")
   public ResponseEntity<ApiResponse<Void>> updateMainBadge(
       Authentication authentication, @RequestParam Long badgeId) {
