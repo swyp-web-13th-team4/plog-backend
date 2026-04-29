@@ -1,9 +1,10 @@
 package com.plog.plogbackend.domain.post.controller;
 
 import com.plog.plogbackend.domain.post.controller.api.PostMapper;
-import com.plog.plogbackend.domain.post.controller.dto.request.FeedFindRequest;
-import com.plog.plogbackend.domain.post.controller.dto.response.FeedDetailResponse;
-import com.plog.plogbackend.domain.post.controller.dto.response.FeedResponse;
+import com.plog.plogbackend.domain.post.controller.dto.feed.request.FeedFindRequest;
+import com.plog.plogbackend.domain.post.controller.dto.feed.response.FeedDetailResponse;
+import com.plog.plogbackend.domain.post.controller.dto.feed.response.FeedResponse;
+import com.plog.plogbackend.domain.post.controller.dto.feed.response.UpdateBookMarked;
 import com.plog.plogbackend.domain.post.service.FeedService;
 import com.plog.plogbackend.domain.post.service.dto.FeedDetailCommand;
 import com.plog.plogbackend.domain.post.service.dto.FeedFindCommand;
@@ -14,10 +15,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -52,5 +50,26 @@ public class FeedController {
     ApiResponse<FeedDetailResponse> success = ApiResponse.success(response);
 
     return ResponseEntity.ok().body(success);
+  }
+
+  //  @GetMapping("/feed/profileView/{memerKey}")
+  //  public ResponseEntity<ApiResponse<FeedMyPageResponse>> mypage(
+  //          UUID memberKey
+  //          ,@Parameter(hidden = true) @AuthenticationPrincipal UUID key) {
+  //
+  //    FeedMyPageCommand command = PostMapper.from(memberKey);
+  // FeedMyPageResponse response  =  feedService.memberProfileView(command);
+  //
+  //  }
+  @Operation(summary = "북마크 추가/삭제", description = "true 반환 시 추가, false 반환 시 삭제  ")
+  @PostMapping("/feed/bookmark/{postId}")
+  public ResponseEntity<ApiResponse<UpdateBookMarked>> bookMark(
+      @PathVariable Long postId,
+      @Parameter(hidden = true) @AuthenticationPrincipal UUID memberKey) {
+
+    UpdateBookMarked response = feedService.bookmarked(postId, memberKey);
+    ApiResponse<UpdateBookMarked> result = ApiResponse.success(response);
+
+    return ResponseEntity.ok().body(result);
   }
 }

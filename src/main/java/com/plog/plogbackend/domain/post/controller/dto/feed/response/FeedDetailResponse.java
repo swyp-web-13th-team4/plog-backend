@@ -1,11 +1,13 @@
-package com.plog.plogbackend.domain.post.controller.dto.response;
+package com.plog.plogbackend.domain.post.controller.dto.feed.response;
 
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
-public record FeedFindResponse(
+public record FeedDetailResponse(
+    UUID memerKey,
     String name,
     String profileImage,
     LocalDateTime createAt,
@@ -16,11 +18,15 @@ public record FeedFindResponse(
     String placeName,
     Integer studyTime,
     Integer focus,
-    List<String> tags) {
+    List<String> tags,
+    boolean isAuthor,
+    boolean like,
+    boolean bookMark) {
 
-  public static FeedFindResponse from(Post post) {
+  public static FeedDetailResponse from(Post post, boolean isAuthor) {
 
-    return new FeedFindResponse(
+    return new FeedDetailResponse(
+        post.getMember().getMemberKey(),
         post.getMember().getNickname(),
         post.getMember().getProfileImage(),
         post.getCreatedAt(),
@@ -31,6 +37,9 @@ public record FeedFindResponse(
         post.getPlace().getName(),
         post.getStudyTime(),
         post.getFocus(),
-        post.getTags().stream().map(postTag -> postTag.getTag().getName()).toList());
+        post.getTags().stream().map(postTag -> postTag.getTag().getName()).toList(),
+        isAuthor,
+        true,
+        true);
   }
 }

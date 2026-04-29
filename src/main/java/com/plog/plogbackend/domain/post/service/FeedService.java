@@ -2,9 +2,12 @@ package com.plog.plogbackend.domain.post.service;
 
 import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
-import com.plog.plogbackend.domain.post.controller.dto.response.FeedDetailResponse;
-import com.plog.plogbackend.domain.post.controller.dto.response.FeedFindResponse;
-import com.plog.plogbackend.domain.post.controller.dto.response.FeedResponse;
+import com.plog.plogbackend.domain.bookmark.entity.BookMark;
+import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
+import com.plog.plogbackend.domain.post.controller.dto.feed.response.FeedDetailResponse;
+import com.plog.plogbackend.domain.post.controller.dto.feed.response.FeedFindResponse;
+import com.plog.plogbackend.domain.post.controller.dto.feed.response.FeedResponse;
+import com.plog.plogbackend.domain.post.controller.dto.feed.response.UpdateBookMarked;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.post.service.dto.FeedDetailCommand;
@@ -13,6 +16,7 @@ import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +29,7 @@ public class FeedService {
 
   private final PostRepository postRepository;
   private final MemberRepository memberRepository;
+  private final BookMarkRepository bookMarkRepository;
 
   // 피드 조회
 
@@ -74,4 +79,43 @@ public class FeedService {
 
     return FeedDetailResponse.from(post, isAuthor);
   }
+
+  @Transactional
+  public UpdateBookMarked bookmarked(Long postId, UUID memberKey) {
+
+    Member member =
+        memberRepository
+            .findByMemberKey(memberKey)
+            .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
+
+    Optional<BookMark> bookMark =
+        bookMarkRepository.findByPostIdAndMemberId(member.getId(), postId);
+
+    if (bookMark.isEmpty()) {
+
+      Post post =
+          postRepository
+              .findById(postId)
+              .orElseThrow(() -> new AppException(ErrorType.POST_NOT_FOUND));
+      BookMark newBookMark = new BookMark(member, post);
+
+      bookMarkRepository.save(newBookMark);
+
+      return new UpdateBookMarked(true);
+
+    } else {
+      BookMark mark = bookMark.get();
+      bookMarkRepository.delete(mark);
+
+      return new UpdateBookMarked(false);
+    }
+  }
+
+  //    public FeedMyPageResponse memberProfileView(FeedMyPageCommand command) {
+  //
+  //      Member member = memberRepository.findByMemberKey(command.memberKey()).orElseThrow(()->
+  //              new AppException(ErrorType.MEMBER_NOT_FOUND));
+  //
+  //    }
+
 }
