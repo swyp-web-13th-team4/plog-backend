@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.post.controller.dto.request;
+package com.plog.plogbackend.domain.post.controller.dto.feed.request;
 
 import java.time.LocalDateTime;
 import org.springframework.format.annotation.DateTimeFormat;

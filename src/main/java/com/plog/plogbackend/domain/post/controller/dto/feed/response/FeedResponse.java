@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.post.controller.dto.response;
+package com.plog.plogbackend.domain.post.controller.dto.feed.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
