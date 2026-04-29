@@ -1,10 +1,10 @@
 package com.plog.plogbackend.domain.post.controller;
 
 import com.plog.plogbackend.domain.post.controller.api.PostMapper;
-import com.plog.plogbackend.domain.post.controller.dto.feed.request.FeedFindRequest;
-import com.plog.plogbackend.domain.post.controller.dto.feed.response.FeedDetailResponse;
-import com.plog.plogbackend.domain.post.controller.dto.feed.response.FeedResponse;
-import com.plog.plogbackend.domain.post.controller.dto.feed.response.UpdateBookMarked;
+import com.plog.plogbackend.domain.post.controller.dto.request.FeedFindRequest;
+import com.plog.plogbackend.domain.post.controller.dto.response.FeedDetailResponse;
+import com.plog.plogbackend.domain.post.controller.dto.response.FeedResponse;
+import com.plog.plogbackend.domain.post.controller.dto.response.UpdateBookMarked;
 import com.plog.plogbackend.domain.post.service.FeedService;
 import com.plog.plogbackend.domain.post.service.dto.FeedDetailCommand;
 import com.plog.plogbackend.domain.post.service.dto.FeedFindCommand;
