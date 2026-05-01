@@ -20,6 +20,24 @@ public record FeedFindResponse(
     boolean like,
     boolean bookMark) {
 
+  public static FeedFindResponse from(Post post, boolean isLiked, boolean isBookMarked) {
+
+    return new FeedFindResponse(
+        post.getMember().getNickname(),
+        post.getMember().getProfileImage(),
+        post.getCreatedAt(),
+        post.getImages().stream().map(PostImage::getImageUrl).toList(),
+        post.getLikes(),
+        post.getTitle(),
+        post.getContents(),
+        post.getPlace().getName(),
+        post.getStudyTime(),
+        post.getFocus(),
+        post.getTags().stream().map(postTag -> postTag.getTag().getName()).toList(),
+        isLiked,
+        isBookMarked);
+  }
+
   public static FeedFindResponse from(Post post) {
 
     return new FeedFindResponse(

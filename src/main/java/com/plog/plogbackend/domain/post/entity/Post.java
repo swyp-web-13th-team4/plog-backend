@@ -2,7 +2,6 @@ package com.plog.plogbackend.domain.post.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.plog.plogbackend.domain.Member.Member;
-import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
@@ -61,7 +60,4 @@ public class Post extends BaseTimeStatusEntity {
 
   @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
   private List<PostCategory> categories = new ArrayList<>();
-
-  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
-  private List<BookMark> bookMarks = new ArrayList<>();
 }
