@@ -4,6 +4,7 @@ import com.plog.plogbackend.domain.Member.QMember;
 import com.plog.plogbackend.domain.bookmark.entity.QBookMark;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PublicScope;
+import com.plog.plogbackend.domain.post.entity.QLike;
 import com.plog.plogbackend.domain.post.entity.QPost;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -21,6 +22,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
   QMember member = QMember.member;
   QPost post = QPost.post;
   QBookMark bookMark = QBookMark.bookMark;
+  QLike like = QLike.like;
 
   // 날짜 지정 데이터보여주기
   @Override
@@ -100,6 +102,25 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
   }
 
   private BooleanExpression memberIdEq(Long memberId) {
+
     return memberId != null ? member.id.eq(memberId) : null;
+  }
+
+  public List<Long> checkLikes(Long memerId, List<Long> postId) {
+
+    return queryFactory
+        .select(like.post.id)
+        .from(like)
+        .where(like.member.id.eq(memerId), like.post.id.in(postId))
+        .fetch();
+  }
+
+  public List<Long> checkBookmarks(Long memerId, List<Long> postId) {
+
+    return queryFactory
+        .select(bookMark.post.id)
+        .from(bookMark)
+        .where(bookMark.member.id.eq(memerId), bookMark.post.id.in(postId))
+        .fetch();
   }
 }

@@ -20,4 +20,8 @@ public interface PostRepositoryCustom {
 
   // 북마크
   List<Post> bookMarkPost(Long memberId);
+
+  List<Long> checkLikes(Long memerId, List<Long> postId);
+
+  List<Long> checkBookmarks(Long memerId, List<Long> postId);
 }
