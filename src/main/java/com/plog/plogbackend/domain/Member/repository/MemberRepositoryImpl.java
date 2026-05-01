@@ -1,8 +1,8 @@
 package com.plog.plogbackend.domain.Member.repository;
 
 import com.plog.plogbackend.domain.Member.QMember;
-import com.plog.plogbackend.domain.Member.entity.QMemberBadge;
 import com.plog.plogbackend.domain.badge.entity.Badge;
+import com.plog.plogbackend.domain.badge.entity.QMemberBadge;
 import com.plog.plogbackend.domain.bookmark.entity.QBookMark;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.QPost;
@@ -57,7 +57,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         .from(memberBadge)
         .join(memberBadge.member, member)
         .where(member.memberKey.eq(memberKey))
-        .orderBy(memberBadge.createdAt.desc())
+        .orderBy(memberBadge.acquiredAt.desc())
         .fetch();
   }
 

@@ -2,6 +2,8 @@ package com.plog.plogbackend.domain.post.service;
 
 import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
+import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.post.controller.dto.response.FeedDetailResponse;
@@ -27,9 +29,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class FeedService {
 
+  /** 첫 북마크 뱃지 ID */
+  private static final long BADGE_ID_FIRST_BOOKMARK = 3L;
+
   private final PostRepository postRepository;
   private final MemberRepository memberRepository;
   private final BookMarkRepository bookMarkRepository;
+
+  // 이벤트 처리 객체
+  private final ApplicationEventPublisher eventPublisher;
 
   // 피드 조회
 
@@ -100,6 +108,14 @@ public class FeedService {
       BookMark newBookMark = new BookMark(member, post);
 
       bookMarkRepository.save(newBookMark);
+
+      // 첫 북마크 뱃지(id:3) 부여: 저장 후 전체 북마크 수가 1개이면 최초 북마크
+      long totalBookmarks = bookMarkRepository.countByMemberId(member.getId());
+      // 첫 북마크 뱃지(id:3) 부여 이벤트 발행
+      // - 트랜잭션 커밋 후 BadgeEventHandler가 독립 트랜잭션으로 처리
+      if (totalBookmarks == 1) {
+        eventPublisher.publishEvent(new BadgeGrantEvent(member.getId(), BADGE_ID_FIRST_BOOKMARK));
+      }
 
       return new UpdateBookMarked(true);
 
