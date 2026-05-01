@@ -4,20 +4,17 @@ import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
-import com.plog.plogbackend.domain.post.controller.dto.response.FeedDetailResponse;
-import com.plog.plogbackend.domain.post.controller.dto.response.FeedFindResponse;
-import com.plog.plogbackend.domain.post.controller.dto.response.FeedResponse;
-import com.plog.plogbackend.domain.post.controller.dto.response.UpdateBookMarked;
+import com.plog.plogbackend.domain.post.controller.dto.response.*;
+import com.plog.plogbackend.domain.post.entity.Like;
 import com.plog.plogbackend.domain.post.entity.Post;
+import com.plog.plogbackend.domain.post.repository.LikeRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.post.service.dto.FeedDetailCommand;
 import com.plog.plogbackend.domain.post.service.dto.FeedFindCommand;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,21 +27,45 @@ public class FeedService {
   private final PostRepository postRepository;
   private final MemberRepository memberRepository;
   private final BookMarkRepository bookMarkRepository;
+  private final LikeRepository likeRepository;
 
   // 피드 조회
 
-  public FeedResponse feedFind(FeedFindCommand command) {
+  public FeedResponse feedFind(FeedFindCommand command, UUID memberKey) {
 
+    Member member =
+        (memberKey != null) ? memberRepository.findByMemberKey(memberKey).orElse(null) : null;
     int pageSize = 10;
 
     List<Post> feeds =
-        postRepository.findAllByFeed(command.createAt(), command.lastPostId(), pageSize + 1);
+        new ArrayList<>(
+            postRepository.findAllByFeed(command.createAt(), command.lastPostId(), pageSize + 1));
+    List<Long> postIds = feeds.stream().map(Post::getId).toList();
+
+    Set<Long> likedPosts;
+    Set<Long> bookMarks;
+    if (member != null) {
+      likedPosts = new HashSet<>(postRepository.checkLikes(member.getId(), postIds));
+      bookMarks = new HashSet<>(postRepository.checkBookmarks(member.getId(), postIds));
+    } else {
+      likedPosts = Collections.emptySet();
+      bookMarks = Collections.emptySet();
+    }
     boolean nextPage = feeds.size() > pageSize;
 
     if (nextPage) {
       feeds.remove(pageSize);
     }
-    List<FeedFindResponse> content = feeds.stream().map(FeedFindResponse::from).toList();
+    List<FeedFindResponse> content =
+        feeds.stream()
+            .map(
+                post -> {
+                  boolean isLiked = likedPosts.contains(post.getId());
+                  boolean isBookMarked = bookMarks.contains(post.getId());
+                  return FeedFindResponse.from(post, isLiked, isBookMarked);
+                })
+            .toList();
+
     Long lastPostId = null;
     LocalDateTime nextCreatedAt = null;
 
@@ -76,8 +97,11 @@ public class FeedService {
 
       isAuthor = true;
     }
+    boolean isLiked = likeRepository.existsByMemberIdAndPostId(member.getId(), post.getId());
+    boolean isBookMarked =
+        bookMarkRepository.existsByMemberIdAndPostId(member.getId(), post.getId());
 
-    return FeedDetailResponse.from(post, isAuthor);
+    return FeedDetailResponse.from(post, isAuthor, isLiked, isBookMarked);
   }
 
   @Transactional
@@ -89,7 +113,7 @@ public class FeedService {
             .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
 
     Optional<BookMark> bookMark =
-        bookMarkRepository.findByPostIdAndMemberId(member.getId(), postId);
+        bookMarkRepository.findByPostIdAndMemberId(postId, member.getId());
 
     if (bookMark.isEmpty()) {
 
@@ -108,6 +132,37 @@ public class FeedService {
       bookMarkRepository.delete(mark);
 
       return new UpdateBookMarked(false);
+    }
+  }
+
+  @Transactional
+  public UpdateLiked updateLiked(Long postId, UUID memberKey) {
+    Member member =
+        memberRepository
+            .findByMemberKey(memberKey)
+            .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
+
+    Optional<Like> likes = likeRepository.findByPostIdAndMemberId(postId, member.getId());
+
+    if (likes.isEmpty()) {
+
+      Post post =
+          postRepository
+              .findById(postId)
+              .orElseThrow(() -> new AppException(ErrorType.POST_NOT_FOUND));
+      Like newLike = new Like(member, post);
+
+      likeRepository.save(newLike);
+      postRepository.increaseLikeCount(postId);
+
+      return new UpdateLiked(true);
+
+    } else {
+      Like like = likes.get();
+      likeRepository.delete(like);
+      postRepository.decreaseLikeCount(postId);
+
+      return new UpdateLiked(false);
     }
   }
 

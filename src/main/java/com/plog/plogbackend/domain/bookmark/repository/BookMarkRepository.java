@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface BookMarkRepository extends JpaRepository<BookMark, Long> {
 
   Optional<BookMark> findByPostIdAndMemberId(Long postId, Long memberId);
+
+  Boolean existsByMemberIdAndPostId(Long member_id, Long post_id);
 }

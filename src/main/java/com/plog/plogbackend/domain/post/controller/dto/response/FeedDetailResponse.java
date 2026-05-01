@@ -23,7 +23,8 @@ public record FeedDetailResponse(
     boolean like,
     boolean bookMark) {
 
-  public static FeedDetailResponse from(Post post, boolean isAuthor) {
+  public static FeedDetailResponse from(
+      Post post, boolean isAuthor, Boolean isLiked, Boolean isBookMarked) {
 
     return new FeedDetailResponse(
         post.getMember().getMemberKey(),
@@ -39,7 +40,7 @@ public record FeedDetailResponse(
         post.getFocus(),
         post.getTags().stream().map(postTag -> postTag.getTag().getName()).toList(),
         isAuthor,
-        true,
-        true);
+        isLiked,
+        isBookMarked);
   }
 }
