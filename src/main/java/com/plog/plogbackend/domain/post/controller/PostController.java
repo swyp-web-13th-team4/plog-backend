@@ -31,26 +31,26 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/post")
 public class PostController {
 
-    private final PostImageService postImageService;
-    private final PostService postService;
+  private final PostImageService postImageService;
+  private final PostService postService;
 
-    @Operation(summary = "게시글 생성", description = "게시글 정보와 이미지를 함께 업로드합니다. (이미지 최대 5개)")
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<PostCreateResponse>> createPost(
-            @Parameter(description = "게시글 텍스트 데이터") @Valid @RequestPart("texts")
-            PostCreateRequest request,
-            @Parameter(description = "게시글 이미지 (최대 5개)") @RequestPart(value = "images")
-            List<MultipartFile> images,
-            @Parameter(hidden = true) @AuthenticationPrincipal UUID memberKey) {
+  @Operation(summary = "게시글 생성", description = "게시글 정보와 이미지를 함께 업로드합니다. (이미지 최대 5개)")
+  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<ApiResponse<PostCreateResponse>> createPost(
+      @Parameter(description = "게시글 텍스트 데이터") @Valid @RequestPart("texts")
+          PostCreateRequest request,
+      @Parameter(description = "게시글 이미지 (최대 5개)") @RequestPart(value = "images")
+          List<MultipartFile> images,
+      @Parameter(hidden = true) @AuthenticationPrincipal UUID memberKey) {
 
-        PostCreateCommand command = PostMapper.from(request, memberKey);
-        PostResponse postResponse = postService.create(command);
-        List<ImageUrlResponse> imageResponse =
-                postImageService.uploadPostImages(postResponse.postId(), images);
+    PostCreateCommand command = PostMapper.from(request, memberKey);
+    PostResponse postResponse = postService.create(command);
+    List<ImageUrlResponse> imageResponse =
+        postImageService.uploadPostImages(postResponse.postId(), images);
 
-        PostCreateResponse postCreateResponse = new PostCreateResponse(postResponse, imageResponse);
-        return ResponseEntity.ok(ApiResponse.success(postCreateResponse));
-    }
+    PostCreateResponse postCreateResponse = new PostCreateResponse(postResponse, imageResponse);
+    return ResponseEntity.ok(ApiResponse.success(postCreateResponse));
+  }
 
   /*
       @Operation( // TODO : 예시 메서드 입니다. post api 개발 시작하면 삭제해주시면 됩니다.

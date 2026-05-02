@@ -23,15 +23,13 @@ public class PostTag {
   @JoinColumn(name = "tag_id")
   private Tag tag;
 
+  @Builder
+  private PostTag(Post post, Tag tag) {
+    this.post = post;
+    this.tag = tag;
+  }
 
-    @Builder
-    private PostTag(Post post, Tag tag) {
-        this.post = post;
-        this.tag = tag;
-    }
-
-    public static PostTag of(Post post, Tag tag) {
-        return PostTag.builder().post(post).tag(tag).build();
-    }
-
+  public static PostTag of(Post post, Tag tag) {
+    return PostTag.builder().post(post).tag(tag).build();
+  }
 }

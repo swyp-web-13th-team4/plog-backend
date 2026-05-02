@@ -3,7 +3,6 @@ package com.plog.plogbackend.domain.post.controller.dto.response;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PublicScope;
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 

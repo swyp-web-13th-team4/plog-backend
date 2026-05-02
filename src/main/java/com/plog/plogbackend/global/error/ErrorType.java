@@ -59,27 +59,27 @@ public enum ErrorType {
   BADGE_NOT_OWNED(
       HttpStatus.FORBIDDEN, ErrorCode.E1201, "보유하지 않은 뱃지는 대표 뱃지로 설정할 수 없습니다.", LogLevel.WARN),
 
-    // 테그 관련
-    TAG_LIMIT_EXCEEDED(
-            HttpStatus.BAD_REQUEST, ErrorCode.E1300, "태그는 최대 5개까지 등록 가능합니다.", LogLevel.WARN),
-    TAG_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "저장된 태그 값과 일치하지 않습니다", LogLevel.WARN),
+  // 테그 관련
+  TAG_LIMIT_EXCEEDED(
+      HttpStatus.BAD_REQUEST, ErrorCode.E1300, "태그는 최대 5개까지 등록 가능합니다.", LogLevel.WARN),
+  TAG_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "저장된 태그 값과 일치하지 않습니다", LogLevel.WARN),
 
-    // 포스트 관련
-    INVALID_TITLE_LENGTH(
-            HttpStatus.BAD_REQUEST, ErrorCode.E1400, "환경 기록 제목 글자 수는 2글자 이상 20글자 미만 입니다.", LogLevel.WARN),
-    INVALID_CONTENTS_LENGTH(
-            HttpStatus.BAD_REQUEST,
-            ErrorCode.E1401,
+  // 포스트 관련
+  INVALID_TITLE_LENGTH(
+      HttpStatus.BAD_REQUEST, ErrorCode.E1400, "환경 기록 제목 글자 수는 2글자 이상 20글자 미만 입니다.", LogLevel.WARN),
+  INVALID_CONTENTS_LENGTH(
+      HttpStatus.BAD_REQUEST,
+      ErrorCode.E1401,
       "환경 기록 리뷰 글자수는 20글자 이상 200글자 미만 입니다.",
-            LogLevel.WARN),
+      LogLevel.WARN),
 
-    // 플레이스 관련
-    PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 장소를 찾을 수 없습니다.", LogLevel.WARN),
+  // 플레이스 관련
+  PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 장소를 찾을 수 없습니다.", LogLevel.WARN),
 
-    // 카테고리 관련
-    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "저장된 카테고리 값과 일치하지 않습니다.", LogLevel.WARN);
+  // 카테고리 관련
+  CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "저장된 카테고리 값과 일치하지 않습니다.", LogLevel.WARN);
 
-    // 여기에 추가해주시고 사용하시면 됩니다.
+  // 여기에 추가해주시고 사용하시면 됩니다.
 
   private final HttpStatus status;
   private final ErrorCode errorCode;

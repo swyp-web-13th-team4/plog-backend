@@ -16,10 +16,9 @@ public class Place {
 
   private String name;
 
-    public static Place of(String name) {
-        Place place = new Place();
-        place.name = name;
-        return place;
-    }
-
+  public static Place of(String name) {
+    Place place = new Place();
+    place.name = name;
+    return place;
+  }
 }

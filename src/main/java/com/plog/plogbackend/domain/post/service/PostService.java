@@ -18,13 +18,12 @@ import com.plog.plogbackend.domain.tag.Tag;
 import com.plog.plogbackend.domain.tag.repository.TagRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.util.List;
 
 @Slf4j
 @Service

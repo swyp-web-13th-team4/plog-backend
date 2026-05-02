@@ -1,10 +1,9 @@
 package com.plog.plogbackend.domain.post.repository;
 
 import com.plog.plogbackend.domain.post.entity.PlaceCategory;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PlaceCategoryRepository extends JpaRepository<PlaceCategory, Long> {
 

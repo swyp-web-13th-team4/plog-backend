@@ -23,14 +23,13 @@ public class PostCategory extends BaseTimeStatusEntity {
   @JoinColumn(name = "place_category_id")
   private PlaceCategory placeCategory;
 
-    @Builder
-    private PostCategory(Post post, PlaceCategory placeCategory) {
-        this.post = post;
-        this.placeCategory = placeCategory;
-    }
+  @Builder
+  private PostCategory(Post post, PlaceCategory placeCategory) {
+    this.post = post;
+    this.placeCategory = placeCategory;
+  }
 
-    public static PostCategory of(Post post, PlaceCategory placeCategory) {
-        return PostCategory.builder().post(post).placeCategory(placeCategory).build();
-    }
-
+  public static PostCategory of(Post post, PlaceCategory placeCategory) {
+    return PostCategory.builder().post(post).placeCategory(placeCategory).build();
+  }
 }
