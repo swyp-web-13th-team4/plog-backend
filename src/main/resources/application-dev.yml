@@ -6,8 +6,8 @@ spring:
   security:
     front:
       cors:
-        allowed-origins: "https://plog-dev.duckdns.org" # 프론트 CORS 허용 주소
-      frontend-url: https://plog-dev.duckdns.org
+        allowed-origins: "http://localhost:3000" # 프론트 CORS 허용 주소
+      frontend-url: http://localhost:3000/signup
 
   servlet:
     multipart:
