@@ -26,12 +26,11 @@ public class PostTag extends BaseTimeStatusEntity {
 
   @Builder
   private PostTag(Post post, Tag tag) {
-      this.post = post;
-      this.tag = tag;
+    this.post = post;
+    this.tag = tag;
   }
 
-    public static PostTag of(Post post, Tag tag) {
-        return PostTag.builder().post(post).tag(tag).build();
-    }
-
+  public static PostTag of(Post post, Tag tag) {
+    return PostTag.builder().post(post).tag(tag).build();
+  }
 }

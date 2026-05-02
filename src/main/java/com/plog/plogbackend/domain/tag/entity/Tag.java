@@ -12,16 +12,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 public class Tag {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
   private String name;
 
   public static Tag of(String name) {
-      Tag tag = new Tag();
-      tag.name = name;
-      return tag;
+    Tag tag = new Tag();
+    tag.name = name;
+    return tag;
   }
-
 }

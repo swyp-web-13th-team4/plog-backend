@@ -25,11 +25,11 @@ public class PostCategory extends BaseTimeStatusEntity {
 
   @Builder
   private PostCategory(Post post, PlaceCategory placeCategory) {
-      this.post = post;
-      this.placeCategory = placeCategory;
+    this.post = post;
+    this.placeCategory = placeCategory;
   }
 
   public static PostCategory of(Post post, PlaceCategory placeCategory) {
-      return PostCategory.builder().post(post).placeCategory(placeCategory).build();
+    return PostCategory.builder().post(post).placeCategory(placeCategory).build();
   }
 }

@@ -6,7 +6,6 @@ import com.plog.plogbackend.domain.post.service.dto.FeedDetailCommand;
 import com.plog.plogbackend.domain.post.service.dto.FeedFindCommand;
 import com.plog.plogbackend.domain.post.service.dto.FeedMyPageCommand;
 import com.plog.plogbackend.domain.post.service.dto.PostCreateCommand;
-
 import java.util.UUID;
 
 public class PostMapper {
@@ -25,21 +24,20 @@ public class PostMapper {
     return new FeedMyPageCommand(memberKey);
   }
 
-    public static PostCreateCommand from(PostCreateRequest request, UUID memberKey) {
+  public static PostCreateCommand from(PostCreateRequest request, UUID memberKey) {
 
-        return new PostCreateCommand(
-                request.title(),
-                request.contents(),
-                request.startedAt(),
-                request.endedAt(),
-                request.studyDate(),
-                request.studyTime(),
-                request.focus(),
-                request.scope(),
-                request.placeName(),
-                request.tagNames(),
-                request.categoryNames(),
-                memberKey);
-    }
-
+    return new PostCreateCommand(
+        request.title(),
+        request.contents(),
+        request.startedAt(),
+        request.endedAt(),
+        request.studyDate(),
+        request.studyTime(),
+        request.focus(),
+        request.scope(),
+        request.placeName(),
+        request.tagNames(),
+        request.categoryNames(),
+        memberKey);
+  }
 }
