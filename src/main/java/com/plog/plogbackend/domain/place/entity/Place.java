@@ -15,4 +15,11 @@ public class Place {
   private Long id;
 
   private String name;
+
+    public static Place of(String name) {
+        Place place = new Place();
+        place.name = name;
+        return place;
+    }
+
 }
