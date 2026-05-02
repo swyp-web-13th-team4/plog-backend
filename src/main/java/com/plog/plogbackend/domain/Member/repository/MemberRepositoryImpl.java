@@ -30,7 +30,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         .leftJoin(post.place)
         .fetchJoin()
         .where(member.memberKey.eq(memberKey))
-        .orderBy(post.createdAt.desc())
+        .orderBy(post.createdAt.desc(), post.id.desc())
         .fetch();
   }
 
@@ -46,7 +46,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         .leftJoin(post.place)
         .fetchJoin() // 게시글 장소 정보
         .where(member.memberKey.eq(memberKey))
-        .orderBy(bookMark.id.desc())
+        .orderBy(post.createdAt.desc(), post.id.desc())
         .fetch();
   }
 
