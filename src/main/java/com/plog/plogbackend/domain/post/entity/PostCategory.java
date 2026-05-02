@@ -1,9 +1,15 @@
 package com.plog.plogbackend.domain.post.entity;
 
+import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
-public class PostCategory {
+@Getter
+@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+public class PostCategory extends BaseTimeStatusEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,4 +22,14 @@ public class PostCategory {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "place_category_id")
   private PlaceCategory placeCategory;
+
+  @Builder
+  private PostCategory(Post post, PlaceCategory placeCategory) {
+    this.post = post;
+    this.placeCategory = placeCategory;
+  }
+
+  public static PostCategory of(Post post, PlaceCategory placeCategory) {
+    return PostCategory.builder().post(post).placeCategory(placeCategory).build();
+  }
 }
