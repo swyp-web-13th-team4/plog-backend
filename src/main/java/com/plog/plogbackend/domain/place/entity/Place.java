@@ -5,9 +5,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 public class Place {
 
   @Id
@@ -15,4 +17,10 @@ public class Place {
   private Long id;
 
   private String name;
+
+    public static Place of(String name) {
+      Place place = new Place();
+      place.name = name;
+      return place;
+    }
 }

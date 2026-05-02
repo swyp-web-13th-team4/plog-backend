@@ -10,10 +10,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post extends BaseTimeStatusEntity {
 
   @Id
@@ -45,12 +50,6 @@ public class Post extends BaseTimeStatusEntity {
   @JoinColumn(name = "place_id")
   private Place place;
 
-  @JsonFormat(
-      shape = JsonFormat.Shape.STRING,
-      pattern = "yyyy.MM.dd HH:mm",
-      timezone = "Asia/Seoul")
-  private LocalDateTime createdAt;
-
   private Long likes;
 
   @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
@@ -64,4 +63,56 @@ public class Post extends BaseTimeStatusEntity {
 
   @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
   private List<BookMark> bookMarks = new ArrayList<>();
+
+    @Builder
+    private Post(
+            String title,
+            String contents,
+            LocalDateTime startedAt,
+            LocalDateTime endedAt,
+            LocalDate studyDate,
+            Integer studyTime,
+            Integer focus,
+            PublicScope scope,
+            Member member,
+            Place place) {
+        this.title = title;
+        this.contents = contents;
+        this.startedAt = startedAt;
+        this.endedAt = endedAt;
+        this.studyDate = studyDate;
+        this.studyTime = studyTime;
+        this.focus = focus;
+        this.scope = scope;
+        this.member = member;
+        this.place = place;
+        this.likes = 0L;
+    }
+
+
+    public static Post of(
+            String title,
+            String contents,
+            LocalDateTime startedAt,
+            LocalDateTime endedAt,
+            LocalDate studyDate,
+            Integer studyTime,
+            Integer focus,
+            PublicScope scope,
+            Member member,
+            Place place) {
+        return Post.builder()
+                .title(title)
+                .contents(contents)
+                .startedAt(startedAt)
+                .endedAt(endedAt)
+                .studyDate(studyDate)
+                .studyTime(studyTime)
+                .focus(focus)
+                .scope(scope)
+                .member(member)
+                .place(place)
+                .build();
+    }
+
 }
