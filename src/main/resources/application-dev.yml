@@ -6,8 +6,8 @@ spring:
   security:
     front:
       cors:
-        allowed-origins: "https://localhost:3001" # 프론트 CORS 허용 주소
-      frontend-url: https://localhost:3001
+        allowed-origins: "https://localhost:3000" # 프론트 CORS 허용 주소
+      frontend-url: https://localhost:3000
 
   servlet:
     multipart:
