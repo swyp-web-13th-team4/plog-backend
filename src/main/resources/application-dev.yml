@@ -7,7 +7,7 @@ spring:
     front:
       cors:
         allowed-origins: "http://localhost:3000" # 프론트 CORS 허용 주소
-      frontend-url: http://localhost:3000/signup
+      frontend-url: http://localhost:3000
 
   servlet:
     multipart:
