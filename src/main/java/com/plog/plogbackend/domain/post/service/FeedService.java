@@ -3,7 +3,6 @@ package com.plog.plogbackend.domain.post.service;
 import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.post.controller.dto.response.*;
@@ -18,6 +17,7 @@ import com.plog.plogbackend.global.error.ErrorType;
 import java.time.LocalDateTime;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

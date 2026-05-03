@@ -2,6 +2,7 @@ package com.plog.plogbackend.domain.post.service;
 
 import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
+import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
 import com.plog.plogbackend.domain.place.PlaceRepository;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.domain.post.controller.dto.response.PostResponse;
@@ -14,7 +15,6 @@ import com.plog.plogbackend.domain.post.repository.PostCategoryRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.post.repository.PostTagRepository;
 import com.plog.plogbackend.domain.post.service.dto.PostCreateCommand;
-import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
 import com.plog.plogbackend.domain.tag.Tag;
 import com.plog.plogbackend.domain.tag.repository.TagRepository;
 import com.plog.plogbackend.global.error.AppException;
