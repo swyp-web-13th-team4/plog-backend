@@ -2,6 +2,7 @@ package com.plog.plogbackend.domain.Member.repository;
 
 import com.plog.plogbackend.domain.badge.entity.Badge;
 import com.plog.plogbackend.domain.post.entity.Post;
+import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import java.util.List;
 import java.util.UUID;
 
@@ -9,6 +10,10 @@ public interface MemberRepositoryCustom {
   List<Post> findMyPosts(UUID memberKey);
 
   List<Post> findMyBookmarks(UUID memberKey);
+
+  List<Post> findMyPostsSorted(UUID memberKey, String sort, List<PlaceTag> tags);
+
+  List<Post> findMyBookmarksSorted(UUID memberKey, String sort, List<PlaceTag> tags);
 
   List<Badge> findMyBadges(UUID memberKey);
 
