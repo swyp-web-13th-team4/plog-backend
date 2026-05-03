@@ -48,12 +48,6 @@ public class Post extends BaseTimeStatusEntity {
   @JoinColumn(name = "place_id")
   private Place place;
 
-  @JsonFormat(
-      shape = JsonFormat.Shape.STRING,
-      pattern = "yyyy.MM.dd HH:mm",
-      timezone = "Asia/Seoul")
-  private LocalDateTime createdAt;
-
   private Long likes;
 
   @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
