@@ -2,12 +2,13 @@ package com.plog.plogbackend.domain.bookmark.entity;
 
 import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.post.entity.Post;
+import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
 
 @Entity
 @RequiredArgsConstructor
-public class BookMark {
+public class BookMark extends BaseTimeStatusEntity {
 
   @Id @GeneratedValue private Long id;
 
