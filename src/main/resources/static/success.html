@@ -542,6 +542,23 @@
       </div>
     </div>
 
+    <!-- 뱃지 관리 테스트 -->
+    <div class="card">
+      <div class="card-title">🏅 뱃지 관리 테스트</div>
+      
+      <div style="margin-bottom: 20px;">
+        <p style="font-size:0.85rem; color:var(--muted); line-height: 1.6; margin-bottom: 12px;">
+          획득한 뱃지 목록을 조회하고, 대표 뱃지를 설정합니다.
+        </p>
+        <button class="api-run-btn" onclick="fetchMyBadges()">나의 뱃지 불러오기 (GET)</button>
+        <div class="api-result" id="result-badges-raw"></div>
+        
+        <div id="badge-list" style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px;">
+          <!-- JS에서 뱃지 목록 렌더링 -->
+        </div>
+      </div>
+    </div>
+
     <!-- API 테스트 (추후 구현될 API 미리 배치) -->
     <div class="card">
       <div class="card-title">🧪 시스템 및 기타 API</div>
@@ -599,6 +616,7 @@
     <!-- 하단 버튼 -->
     <div class="footer-btns">
       <a class="btn-outline" href="index.html">← 처음으로</a>
+      <a class="btn-outline" href="post.html">📝 게시글 작성(새창)</a>
       <button class="btn-primary" onclick="logout()">로그아웃 후 재테스트</button>
     </div>
   </div>
@@ -615,9 +633,9 @@
     // 토큰은 HttpOnly 쿠키로 관리되므로 JS에서 접근 및 파싱하지 않습니다.
 
     // ── API 설정 ──
-    const API_BASE = 'https://plog-dev.duckdns.org';
+    // const API_BASE = 'https://plog-dev.duckdns.org';
     // 로컬 테스트 시 아래 주소 사용:
-    //const API_BASE = 'http://localhost:8080';
+    const API_BASE = 'http://localhost:8080';
 
     // ── API 테스트 ──
     async function testApi(method, path, resultId) {
@@ -737,7 +755,91 @@
     // 페이지 로드 시 실행
     window.addEventListener('DOMContentLoaded', () => {
       fetchDefaultProfiles();
+      fetchMyBadges(); // 페이지 로드 시 뱃지도 불러오기
     });
+
+    // ── 뱃지 관리 로직 ──
+    async function fetchMyBadges() {
+      const resultEl = document.getElementById('result-badges-raw');
+      resultEl.style.display = 'block';
+      resultEl.style.color = '#a5b4fc';
+      resultEl.textContent = '뱃지 불러오는 중...';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/members/badge`, { credentials: 'include' });
+        const json = await res.json();
+        
+        resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
+        resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(json, null, 2)}`;
+        
+        if (json.data && Array.isArray(json.data.acquiredBadges)) {
+          renderBadges(json.data.acquiredBadges, json.data.mainBadge);
+        }
+      } catch (err) {
+        resultEl.style.color = '#fca5a5';
+        resultEl.textContent = `연결 실패: ${err.message}`;
+      }
+    }
+
+    function renderBadges(badges, mainBadge) {
+      const listEl = document.getElementById('badge-list');
+      listEl.innerHTML = '';
+      
+      if (badges.length === 0) {
+        listEl.innerHTML = '<span style="color:var(--muted); font-size:0.85rem;">획득한 뱃지가 없습니다.</span>';
+        return;
+      }
+
+      badges.forEach(badge => {
+        const isMain = mainBadge && mainBadge.id === badge.id;
+        const btn = document.createElement('button');
+        btn.className = 'api-run-btn';
+        btn.style.cssText = `
+          padding: 10px 14px; 
+          display: flex; 
+          flex-direction: column; 
+          align-items: center; 
+          gap: 6px;
+          border-color: ${isMain ? 'var(--success)' : 'var(--border)'};
+          background: ${isMain ? 'rgba(74, 222, 128, 0.1)' : 'rgba(255, 255, 255, 0.04)'};
+        `;
+        
+        btn.innerHTML = `
+          <span style="font-size: 1.2rem;">${badge.imageUrl || '🏅'}</span>
+          <span style="font-weight: 600; color: ${isMain ? 'var(--success)' : 'var(--text)'};">${badge.name}</span>
+          <span style="font-size: 0.7rem; color: var(--muted);">${badge.description || ''}</span>
+          ${isMain ? '<span style="font-size: 0.65rem; background: var(--success); color: #000; padding: 2px 6px; border-radius: 4px; margin-top: 4px;">대표 뱃지</span>' : ''}
+        `;
+        
+        btn.onclick = () => setMainBadge(badge.id);
+        listEl.appendChild(btn);
+      });
+    }
+
+    async function setMainBadge(badgeId) {
+      if(!confirm('이 뱃지를 대표 뱃지로 설정하시겠습니까?')) return;
+      
+      const resultEl = document.getElementById('result-badges-raw');
+      resultEl.textContent = '대표 뱃지 설정 중...';
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/members/badge/main?badgeId=${badgeId}`, { 
+          method: 'PATCH',
+          credentials: 'include' 
+        });
+        const json = await res.json();
+        
+        resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
+        resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(json, null, 2)}`;
+        
+        if (res.ok) {
+          fetchMyBadges(); // 성공 시 목록 새로고침
+        }
+      } catch (err) {
+        resultEl.style.color = '#fca5a5';
+        resultEl.textContent = `연결 실패: ${err.message}`;
+      }
+    }
 
     // ── 이미지 테스트 로직 ──
     async function doImageFetch(urlPath, method, formData, resultId) {
