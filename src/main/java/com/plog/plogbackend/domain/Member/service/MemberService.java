@@ -82,10 +82,10 @@ public class MemberService {
     memberRepository.save(member);
 
     if (request.termsAgreements() != null) {
-      for (Map.Entry<Long, Boolean> entry : request.termsAgreements().entrySet()) {
+      for (Map.Entry<String, Boolean> entry : request.termsAgreements().entrySet()) {
         Terms terms =
             termsRepository
-                .findById(entry.getKey())
+                .findByName(entry.getKey())
                 .orElseThrow(() -> new AppException(ErrorType.TERMS_NOT_FOUND));
 
         if (terms.isRequired() && !entry.getValue()) {
