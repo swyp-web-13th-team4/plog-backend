@@ -1,5 +1,6 @@
 package com.plog.plogbackend.global.support;
 
+import com.plog.plogbackend.global.support.paging.Cursorable;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.dsl.PathBuilder;
@@ -8,6 +9,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.jpa.impl.JPAUpdateClause;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.util.List;
 import org.springframework.data.jpa.repository.support.JpaEntityInformationSupport;
 import org.springframework.data.jpa.repository.support.Querydsl;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
@@ -65,5 +67,13 @@ public abstract class QuerydslRepositorySupport {
 
   public void clear() {
     entityManager.clear();
+  }
+
+  protected <T> boolean hasNext(Cursorable<?> cursorable, List<T> content){
+    if(content.size() > cursorable.getLimit()){
+      content.remove(content.size()-1);
+      return true;
+    }
+    return false;
   }
 }
