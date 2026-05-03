@@ -1,6 +1,7 @@
 package com.plog.plogbackend.domain.post.controller.dto.request.post;
 
 import com.plog.plogbackend.domain.post.entity.PublicScope;
+import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
@@ -26,6 +27,6 @@ public record PostCreateRequest(
     @Schema(description = "공개 범위") @NotNull(message = "공개 범위는 필수입니다.") PublicScope scope,
     @Schema(description = "장소 ID") @NotNull(message = "장소는 필수입니다.") String placeName,
     @Schema(description = "태그 ID 목록") @NotEmpty(message = "태그는 최소 하나 이상 필요합니다.")
-        List<String> tagNames,
+        List<PlaceTag> placeTag,
     @Schema(description = "카테고리 목록") @NotEmpty(message = "카테고리는 최소 하나 이상 필요합니다.")
         List<String> categoryNames) {}
