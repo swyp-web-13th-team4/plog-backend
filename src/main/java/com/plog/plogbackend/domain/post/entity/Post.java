@@ -1,6 +1,5 @@
 package com.plog.plogbackend.domain.post.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
@@ -47,12 +46,6 @@ public class Post extends BaseTimeStatusEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "place_id")
   private Place place;
-
-  @JsonFormat(
-      shape = JsonFormat.Shape.STRING,
-      pattern = "yyyy.MM.dd HH:mm",
-      timezone = "Asia/Seoul")
-  private LocalDateTime createdAt;
 
   private Long likes;
 

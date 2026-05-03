@@ -16,6 +16,7 @@ import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.post.repository.PostTagRepository;
 import com.plog.plogbackend.domain.post.service.dto.PostCreateCommand;
 import com.plog.plogbackend.domain.tag.Tag;
+import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.plog.plogbackend.domain.tag.repository.TagRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
@@ -62,24 +63,17 @@ public class PostService {
     }
 
     // 테그 입력값 검증필터
-    List<String> filteredTagNames =
-        command.tagNames().stream()
-            .filter(StringUtils::hasText)
-            .map(String::trim)
-            .filter(tag -> tag.startsWith("#"))
-            .distinct()
-            .toList();
-
     // 테그는 5개를 초과할 수 없다
-    if (filteredTagNames.size() > 5) {
+    List<PlaceTag> placeTags = command.placeTags();
+    if (placeTags.size() > 5) {
       throw new AppException(ErrorType.TAG_LIMIT_EXCEEDED);
     }
 
     // 검색 로직
-    List<Tag> findTags = tagRepository.findByNameIn(filteredTagNames);
+    List<Tag> findTags = tagRepository.findByPlaceTagIn(placeTags);
 
     // 전송된 데이터와 DB에 있는 테그 데이터가 정확한지 size로 검증한다
-    if (findTags.size() != filteredTagNames.size()) {
+    if (placeTags.size() != findTags.size()) {
       throw new AppException(ErrorType.TAG_NOT_FOUND);
     }
 

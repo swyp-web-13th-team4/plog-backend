@@ -2,6 +2,7 @@ package com.plog.plogbackend.domain.post.controller.dto.response;
 
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
+import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,7 +17,7 @@ public record FeedFindResponse(
     String placeName,
     Integer studyTime,
     Integer focus,
-    List<String> tags,
+    List<PlaceTag> tags,
     boolean like,
     boolean bookMark) {
 
@@ -33,7 +34,7 @@ public record FeedFindResponse(
         post.getPlace().getName(),
         post.getStudyTime(),
         post.getFocus(),
-        post.getTags().stream().map(postTag -> postTag.getTag().getName()).toList(),
+        post.getTags().stream().map(postTag -> postTag.getTag().getPlaceTag()).toList(),
         isLiked,
         isBookMarked);
   }
@@ -51,7 +52,7 @@ public record FeedFindResponse(
         post.getPlace().getName(),
         post.getStudyTime(),
         post.getFocus(),
-        post.getTags().stream().map(postTag -> postTag.getTag().getName()).toList(),
+        post.getTags().stream().map(postTag -> postTag.getTag().getPlaceTag()).toList(),
         true,
         true);
   }

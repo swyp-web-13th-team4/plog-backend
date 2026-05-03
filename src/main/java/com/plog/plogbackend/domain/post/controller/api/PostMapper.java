@@ -36,7 +36,7 @@ public class PostMapper {
         request.focus(),
         request.scope(),
         request.placeName(),
-        request.tagNames(),
+        request.placeTag(),
         request.categoryNames(),
         memberKey);
   }
