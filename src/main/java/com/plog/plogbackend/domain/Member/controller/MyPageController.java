@@ -2,8 +2,8 @@ package com.plog.plogbackend.domain.Member.controller;
 
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBadgeResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBookmarkResponse;
-import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsListResponse;
+import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsResponse;
 import com.plog.plogbackend.domain.Member.service.MyPageService;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.plog.plogbackend.global.response.ApiResponse;
@@ -55,12 +55,17 @@ public class MyPageController {
   @GetMapping("/mypage/posts")
   public ResponseEntity<ApiResponse<MyPagePostsListResponse>> getMyPostsSorted(
       Authentication authentication,
-      @Parameter(description = "정렬 조건: latest(최신순), focus(집중도순), studyTime(작업시간순)") 
-      @RequestParam(defaultValue = "latest") String sort,
-      @Parameter(description = "필터링할 PlaceTag 목록 (예: QUIET, FAST_WIFI). 여러 개 입력 시 해당 태그가 모두 포함된 게시글 조회") 
-      @RequestParam(required = false) List<PlaceTag> tags) {
+      @Parameter(description = "정렬 조건: latest(최신순), focus(집중도순), studyTime(작업시간순)")
+          @RequestParam(defaultValue = "latest")
+          String sort,
+      @Parameter(
+              description =
+                  "필터링할 PlaceTag 목록 (예: QUIET, FAST_WIFI). 여러 개 입력 시 해당 태그가 모두 포함된 게시글 조회")
+          @RequestParam(required = false)
+          List<PlaceTag> tags) {
     UUID memberKey = (UUID) authentication.getPrincipal();
-    return ResponseEntity.ok(ApiResponse.success(myPageService.getMyPostsSorted(memberKey, sort, tags)));
+    return ResponseEntity.ok(
+        ApiResponse.success(myPageService.getMyPostsSorted(memberKey, sort, tags)));
   }
 
   /** 정렬 및 태그 필터링된 북마크 목록 조회 GET /api/members/bookmark/sorted */
@@ -70,12 +75,17 @@ public class MyPageController {
   @GetMapping("/bookmark/sorted")
   public ResponseEntity<ApiResponse<MyPageBookmarkResponse>> getMyBookmarksSorted(
       Authentication authentication,
-      @Parameter(description = "정렬 조건: latest(최신순), likes(좋아요순)") 
-      @RequestParam(defaultValue = "latest") String sort,
-      @Parameter(description = "필터링할 PlaceTag 목록 (예: QUIET, FAST_WIFI). 여러 개 입력 시 해당 태그가 모두 포함된 게시글 조회") 
-      @RequestParam(required = false) List<PlaceTag> tags) {
+      @Parameter(description = "정렬 조건: latest(최신순), likes(좋아요순)")
+          @RequestParam(defaultValue = "latest")
+          String sort,
+      @Parameter(
+              description =
+                  "필터링할 PlaceTag 목록 (예: QUIET, FAST_WIFI). 여러 개 입력 시 해당 태그가 모두 포함된 게시글 조회")
+          @RequestParam(required = false)
+          List<PlaceTag> tags) {
     UUID memberKey = (UUID) authentication.getPrincipal();
-    return ResponseEntity.ok(ApiResponse.success(myPageService.getMyBookmarksSorted(memberKey, sort, tags)));
+    return ResponseEntity.ok(
+        ApiResponse.success(myPageService.getMyBookmarksSorted(memberKey, sort, tags)));
   }
 
   /** 획득한 배지 목록 조회 GET /api/members/badge */

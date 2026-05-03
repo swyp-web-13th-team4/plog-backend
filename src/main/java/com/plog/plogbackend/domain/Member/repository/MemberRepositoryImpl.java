@@ -9,7 +9,6 @@ import com.plog.plogbackend.domain.post.entity.QPost;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.UUID;
@@ -62,10 +61,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         .fetchJoin()
         .leftJoin(post.place)
         .fetchJoin()
-        .where(
-            member.memberKey.eq(memberKey),
-            tagsEqAll(tags)
-        )
+        .where(member.memberKey.eq(memberKey), tagsEqAll(tags))
         .orderBy(getPostOrderSpecifier(sort), post.id.desc())
         .fetch();
   }
@@ -81,10 +77,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         .fetchJoin()
         .leftJoin(post.place)
         .fetchJoin()
-        .where(
-            member.memberKey.eq(memberKey),
-            tagsEqAll(tags)
-        )
+        .where(member.memberKey.eq(memberKey), tagsEqAll(tags))
         .orderBy(getBookmarkOrderSpecifier(sort), post.id.desc())
         .fetch();
   }

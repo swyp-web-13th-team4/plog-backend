@@ -4,8 +4,8 @@ import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.dto.response.MemberResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBadgeResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBookmarkResponse;
-import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsListResponse;
+import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsResponse;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.badge.dto.BadgeResponse;
 import com.plog.plogbackend.domain.badge.entity.Badge;
@@ -76,7 +76,8 @@ public class MyPageService {
    * @return 정렬/필터링된 게시글 목록
    */
   @Transactional(readOnly = true)
-  public MyPagePostsListResponse getMyPostsSorted(UUID memberKey, String sort, List<PlaceTag> tags) {
+  public MyPagePostsListResponse getMyPostsSorted(
+      UUID memberKey, String sort, List<PlaceTag> tags) {
     Member member = getMember(memberKey);
 
     List<Post> feeds = memberRepository.findMyPostsSorted(memberKey, sort, tags);
@@ -94,7 +95,8 @@ public class MyPageService {
    * @return 정렬/필터링된 북마크 게시글 목록
    */
   @Transactional(readOnly = true)
-  public MyPageBookmarkResponse getMyBookmarksSorted(UUID memberKey, String sort, List<PlaceTag> tags) {
+  public MyPageBookmarkResponse getMyBookmarksSorted(
+      UUID memberKey, String sort, List<PlaceTag> tags) {
     Member member = getMember(memberKey);
 
     List<Post> feeds = memberRepository.findMyBookmarksSorted(memberKey, sort, tags);
