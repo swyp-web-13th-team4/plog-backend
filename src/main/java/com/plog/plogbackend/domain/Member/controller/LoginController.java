@@ -71,12 +71,14 @@ public class LoginController {
     return ResponseEntity.ok(ApiResponse.success());
   }
 
-  @Operation(summary = "로그아웃", description = "accessToken, refreshToken 쿠키를 만료시키고 DB에서 refreshToken을 삭제하여 로그아웃 처리")
+  @Operation(
+      summary = "로그아웃",
+      description = "accessToken, refreshToken 쿠키를 만료시키고 DB에서 refreshToken을 삭제하여 로그아웃 처리")
   @PostMapping("/logout")
   public ResponseEntity<ApiResponse<Void>> logout(
       org.springframework.security.core.Authentication authentication,
       HttpServletResponse response) {
-    
+
     // DB에서 refresh token 삭제
     if (authentication != null && authentication.getPrincipal() instanceof UUID memberKey) {
       refreshTokenService.deleteRefreshToken(memberKey);
@@ -85,10 +87,10 @@ public class LoginController {
     // 쿠키 삭제
     ResponseCookie deleteAccessCookie = cookieUtil.deleteCookie("accessToken");
     response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessCookie.toString());
-    
+
     ResponseCookie deleteRefreshCookie = cookieUtil.deleteCookie("refreshToken");
     response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString());
-    
+
     return ResponseEntity.ok(ApiResponse.success());
   }
 }
