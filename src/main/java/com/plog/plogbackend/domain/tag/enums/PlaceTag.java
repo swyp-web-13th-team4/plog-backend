@@ -76,20 +76,19 @@ public enum PlaceTag {
     return status;
   }
 
-    /**
-     * good_vibe -> GOOD_VIBE로 바꿔주는 역할
-     * from 메소드명은 관례상 사용하였으며
-     * @JsonCreator를 붙이면 잭슨 라이브러리가
-     * 자동으로 호출해서 대문자로 바꿔줍니다
-     * @param value
-     * @return
-     */
-    @JsonCreator
-    public static PlaceTag from(String value) {
-        if (value == null || value.isEmpty()) {
-            return null;
-        }
-        // 프론트에서 "good_vibe"라고 소문자로 보내도 대문자로 바꿔서 매핑해줌
-        return valueOf(value.toUpperCase());
+  /**
+   * good_vibe -> GOOD_VIBE로 바꿔주는 역할 from 메소드명은 관례상 사용하였으며 @JsonCreator를 붙이면 잭슨 라이브러리가 자동으로 호출해서
+   * 대문자로 바꿔줍니다
+   *
+   * @param value
+   * @return
+   */
+  @JsonCreator
+  public static PlaceTag from(String value) {
+    if (value == null || value.isEmpty()) {
+      return null;
     }
+    // 프론트에서 "good_vibe"라고 소문자로 보내도 대문자로 바꿔서 매핑해줌
+    return valueOf(value.toUpperCase());
+  }
 }

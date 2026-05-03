@@ -6,8 +6,8 @@ public enum PublicScope {
   PUBLIC,
   PRIVATE;
 
-    @JsonCreator
-    public static PublicScope from(String value) {
-        return valueOf(value.toUpperCase());
-    }
+  @JsonCreator
+  public static PublicScope from(String value) {
+    return valueOf(value.toUpperCase());
+  }
 }
