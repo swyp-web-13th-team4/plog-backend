@@ -12,4 +12,4 @@ public record MemberSignupRequest(
         String nickname,
     @Schema(description = "소개글 (선택, 최대 100자)") @Size(max = 100, message = "소개글은 최대 100자까지 가능합니다.")
         String introduction,
-    @Schema(description = "약관 동의 여부") Map<Long, Boolean> termsAgreements) {}
+    @Schema(description = "약관 동의 여부") Map<String, Boolean> termsAgreements) {}
