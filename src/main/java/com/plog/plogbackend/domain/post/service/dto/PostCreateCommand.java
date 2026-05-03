@@ -2,7 +2,6 @@ package com.plog.plogbackend.domain.post.service.dto;
 
 import com.plog.plogbackend.domain.post.entity.PublicScope;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;

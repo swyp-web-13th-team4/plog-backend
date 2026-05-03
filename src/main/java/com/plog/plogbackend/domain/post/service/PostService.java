@@ -56,12 +56,12 @@ public class PostService {
       throw new AppException(ErrorType.INVALID_CONTENTS_LENGTH);
     }
 
-      // 테그 입력값 검증필터
-      // 테그는 5개를 초과할 수 없다
-      List<PlaceTag> placeTags = command.placeTags();
-      if (placeTags.size() > 5) {
-          throw new AppException(ErrorType.TAG_LIMIT_EXCEEDED);
-      }
+    // 테그 입력값 검증필터
+    // 테그는 5개를 초과할 수 없다
+    List<PlaceTag> placeTags = command.placeTags();
+    if (placeTags.size() > 5) {
+      throw new AppException(ErrorType.TAG_LIMIT_EXCEEDED);
+    }
 
     // 검색 로직
     List<Tag> findTags = tagRepository.findByPlaceTagIn(placeTags);

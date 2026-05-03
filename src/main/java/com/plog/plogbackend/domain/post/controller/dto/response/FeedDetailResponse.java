@@ -3,7 +3,6 @@ package com.plog.plogbackend.domain.post.controller.dto.response;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;

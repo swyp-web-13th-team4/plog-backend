@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 public class Tag {
 
-    @Id
+  @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-    @Enumerated(EnumType.STRING)
+  @Enumerated(EnumType.STRING)
   private PlaceTag placeTag;
 }

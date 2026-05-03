@@ -1,10 +1,8 @@
 package com.plog.plogbackend.domain.post.controller.dto.response;
 
-import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
