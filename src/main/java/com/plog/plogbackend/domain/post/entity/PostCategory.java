@@ -1,15 +1,15 @@
 package com.plog.plogbackend.domain.post.entity;
 
-import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
-public class PostCategory extends BaseTimeStatusEntity {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class PostCategory {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,6 +30,9 @@ public class PostCategory extends BaseTimeStatusEntity {
   }
 
   public static PostCategory of(Post post, PlaceCategory placeCategory) {
-    return PostCategory.builder().post(post).placeCategory(placeCategory).build();
+    return PostCategory.builder()
+        .post(post)
+        .placeCategory(placeCategory)
+        .build();
   }
 }
