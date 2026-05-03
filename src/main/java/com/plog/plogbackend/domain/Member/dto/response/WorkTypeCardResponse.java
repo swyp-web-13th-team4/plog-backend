@@ -12,7 +12,7 @@ public record WorkTypeCardResponse(
     @Schema(description = "카드 설명") String description) {
 
   public static WorkTypeCardResponse from(WorkTypeCard card) {
-    return new WorkTypeCardResponse(card.getId(), card.getImageUrl(), card.getName(),
-        card.getDescription());
+    return new WorkTypeCardResponse(
+        card.getId(), card.getImageUrl(), card.getName(), card.getDescription());
   }
 }

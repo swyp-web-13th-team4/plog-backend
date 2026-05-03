@@ -113,13 +113,11 @@ public class MyPageController {
   /** 회원 분석 정보 조회 GET /api/members/analytics */
   @Operation(
       summary = "분석 정보 조회",
-      description =
-          "로그인한 회원의 기록 횟수, 작업 시간, 작업 유형 카드, 집중 환경 조건, 공간별 순위를 조회합니다.")
+      description = "로그인한 회원의 기록 횟수, 작업 시간, 작업 유형 카드, 집중 환경 조건, 공간별 순위를 조회합니다.")
   @GetMapping("/analytics")
   public ResponseEntity<ApiResponse<MemberAnalyticsResponse>> getMemberAnalytics(
       Authentication authentication) {
     UUID memberKey = (UUID) authentication.getPrincipal();
-    return ResponseEntity.ok(
-        ApiResponse.success(myPageService.getMemberAnalytics(memberKey)));
+    return ResponseEntity.ok(ApiResponse.success(myPageService.getMemberAnalytics(memberKey)));
   }
 }

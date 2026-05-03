@@ -30,9 +30,6 @@ public class PostCategory {
   }
 
   public static PostCategory of(Post post, PlaceCategory placeCategory) {
-    return PostCategory.builder()
-        .post(post)
-        .placeCategory(placeCategory)
-        .build();
+    return PostCategory.builder().post(post).placeCategory(placeCategory).build();
   }
 }

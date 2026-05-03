@@ -4,7 +4,6 @@ import com.plog.plogbackend.domain.Member.dto.response.FocusEnvironmentResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MemberAnalyticsResponse;
 import com.plog.plogbackend.domain.Member.dto.response.SpaceRankingResponse;
 import com.plog.plogbackend.domain.Member.dto.response.WorkTypeCardResponse;
-import com.plog.plogbackend.domain.Member.entity.WorkTypeCard;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.Member.repository.WorkTypeCardRepository;
 import com.plog.plogbackend.domain.post.entity.PlaceCategory;
@@ -13,7 +12,6 @@ import com.plog.plogbackend.domain.post.entity.PostCategory;
 import com.plog.plogbackend.domain.post.entity.PostTag;
 import com.plog.plogbackend.domain.tag.Tag;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
-import java.time.Duration;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -47,10 +45,8 @@ public class MemberAnalyticsService {
     List<Post> posts = memberRepository.findMyPostsForAnalytics(memberKey);
     int totalCount = posts.size();
 
-    int totalStudyTime = posts.stream()
-        .filter(p -> p.getStudyTime() != null)
-        .mapToInt(Post::getStudyTime)
-        .sum();
+    int totalStudyTime =
+        posts.stream().filter(p -> p.getStudyTime() != null).mapToInt(Post::getStudyTime).sum();
 
     WorkTypeCardResponse workTypeCard =
         totalCount >= WORK_TYPE_MIN_POSTS ? analyzeWorkType(posts) : null;
@@ -78,19 +74,18 @@ public class MemberAnalyticsService {
     scores.put(6L, calcType6Score(posts));
 
     // 조건 미충족(음수 등)인 유형 제거 후 최고 점수 선택
-    Long bestTypeId = scores.entrySet().stream()
-        .filter(e -> e.getValue() > 0)
-        .max(Map.Entry.comparingByValue())
-        .map(Map.Entry::getKey)
-        .orElse(null);
+    Long bestTypeId =
+        scores.entrySet().stream()
+            .filter(e -> e.getValue() > 0)
+            .max(Map.Entry.comparingByValue())
+            .map(Map.Entry::getKey)
+            .orElse(null);
 
     if (bestTypeId == null) {
       return null;
     }
 
-    return workTypeCardRepository.findById(bestTypeId)
-        .map(WorkTypeCardResponse::from)
-        .orElse(null);
+    return workTypeCardRepository.findById(bestTypeId).map(WorkTypeCardResponse::from).orElse(null);
   }
 
   /** 유형 1: 성실 루틴형 치치 (시간의 규칙성) - 최근 5회 시작 시간 오차 ±30분 이내 */
@@ -98,21 +93,23 @@ public class MemberAnalyticsService {
     List<Post> recent5 = getRecent(posts, 5);
     if (recent5.size() < 5) return -1;
 
-    List<LocalTime> times = recent5.stream()
-        .filter(p -> p.getStartedAt() != null)
-        .map(p -> p.getStartedAt().toLocalTime())
-        .toList();
+    List<LocalTime> times =
+        recent5.stream()
+            .filter(p -> p.getStartedAt() != null)
+            .map(p -> p.getStartedAt().toLocalTime())
+            .toList();
     if (times.size() < 5) return -1;
 
     // 평균 시작 시간 (분 단위)
-    double avgMinutes = times.stream()
-        .mapToLong(t -> t.getHour() * 60L + t.getMinute())
-        .average().orElse(0);
+    double avgMinutes =
+        times.stream().mapToLong(t -> t.getHour() * 60L + t.getMinute()).average().orElse(0);
 
     // 각 시간과 평균의 차이(분)의 평균
-    double avgDeviation = times.stream()
-        .mapToDouble(t -> Math.abs((t.getHour() * 60 + t.getMinute()) - avgMinutes))
-        .average().orElse(31);
+    double avgDeviation =
+        times.stream()
+            .mapToDouble(t -> Math.abs((t.getHour() * 60 + t.getMinute()) - avgMinutes))
+            .average()
+            .orElse(31);
 
     if (avgDeviation > 30) return -1; // 조건 미충족
     return Math.max(0, 100 - (avgDeviation * 1.66));
@@ -123,13 +120,15 @@ public class MemberAnalyticsService {
     long total = posts.stream().filter(p -> p.getStartedAt() != null).count();
     if (total == 0) return -1;
 
-    long morningCount = posts.stream()
-        .filter(p -> p.getStartedAt() != null)
-        .filter(p -> {
-          LocalTime t = p.getStartedAt().toLocalTime();
-          return !t.isBefore(LocalTime.of(6, 0)) && !t.isAfter(LocalTime.of(10, 50));
-        })
-        .count();
+    long morningCount =
+        posts.stream()
+            .filter(p -> p.getStartedAt() != null)
+            .filter(
+                p -> {
+                  LocalTime t = p.getStartedAt().toLocalTime();
+                  return !t.isBefore(LocalTime.of(6, 0)) && !t.isAfter(LocalTime.of(10, 50));
+                })
+            .count();
 
     double ratio = (morningCount * 100.0) / total;
     if (ratio < 60) return -1;
@@ -141,12 +140,13 @@ public class MemberAnalyticsService {
     List<Post> recent5 = getRecent(posts, 5);
     if (recent5.size() < 5) return -1;
 
-    Set<Long> placeCategoryIds = recent5.stream()
-        .flatMap(p -> p.getCategories().stream())
-        .map(PostCategory::getPlaceCategory)
-        .filter(Objects::nonNull)
-        .map(PlaceCategory::getId)
-        .collect(Collectors.toSet());
+    Set<Long> placeCategoryIds =
+        recent5.stream()
+            .flatMap(p -> p.getCategories().stream())
+            .map(PostCategory::getPlaceCategory)
+            .filter(Objects::nonNull)
+            .map(PlaceCategory::getId)
+            .collect(Collectors.toSet());
 
     int count = placeCategoryIds.size();
     if (count < 3) return -1;
@@ -155,9 +155,7 @@ public class MemberAnalyticsService {
 
   /** 유형 4: 빠른 스퍼트형 토리 (단기 몰입형) - 평균 작업 120분 미만 & 2시간 미만 빈도 60% 이상 */
   private double calcType4Score(List<Post> posts) {
-    List<Post> withTime = posts.stream()
-        .filter(p -> p.getStudyTime() != null)
-        .toList();
+    List<Post> withTime = posts.stream().filter(p -> p.getStudyTime() != null).toList();
     if (withTime.isEmpty()) return -1;
 
     double avg = withTime.stream().mapToInt(Post::getStudyTime).average().orElse(120);
@@ -175,13 +173,15 @@ public class MemberAnalyticsService {
     long total = posts.stream().filter(p -> p.getStartedAt() != null).count();
     if (total == 0) return -1;
 
-    long nightCount = posts.stream()
-        .filter(p -> p.getStartedAt() != null)
-        .filter(p -> {
-          LocalTime t = p.getStartedAt().toLocalTime();
-          return !t.isBefore(LocalTime.of(20, 0)) && !t.isAfter(LocalTime.of(23, 0));
-        })
-        .count();
+    long nightCount =
+        posts.stream()
+            .filter(p -> p.getStartedAt() != null)
+            .filter(
+                p -> {
+                  LocalTime t = p.getStartedAt().toLocalTime();
+                  return !t.isBefore(LocalTime.of(20, 0)) && !t.isAfter(LocalTime.of(23, 0));
+                })
+            .count();
 
     double ratio = (nightCount * 100.0) / total;
     if (ratio < 70) return -1;
@@ -190,17 +190,17 @@ public class MemberAnalyticsService {
 
   /** 유형 6: 섬세한 예민형 나오 (환경 루틴형) - 집중도 4점 이상 기록 간 환경 태그 유사성 80% 이상 */
   private double calcType6Score(List<Post> posts) {
-    List<Post> highFocus = posts.stream()
-        .filter(p -> p.getFocus() != null && p.getFocus() >= 4)
-        .toList();
+    List<Post> highFocus =
+        posts.stream().filter(p -> p.getFocus() != null && p.getFocus() >= 4).toList();
     if (highFocus.size() < 2) return -1;
 
     // 각 Post의 태그 ID 집합 추출
-    List<Set<Long>> tagSets = highFocus.stream()
-        .map(p -> p.getTags().stream()
-            .map(pt -> pt.getTag().getId())
-            .collect(Collectors.toSet()))
-        .toList();
+    List<Set<Long>> tagSets =
+        highFocus.stream()
+            .map(
+                p ->
+                    p.getTags().stream().map(pt -> pt.getTag().getId()).collect(Collectors.toSet()))
+            .toList();
 
     // 전체 고집중 기록들 간의 평균 Jaccard 유사도 계산
     double totalSimilarity = 0;
@@ -241,23 +241,26 @@ public class MemberAnalyticsService {
     boolean hasHighFocus = highFocusCountByPeriod.values().stream().anyMatch(c -> c > 0);
 
     if (hasHighFocus) {
-      bestPeriod = highFocusCountByPeriod.entrySet().stream()
-          .filter(e -> e.getValue() > 0)
-          .max(Map.Entry.comparingByValue())
-          .map(Map.Entry::getKey)
-          .orElse(null);
+      bestPeriod =
+          highFocusCountByPeriod.entrySet().stream()
+              .filter(e -> e.getValue() > 0)
+              .max(Map.Entry.comparingByValue())
+              .map(Map.Entry::getKey)
+              .orElse(null);
     } else {
       // 4-5점 기록이 없으면, 평균 focus가 가장 높은 시간대
-      bestPeriod = periodFocusMap.entrySet().stream()
-          .max(Comparator.comparingDouble(
-              e -> e.getValue().stream().mapToInt(Integer::intValue).average().orElse(0)))
-          .map(Map.Entry::getKey)
-          .orElse(null);
+      bestPeriod =
+          periodFocusMap.entrySet().stream()
+              .max(
+                  Comparator.comparingDouble(
+                      e -> e.getValue().stream().mapToInt(Integer::intValue).average().orElse(0)))
+              .map(Map.Entry::getKey)
+              .orElse(null);
     }
 
     if (bestPeriod != null && periodFocusMap.containsKey(bestPeriod)) {
-      bestPeriodAvg = periodFocusMap.get(bestPeriod).stream()
-          .mapToInt(Integer::intValue).average().orElse(0);
+      bestPeriodAvg =
+          periodFocusMap.get(bestPeriod).stream().mapToInt(Integer::intValue).average().orElse(0);
       bestPeriodAvg = Math.round(bestPeriodAvg * 10) / 10.0;
     }
 
@@ -277,12 +280,15 @@ public class MemberAnalyticsService {
     }
 
     if (!tagFocusMap.isEmpty()) {
-      bestTagId = tagFocusMap.entrySet().stream()
-          .max(Comparator.<Map.Entry<Long, List<Integer>>, Double>comparing(
-                  e -> e.getValue().stream().mapToInt(Integer::intValue).average().orElse(0))
-              .thenComparingInt(e -> e.getValue().size()))
-          .map(Map.Entry::getKey)
-          .orElse(null);
+      bestTagId =
+          tagFocusMap.entrySet().stream()
+              .max(
+                  Comparator.<Map.Entry<Long, List<Integer>>, Double>comparing(
+                          e ->
+                              e.getValue().stream().mapToInt(Integer::intValue).average().orElse(0))
+                      .thenComparingInt(e -> e.getValue().size()))
+              .map(Map.Entry::getKey)
+              .orElse(null);
       bestPlaceTag = bestTagId != null ? placeTags.get(bestTagId) : null;
     }
 
@@ -291,19 +297,22 @@ public class MemberAnalyticsService {
     PlaceTag worstPlaceTag = null;
 
     if (!tagFocusMap.isEmpty()) {
-      worstTagId = tagFocusMap.entrySet().stream()
-          .filter(e -> e.getValue().size() >= 2)
-          .max(Comparator.comparingDouble(e -> calcStdDev(e.getValue())))
-          .map(Map.Entry::getKey)
-          .orElse(null);
+      worstTagId =
+          tagFocusMap.entrySet().stream()
+              .filter(e -> e.getValue().size() >= 2)
+              .max(Comparator.comparingDouble(e -> calcStdDev(e.getValue())))
+              .map(Map.Entry::getKey)
+              .orElse(null);
 
       // 편차 기준 결과가 없으면(모두 1개 기록) 가장 낮은 평균의 태그 선택
       if (worstTagId == null) {
-        worstTagId = tagFocusMap.entrySet().stream()
-            .min(Comparator.comparingDouble(
-                e -> e.getValue().stream().mapToInt(Integer::intValue).average().orElse(5)))
-            .map(Map.Entry::getKey)
-            .orElse(null);
+        worstTagId =
+            tagFocusMap.entrySet().stream()
+                .min(
+                    Comparator.comparingDouble(
+                        e -> e.getValue().stream().mapToInt(Integer::intValue).average().orElse(5)))
+                .map(Map.Entry::getKey)
+                .orElse(null);
       }
 
       worstPlaceTag = worstTagId != null ? placeTags.get(worstTagId) : null;
@@ -342,21 +351,28 @@ public class MemberAnalyticsService {
 
     // 빈도순 정렬, 동점 시 평균 집중도 높은 순
     return categoryCountMap.entrySet().stream()
-        .sorted(Comparator.<Map.Entry<Long, Integer>, Integer>comparing(Map.Entry::getValue)
-            .reversed()
-            .thenComparing(e -> {
-              List<Integer> focuses = categoryFocusMap.getOrDefault(e.getKey(), List.of());
-              return focuses.isEmpty() ? 0.0
-                  : focuses.stream().mapToInt(Integer::intValue).average().orElse(0);
-            }, Comparator.reverseOrder()))
+        .sorted(
+            Comparator.<Map.Entry<Long, Integer>, Integer>comparing(Map.Entry::getValue)
+                .reversed()
+                .thenComparing(
+                    e -> {
+                      List<Integer> focuses = categoryFocusMap.getOrDefault(e.getKey(), List.of());
+                      return focuses.isEmpty()
+                          ? 0.0
+                          : focuses.stream().mapToInt(Integer::intValue).average().orElse(0);
+                    },
+                    Comparator.reverseOrder()))
         .limit(3)
-        .map(e -> {
-          List<Integer> focuses = categoryFocusMap.getOrDefault(e.getKey(), List.of());
-          double avg = focuses.isEmpty() ? 0.0
-              : focuses.stream().mapToInt(Integer::intValue).average().orElse(0);
-          avg = Math.round(avg * 10) / 10.0;
-          return new SpaceRankingResponse(categoryNames.get(e.getKey()), avg);
-        })
+        .map(
+            e -> {
+              List<Integer> focuses = categoryFocusMap.getOrDefault(e.getKey(), List.of());
+              double avg =
+                  focuses.isEmpty()
+                      ? 0.0
+                      : focuses.stream().mapToInt(Integer::intValue).average().orElse(0);
+              avg = Math.round(avg * 10) / 10.0;
+              return new SpaceRankingResponse(categoryNames.get(e.getKey()), avg);
+            })
         .toList();
   }
 
@@ -364,7 +380,9 @@ public class MemberAnalyticsService {
 
   private List<Post> getRecent(List<Post> posts, int count) {
     return posts.stream()
-        .sorted(Comparator.comparing(Post::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+        .sorted(
+            Comparator.comparing(
+                Post::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
         .limit(count)
         .toList();
   }
@@ -394,9 +412,7 @@ public class MemberAnalyticsService {
 
   private double calcStdDev(List<Integer> values) {
     double avg = values.stream().mapToInt(Integer::intValue).average().orElse(0);
-    double variance = values.stream()
-        .mapToDouble(v -> Math.pow(v - avg, 2))
-        .average().orElse(0);
+    double variance = values.stream().mapToDouble(v -> Math.pow(v - avg, 2)).average().orElse(0);
     return Math.sqrt(variance);
   }
 }
