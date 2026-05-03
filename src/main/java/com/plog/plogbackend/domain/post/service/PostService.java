@@ -14,6 +14,7 @@ import com.plog.plogbackend.domain.post.repository.PostCategoryRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.post.repository.PostTagRepository;
 import com.plog.plogbackend.domain.post.service.dto.PostCreateCommand;
+import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
 import com.plog.plogbackend.domain.tag.Tag;
 import com.plog.plogbackend.domain.tag.repository.TagRepository;
 import com.plog.plogbackend.global.error.AppException;
@@ -21,6 +22,7 @@ import com.plog.plogbackend.global.error.ErrorType;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -30,6 +32,9 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class PostService {
 
+  /** 첫 게시글 작성 뱃지 ID */
+  private static final long BADGE_ID_FIRST_POST = 2L;
+
   private final MemberRepository memberRepository;
   private final TagRepository tagRepository;
   private final PlaceRepository placeRepository;
@@ -37,6 +42,7 @@ public class PostService {
   private final PostRepository postRepository;
   private final PostCategoryRepository postCategoryRepository;
   private final PostTagRepository postTagRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public PostResponse create(PostCreateCommand command) {
@@ -122,6 +128,13 @@ public class PostService {
     List<PostCategory> postCategories =
         findCategories.stream().map(category -> PostCategory.of(savedPost, category)).toList();
     postCategoryRepository.saveAll(postCategories);
+
+    // 첫 게시글 뱃지(id:2) 부여 이벤트 발행
+    // - 트랜잭션 커밋 후 BadgeEventHandler가 독립 트랜잭션으로 처리
+    long totalPosts = postRepository.countByMemberId(member.getId());
+    if (totalPosts == 1) {
+      eventPublisher.publishEvent(new BadgeGrantEvent(member.getId(), BADGE_ID_FIRST_POST));
+    }
 
     return PostResponse.from(savedPost);
   }
