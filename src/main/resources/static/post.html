@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plog — 게시글 작성 테스트</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #070b14;
+      --surface: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #e8eaf6;
+      --muted: #7986ab;
+      --accent: #818cf8;
+      --success: #4ade80;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 32px 16px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      animation: float 8s ease-in-out infinite;
+    }
+
+    .bg-orb-1 {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(74, 222, 128, 0.12), transparent 70%);
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .bg-orb-2 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.15), transparent 70%);
+      bottom: -100px;
+      right: -100px;
+      animation-delay: -4s;
+    }
+
+    @keyframes float {
+      0%,
+      100% {
+        transform: translateX(-50%) translateY(0);
+      }
+      50% {
+        transform: translateX(-50%) translateY(-20px);
+      }
+    }
+
+    .page-wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px 28px;
+      backdrop-filter: blur(16px);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    
+    textarea.form-control {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .row {
+      display: flex;
+      gap: 16px;
+    }
+    .row > .form-group {
+      flex: 1;
+    }
+
+    .api-run-btn {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 14px;
+      width: 100%;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .api-run-btn:hover {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    .api-result {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 16px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: #a5b4fc;
+      display: none;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .footer-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-outline {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(129, 140, 248, 0.06);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+
+  <div class="page-wrap">
+    
+    <div class="card">
+      <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px;">게시글 작성 테스트</h2>
+      <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 24px;">첫 게시글 작성 시 뱃지(id:2)가 부여되는지 테스트합니다.</p>
+
+      <form id="post-form" onsubmit="submitPost(event)">
+        <div class="form-group">
+          <label>제목</label>
+          <input type="text" id="p-title" class="form-control" value="테스트 게시글입니다" required minlength="2" maxlength="20">
+        </div>
+
+        <div class="form-group">
+          <label>내용 (20자 이상)</label>
+          <textarea id="p-contents" class="form-control" required minlength="20">이것은 테스트 게시글 내용입니다. 글자수를 맞추기 위해 길게 작성합니다. 20자가 넘도록 작성해야 합니다.</textarea>
+        </div>
+
+        <div class="row">
+          <div class="form-group">
+            <label>공부 날짜</label>
+            <input type="date" id="p-studyDate" class="form-control" value="2026-05-10" required>
+          </div>
+          <div class="form-group">
+            <label>공부 시간 (분)</label>
+            <input type="number" id="p-studyTime" class="form-control" value="120" required>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="form-group">
+            <label>공부 시작 시간</label>
+            <input type="datetime-local" id="p-startedAt" class="form-control" value="2026-05-10T10:00">
+          </div>
+          <div class="form-group">
+            <label>공부 종료 시간</label>
+            <input type="datetime-local" id="p-endedAt" class="form-control" value="2026-05-10T12:00">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="form-group">
+            <label>집중도 (1~5)</label>
+            <input type="number" id="p-focus" class="form-control" value="5" min="1" max="5" required>
+          </div>
+          <div class="form-group">
+            <label>공개 범위</label>
+            <select id="p-scope" class="form-control" required>
+              <option value="PUBLIC" selected>PUBLIC (전체 공개)</option>
+              <option value="PRIVATE">PRIVATE (비공개)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>장소명</label>
+          <input type="text" id="p-placeName" class="form-control" value="테스트 장소" required>
+          <small style="color:var(--muted); font-size:0.75rem;">(주의: DB에 미리 등록된 장소여야 할 수 있습니다)</small>
+        </div>
+
+        <div class="form-group">
+          <label>카테고리명 (쉼표로 구분)</label>
+          <input type="text" id="p-categories" class="form-control" value="카테고리1, 카테고리2" required>
+          <small style="color:var(--muted); font-size:0.75rem;">(주의: DB에 미리 등록된 카테고리여야 할 수 있습니다)</small>
+        </div>
+
+        <div class="form-group">
+          <label>태그 (쉼표로 구분)</label>
+          <input type="text" id="p-tags" class="form-control" value="#테스트, #첫글" required>
+          <small style="color:var(--muted); font-size:0.75rem;">(주의: DB에 미리 등록된 태그여야 할 수 있습니다)</small>
+        </div>
+
+        <div class="form-group">
+          <label>이미지 첨부 (최대 5개)</label>
+          <input type="file" id="p-images" class="form-control" accept="image/*" multiple style="padding: 8px;">
+        </div>
+
+        <button type="submit" class="api-run-btn" id="submit-btn">게시글 작성하기 (POST /api/post)</button>
+        <div class="api-result" id="result-post"></div>
+      </form>
+    </div>
+
+    <div class="footer-btns">
+      <a class="btn-outline" href="success.html">← 로그인 성공 페이지 (뱃지 확인)</a>
+    </div>
+
+  </div>
+
+  <script>
+    // const API_BASE = 'https://plog-dev.duckdns.org';
+    const API_BASE = 'http://localhost:8080'; // 로컬 테스트 시
+
+    async function submitPost(e) {
+      e.preventDefault();
+      
+      const resultEl = document.getElementById('result-post');
+      const submitBtn = document.getElementById('submit-btn');
+      
+      resultEl.style.display = 'block';
+      resultEl.style.color = '#a5b4fc';
+      resultEl.textContent = '게시글 작성 요청 중...';
+      submitBtn.disabled = true;
+
+      try {
+        // 1. JSON 텍스트 파트 구성
+        const tagsInput = document.getElementById('p-tags').value;
+        const categoriesInput = document.getElementById('p-categories').value;
+        
+        const tagNames = tagsInput.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        const categoryNames = categoriesInput.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+        const payload = {
+          title: document.getElementById('p-title').value,
+          contents: document.getElementById('p-contents').value,
+          startedAt: document.getElementById('p-startedAt').value ? document.getElementById('p-startedAt').value + ":00" : null,
+          endedAt: document.getElementById('p-endedAt').value ? document.getElementById('p-endedAt').value + ":00" : null,
+          studyDate: document.getElementById('p-studyDate').value,
+          studyTime: parseInt(document.getElementById('p-studyTime').value),
+          focus: parseInt(document.getElementById('p-focus').value),
+          scope: document.getElementById('p-scope').value,
+          placeName: document.getElementById('p-placeName').value,
+          tagNames: tagNames,
+          categoryNames: categoryNames
+        };
+
+        const formData = new FormData();
+        
+        // 주의: @RequestPart("texts") 로 받을 때 Content-Type을 application/json으로 지정해야 함
+        const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+        formData.append('texts', blob);
+
+        // 2. 파일 파트 구성
+        const fileInput = document.getElementById('p-images');
+        if (fileInput.files.length > 5) {
+          alert("이미지는 최대 5개까지만 업로드할 수 있습니다.");
+          submitBtn.disabled = false;
+          return;
+        }
+        
+        for (let i = 0; i < fileInput.files.length; i++) {
+          formData.append('images', fileInput.files[i]);
+        }
+
+        // 3. API 호출
+        const res = await fetch(`${API_BASE}/api/post`, {
+          method: 'POST',
+          body: formData,
+          credentials: 'include' // 세션/쿠키 전달을 위해 필수
+        });
+
+        const data = await res.json();
+        
+        resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
+        resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(data, null, 2)}`;
+        
+        if (res.ok) {
+          alert('게시글 작성 성공! 로그인 성공 페이지에서 뱃지가 부여되었는지 확인해보세요.');
+        }
+
+      } catch (err) {
+        resultEl.style.color = '#fca5a5';
+        resultEl.textContent = `연결 실패: ${err.message}`;
+      } finally {
+        submitBtn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
