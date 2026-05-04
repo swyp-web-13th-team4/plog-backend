@@ -6,15 +6,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public record PostResponse(
+public record PostTextResponse(
     Long postId,
     String title,
     LocalDate studyDate,
     PublicScope scope,
     @Schema(example = "2026.05.02 14:30") String createdAt) {
-  public static PostResponse from(Post post) {
+  public static PostTextResponse from(Post post) {
 
-    return new PostResponse(
+    return new PostTextResponse(
         post.getId(),
         post.getTitle(),
         post.getStudyDate(),
