@@ -12,8 +12,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 public record PostCreateRequest(
     @Schema(description = "제목") @NotBlank(message = "제목은 필수입니다.") String title,
     @Schema(description = "내용") @NotBlank(message = "내용은 필수입니다") String contents,
-    @Schema(description = "공부 시작 시간") LocalDateTime startedAt,
-    @Schema(description = "공부 종료 시간") LocalDateTime endedAt,
+    @Schema(description = "공부 시작 시간") TimePickerRequest startedAt,
+    @Schema(description = "공부 종료 시간") TimePickerRequest endedAt,
     @Schema(description = "공부 날짜")
         @NotNull(message = "공부 날짜는 필수입니다.")
         @DateTimeFormat(pattern = "yyyy-MM-dd")
