@@ -1,6 +1,7 @@
 package com.plog.plogbackend.domain.Member.service;
 
 import com.plog.plogbackend.domain.Member.Member;
+import com.plog.plogbackend.domain.Member.dto.response.*;
 import com.plog.plogbackend.domain.Member.dto.response.MemberAnalyticsResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MemberResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBadgeResponse;
@@ -8,7 +9,6 @@ import com.plog.plogbackend.domain.Member.dto.response.MyPageBookmarkResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsListResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsResponse;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
-import com.plog.plogbackend.domain.badge.dto.BadgeResponse;
 import com.plog.plogbackend.domain.badge.entity.Badge;
 import com.plog.plogbackend.domain.badge.repository.BadgeRepository;
 import com.plog.plogbackend.domain.post.controller.dto.response.FeedFindResponse;
@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -108,15 +109,23 @@ public class MyPageService {
   }
 
   /**
-   * GET /api/members/badge 내가 획득한 배지 목록을 반환합니다.
+   * GET /api/members/badge 내가 획득한 배지 및 미획득 배지 전체 목록을 반환합니다.
    *
    * @param memberKey 회원 UUID
-   * @return 배지 목록
+   * @return 배지 전체 목록 (획득 여부 포함)
    */
   @Transactional(readOnly = true)
   public MyPageBadgeResponse getMyBadges(UUID memberKey) {
-    List<BadgeResponse> badges =
-        memberRepository.findMyBadges(memberKey).stream().map(BadgeResponse::from).toList();
+    List<Badge> allBadges = badgeRepository.findAll();
+    Set<Long> myBadgeIds =
+        memberRepository.findMyBadges(memberKey).stream()
+            .map(Badge::getId)
+            .collect(Collectors.toSet());
+
+    List<MemberBadgeResponse> badges =
+        allBadges.stream()
+            .map(badge -> MemberBadgeResponse.of(badge, myBadgeIds.contains(badge.getId())))
+            .toList();
 
     return new MyPageBadgeResponse(badges);
   }

@@ -212,6 +212,45 @@
       color: var(--accent);
       background: rgba(129, 140, 248, 0.06);
     }
+
+    .chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .chip-grid::-webkit-scrollbar { width: 6px; }
+    .chip-grid::-webkit-scrollbar-track { background: transparent; }
+    .chip-grid::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+    .chip-label {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .chip-checkbox { display: none; }
+    .chip-checkbox:checked + .chip-label {
+      background: rgba(129, 140, 248, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
   </style>
 </head>
 
@@ -279,15 +318,13 @@
         </div>
 
         <div class="form-group">
-          <label>카테고리명 (쉼표로 구분)</label>
-          <input type="text" id="p-categories" class="form-control" value="카테고리1, 카테고리2" required>
-          <small style="color:var(--muted); font-size:0.75rem;">(주의: DB에 미리 등록된 카테고리여야 할 수 있습니다)</small>
+          <label>카테고리명 (다중 선택 가능)</label>
+          <div class="chip-grid" id="category-grid"></div>
         </div>
 
         <div class="form-group">
-          <label>태그 (Enum 값, 쉼표로 구분)</label>
-          <input type="text" id="p-tags" class="form-control" value="QUIET, GOOD_FOR_FOCUS" required>
-          <small style="color:var(--muted); font-size:0.75rem;">(주의: PlaceTag Enum 값이어야 합니다. 예: QUIET, GOOD_VIBE, FAST_WIFI, COZY 등)</small>
+          <label>태그 (다중 선택 가능)</label>
+          <div class="chip-grid" id="tag-grid"></div>
         </div>
 
         <div class="form-group">
@@ -307,6 +344,44 @@
   </div>
 
   <script>
+    const PLACE_CATEGORIES = ['카페', '스터디 카페', '도서관', '사무실', '공유 오피스', '기타장소'];
+    const PLACE_TAGS = [
+      'GOOD_VIBE','NOISY','QUIET','WHITE_NOISE','CALM','IMMERSIVE','DISTRACTING','CROWDED',
+      'GOOD_FOR_FOCUS','BAD_FOR_FOCUS','PEACEFUL','TRANQUIL','SCENIC','COZY','MODERATE_NOISE','FAST_WIFI',
+      'UNSTABLE_WIFI','NO_WIFI','PRINTING_AVAILABLE','MANY_OUTLETS','NO_OUTLETS','CHARGING_AVAILABLE','NO_CHARGING','LAPTOP_FRIENDLY',
+      'NO_LAPTOPS','LONG_WORK','SHORT_WORK','COMFORTABLE_SEATS','UNCOMFORTABLE_SEATS','WINDOW_SEATS','MANY_SEATS','FEW_SEATS',
+      'WIDE_SEAT_SPACING','NARROW_SEAT_SPACING','LARGE_TABLES','SMALL_TABLES','SINGLE_SEATS','EIGHT_PERSON_SEATS','SPACIOUS','NARROW_SPACE',
+      'CONVENIENT_LAYOUT','WARM','COOL','GOOD_TEMPERATURE','CLEAN','MESSY','GOOD_VENTILATION','BAD_VENTILATION',
+      'BRIGHT_LIGHTING','DARK_LIGHTING','GOOD_SUNLIGHT','PLEASANT','STUFFY','PARKING_AVAILABLE','NO_PARKING','MEETING_ROOM',
+      'CONVERSATION_FRIENDLY','OVERNIGHT_WORK'
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderChips('category-grid', PLACE_CATEGORIES, 'category');
+      renderChips('tag-grid', PLACE_TAGS, 'tag');
+    });
+
+    function renderChips(containerId, items, name) {
+      const container = document.getElementById(containerId);
+      items.forEach(item => {
+        const label = document.createElement('label');
+        
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.className = 'chip-checkbox';
+        input.name = name;
+        input.value = item;
+
+        const span = document.createElement('span');
+        span.className = 'chip-label';
+        span.textContent = item;
+
+        label.appendChild(input);
+        label.appendChild(span);
+        container.appendChild(label);
+      });
+    }
+
     // const API_BASE = 'https://plog-dev.duckdns.org';
     const API_BASE = 'http://localhost:8080'; // 로컬 테스트 시
 
@@ -323,11 +398,8 @@
 
       try {
         // 1. JSON 텍스트 파트 구성
-        const tagsInput = document.getElementById('p-tags').value;
-        const categoriesInput = document.getElementById('p-categories').value;
-        
-        const tagNames = tagsInput.split(',').map(s => s.trim()).filter(s => s.length > 0);
-        const categoryNames = categoriesInput.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        const tagNames = Array.from(document.querySelectorAll('input[name="tag"]:checked')).map(el => el.value);
+        const categoryNames = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(el => el.value);
 
         const payload = {
           title: document.getElementById('p-title').value,
