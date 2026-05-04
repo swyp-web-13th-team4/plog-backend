@@ -4,10 +4,13 @@ import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
+
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,93 +21,104 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post extends BaseTimeStatusEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  private String title;
+    private String title;
 
-  private String contents;
+    private String contents;
 
-  private LocalDateTime startedAt;
-  private LocalDateTime endedAt;
+    private LocalDateTime startedAt;
+    private LocalDateTime endedAt;
 
-  private LocalDate studyDate;
+    private LocalDate studyDate;
 
-  private Integer studyTime;
+    // 계산해서 값을 주입
+    private Integer studyTime;
 
-  private Integer focus;
+    private Integer focus;
 
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  private PublicScope scope;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PublicScope scope;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "member_id")
-  private Member member;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "place_id")
-  private Place place;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "place_id")
+    private Place place;
 
-  private Long likes;
+    private Long likes;
 
-  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
-  private List<PostImage> images = new ArrayList<>();
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
+    private List<PostImage> images = new ArrayList<>();
 
-  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
-  private List<PostTag> tags = new ArrayList<>();
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
+    private List<PostTag> tags = new ArrayList<>();
 
-  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
-  private List<PostCategory> categories = new ArrayList<>();
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
+    private List<PostCategory> categories = new ArrayList<>();
 
-  @Builder
-  private Post(
-      String title,
-      String contents,
-      LocalDateTime startedAt,
-      LocalDateTime endedAt,
-      LocalDate studyDate,
-      Integer studyTime,
-      Integer focus,
-      PublicScope scope,
-      Member member,
-      Place place) {
-    this.title = title;
-    this.contents = contents;
-    this.startedAt = startedAt;
-    this.endedAt = endedAt;
-    this.studyDate = studyDate;
-    this.studyTime = studyTime;
-    this.focus = focus;
-    this.scope = scope;
-    this.member = member;
-    this.place = place;
-    this.likes = 0L;
-  }
+    @Builder
+    private Post(
+            String title,
+            String contents,
+            LocalDateTime startedAt,
+            LocalDateTime endedAt,
+            LocalDate studyDate,
+            Integer studyTime,
+            Integer focus,
+            PublicScope scope,
+            Member member,
+            Place place) {
+        this.title = title;
+        this.contents = contents;
+        this.startedAt = startedAt;
+        this.endedAt = endedAt;
+        this.studyDate = studyDate;
+        this.studyTime = studyTime;
+        this.focus = focus;
+        this.scope = scope;
+        this.member = member;
+        this.place = place;
+        this.likes = 0L;
+    }
 
-  public static Post of(
-      String title,
-      String contents,
-      LocalDateTime startedAt,
-      LocalDateTime endedAt,
-      LocalDate studyDate,
-      Integer studyTime,
-      Integer focus,
-      PublicScope scope,
-      Member member,
-      Place place) {
-    return Post.builder()
-        .title(title)
-        .contents(contents)
-        .startedAt(startedAt)
-        .endedAt(endedAt)
-        .studyDate(studyDate)
-        .studyTime(studyTime)
-        .focus(focus)
-        .scope(scope)
-        .member(member)
-        .place(place)
-        .build();
-  }
+    public static Post of(
+            String title,
+            String contents,
+            LocalDateTime startedAt,
+            LocalDateTime endedAt,
+            LocalDate studyDate,
+            Integer focus,
+            PublicScope scope,
+            Member member,
+            Place place) {
+        // toIntExact은 캐스팅 실패시 예외를 던져준다
+        Integer calculatedStudyTime = Math.toIntExact(Duration.between(startedAt, endedAt).toMinutes());
+
+        return Post.builder()
+                .title(title)
+                .contents(contents)
+                .startedAt(startedAt)
+                .endedAt(endedAt)
+                // 계산된 값을 넣음
+                .studyTime(calculatedStudyTime)
+                .studyDate(studyDate)
+                .focus(focus)
+                .scope(scope)
+                .member(member)
+                .place(place)
+                .build();
+    }
+
+    //게시글 수정 시 편의 메소드
+    public void updateTime(LocalDateTime newStartedAt, LocalDateTime newEndedAt) {
+        this.startedAt = newStartedAt;
+        this.endedAt = newEndedAt;
+        this.studyTime = (int) Duration.between(newStartedAt, newEndedAt).toMinutes();
+    }
 }
