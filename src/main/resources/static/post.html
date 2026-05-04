@@ -147,6 +147,22 @@
       flex: 1;
     }
 
+    .time-picker {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .time-picker .form-control {
+      flex: none;
+    }
+
+    .time-picker .tp-sep {
+      color: var(--muted);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
     .api-run-btn {
       background: rgba(99, 102, 241, 0.15);
       border: 1px solid rgba(99, 102, 241, 0.3);
@@ -250,11 +266,21 @@
         <div class="row">
           <div class="form-group">
             <label>공부 시작 시간</label>
-            <input type="datetime-local" id="p-startedAt" class="form-control" value="2026-05-10T10:00">
+            <div class="time-picker" id="startedAt-picker">
+              <select class="form-control tp-ampm" style="width:80px;" data-default="AM"></select>
+              <select class="form-control tp-hour" style="width:70px;" data-default="10"></select>
+              <span class="tp-sep">:</span>
+              <select class="form-control tp-minute" style="width:70px;" data-default="0"></select>
+            </div>
           </div>
           <div class="form-group">
             <label>공부 종료 시간</label>
-            <input type="datetime-local" id="p-endedAt" class="form-control" value="2026-05-10T12:00">
+            <div class="time-picker" id="endedAt-picker">
+              <select class="form-control tp-ampm" style="width:80px;" data-default="PM"></select>
+              <select class="form-control tp-hour" style="width:70px;" data-default="12"></select>
+              <span class="tp-sep">:</span>
+              <select class="form-control tp-minute" style="width:70px;" data-default="0"></select>
+            </div>
           </div>
         </div>
 
@@ -310,6 +336,48 @@
     // const API_BASE = 'https://plog-dev.duckdns.org';
     const API_BASE = 'http://localhost:8080'; // 로컬 테스트 시
 
+    function initTimePicker(pickerId) {
+      const picker = document.getElementById(pickerId);
+      const ampmSel = picker.querySelector('.tp-ampm');
+      const hourSel = picker.querySelector('.tp-hour');
+      const minSel = picker.querySelector('.tp-minute');
+
+      ['오전', '오후'].forEach((label, i) => {
+        const opt = new Option(label, i === 0 ? 'AM' : 'PM');
+        ampmSel.add(opt);
+      });
+
+      for (let h = 1; h <= 12; h++) {
+        hourSel.add(new Option(String(h), String(h)));
+      }
+
+      for (let m = 0; m < 60; m++) {
+        minSel.add(new Option(m.toString().padStart(2, '0'), String(m)));
+      }
+
+      ampmSel.value = ampmSel.dataset.default;
+      hourSel.value = hourSel.dataset.default;
+      minSel.value = minSel.dataset.default;
+    }
+
+    function getTimePicker(pickerId) {
+      const picker = document.getElementById(pickerId);
+      const ampm = picker.querySelector('.tp-ampm').value;
+      let hour = parseInt(picker.querySelector('.tp-hour').value);
+      const minute = parseInt(picker.querySelector('.tp-minute').value);
+
+      if (ampm === 'AM') {
+        if (hour === 12) hour = 0;
+      } else {
+        if (hour !== 12) hour += 12;
+      }
+
+      return { hour, minute };
+    }
+
+    initTimePicker('startedAt-picker');
+    initTimePicker('endedAt-picker');
+
     async function submitPost(e) {
       e.preventDefault();
       
@@ -332,8 +400,8 @@
         const payload = {
           title: document.getElementById('p-title').value,
           contents: document.getElementById('p-contents').value,
-          startedAt: document.getElementById('p-startedAt').value ? document.getElementById('p-startedAt').value + ":00" : null,
-          endedAt: document.getElementById('p-endedAt').value ? document.getElementById('p-endedAt').value + ":00" : null,
+          startedAt: getTimePicker('startedAt-picker'),
+          endedAt: getTimePicker('endedAt-picker'),
           studyDate: document.getElementById('p-studyDate').value,
           studyTime: parseInt(document.getElementById('p-studyTime').value),
           focus: parseInt(document.getElementById('p-focus').value),
