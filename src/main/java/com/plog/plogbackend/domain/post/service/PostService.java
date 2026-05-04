@@ -9,6 +9,7 @@ import com.plog.plogbackend.domain.post.controller.dto.request.post.TimePickerRe
 import com.plog.plogbackend.domain.post.controller.dto.response.PostTextResponse;
 import com.plog.plogbackend.domain.post.entity.PlaceCategory;
 import com.plog.plogbackend.domain.post.entity.Post;
+import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.post.entity.PostTag;
 import com.plog.plogbackend.domain.post.repository.PlaceCategoryRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
@@ -61,17 +62,12 @@ public class PostService {
             .findByName(command.placeName())
             .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
 
-    List<String> filteredCategoryNames =
-        command.categoryNames().stream()
-            .filter(StringUtils::hasText)
-            .map(String::trim)
-            .distinct()
-            .toList();
+      List<PlaceCategoryCode> filteredCategoryCodes = getFilteredCategoryCodes(command);
 
-    List<PlaceCategory> findCategories =
-        placeCategoryRepository.findByNameIn(filteredCategoryNames);
+      List<PlaceCategory> findCategories =
+        placeCategoryRepository.findByCodeIn(filteredCategoryCodes);
 
-    if (findCategories.size() != filteredCategoryNames.size()) {
+    if (findCategories.size() != filteredCategoryCodes.size()) {
       throw new AppException(ErrorType.CATEGORY_NOT_FOUND);
     }
 
@@ -113,7 +109,7 @@ public class PostService {
     return PostTextResponse.from(savedPost);
   }
 
-  private static void validateTitleAndContext(PostCreateCommand command) {
+    private static void validateTitleAndContext(PostCreateCommand command) {
     // title text 입력
     int titleLength = command.title().trim().length();
     if (titleLength < 2 || titleLength > 20) {
@@ -151,4 +147,19 @@ public class PostService {
       TimePickerRequest request, PostCreateCommand command) {
     return LocalDateTime.of(command.studyDate(), LocalTime.of(request.hour(), request.minute()));
   }
+
+    private static List<PlaceCategoryCode> getFilteredCategoryCodes(PostCreateCommand command) {
+        List<PlaceCategoryCode> filteredCategoryCodes;
+        try {
+            filteredCategoryCodes = command.categoryNames().stream()
+                    .filter(StringUtils::hasText)
+                    .map(String::trim)
+                    .distinct()
+                    .map(PlaceCategoryCode::fromValue)
+                    .toList();
+        } catch (IllegalArgumentException e) {
+            throw new AppException(ErrorType.CATEGORY_NOT_FOUND);
+        }
+        return filteredCategoryCodes;
+    }
 }

@@ -1,13 +1,14 @@
 package com.plog.plogbackend.domain.post.repository;
 
 import com.plog.plogbackend.domain.post.entity.PlaceCategory;
+import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PlaceCategoryRepository extends JpaRepository<PlaceCategory, Long> {
 
-  Optional<PlaceCategory> findByName(String name);
+  Optional<PlaceCategory> findByCode(PlaceCategoryCode code);
 
-  List<PlaceCategory> findByNameIn(List<String> names);
+  List<PlaceCategory> findByCodeIn(List<PlaceCategoryCode> codes);
 }
