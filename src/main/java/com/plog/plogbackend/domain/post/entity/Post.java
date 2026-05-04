@@ -51,6 +51,11 @@ public class Post extends BaseTimeStatusEntity {
     @JoinColumn(name = "place_id")
     private Place place;
 
+    //OneToOne으로 변경
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "place_category_id")
+    private PlaceCategory placeCategory;
+
     private Long likes;
 
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
@@ -59,8 +64,6 @@ public class Post extends BaseTimeStatusEntity {
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
     private List<PostTag> tags = new ArrayList<>();
 
-    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
-    private List<PostCategory> categories = new ArrayList<>();
 
     @Builder
     private Post(
@@ -74,6 +77,7 @@ public class Post extends BaseTimeStatusEntity {
             PublicScope scope,
             Member member,
             Place place) {
+
         this.title = title;
         this.contents = contents;
         this.startedAt = startedAt;
