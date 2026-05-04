@@ -31,8 +31,8 @@ public class MemberAnalyticsService {
   private final MemberRepository memberRepository;
   private final WorkTypeCardRepository workTypeCardRepository;
 
-  private static final int WORK_TYPE_MIN_POSTS = 5;
-  private static final int FOCUS_ENV_MIN_POSTS = 15;
+  private static final int WORK_TYPE_MIN_POSTS = 5; // 분석 카드 최소 게시글 개수(이상)
+  private static final int FOCUS_ENV_MIN_POSTS = 15; // 몰입 환경 분석 최소 게시글 개수(이상)
 
   /**
    * 회원의 전체 분석 정보를 조회합니다.
