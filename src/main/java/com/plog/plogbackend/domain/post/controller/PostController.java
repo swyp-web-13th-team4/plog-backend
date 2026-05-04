@@ -4,7 +4,7 @@ import com.plog.plogbackend.domain.image.dto.ImageUrlResponse;
 import com.plog.plogbackend.domain.post.controller.api.PostMapper;
 import com.plog.plogbackend.domain.post.controller.dto.request.post.PostCreateRequest;
 import com.plog.plogbackend.domain.post.controller.dto.response.PostCreateResponse;
-import com.plog.plogbackend.domain.post.controller.dto.response.PostResponse;
+import com.plog.plogbackend.domain.post.controller.dto.response.PostTextResponse;
 import com.plog.plogbackend.domain.post.service.PostImageService;
 import com.plog.plogbackend.domain.post.service.PostService;
 import com.plog.plogbackend.domain.post.service.dto.PostCreateCommand;
@@ -44,12 +44,16 @@ public class PostController {
       @Parameter(hidden = true) @AuthenticationPrincipal UUID memberKey) {
 
     PostCreateCommand command = PostMapper.from(request, memberKey);
-    PostResponse postResponse = postService.create(command);
-    List<ImageUrlResponse> imageResponse =
-        postImageService.uploadPostImages(postResponse.postId(), images);
 
-    PostCreateResponse postCreateResponse = new PostCreateResponse(postResponse, imageResponse);
-    return ResponseEntity.ok(ApiResponse.success(postCreateResponse));
+    // Text 관련 처리
+    PostTextResponse postTextResponse = postService.create(command);
+
+    // image 관련 처리
+    List<ImageUrlResponse> imageResponse =
+        postImageService.uploadPostImages(postTextResponse.postId(), images);
+
+    return ResponseEntity.ok(
+        ApiResponse.success(PostCreateResponse.of(postTextResponse, imageResponse)));
   }
 
   /*
