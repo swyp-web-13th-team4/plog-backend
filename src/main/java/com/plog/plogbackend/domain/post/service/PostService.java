@@ -9,8 +9,8 @@ import com.plog.plogbackend.domain.post.controller.dto.request.post.TimePickerRe
 import com.plog.plogbackend.domain.post.controller.dto.response.PostTextResponse;
 import com.plog.plogbackend.domain.post.entity.PlaceCategory;
 import com.plog.plogbackend.domain.post.entity.Post;
-import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.post.entity.PostTag;
+import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.post.repository.PlaceCategoryRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.post.repository.PostTagRepository;
@@ -62,9 +62,9 @@ public class PostService {
             .findByName(command.placeName())
             .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
 
-      List<PlaceCategoryCode> filteredCategoryCodes = getFilteredCategoryCodes(command);
+    List<PlaceCategoryCode> filteredCategoryCodes = getFilteredCategoryCodes(command);
 
-      List<PlaceCategory> findCategories =
+    List<PlaceCategory> findCategories =
         placeCategoryRepository.findByCodeIn(filteredCategoryCodes);
 
     if (findCategories.size() != filteredCategoryCodes.size()) {
@@ -83,7 +83,7 @@ public class PostService {
             mappedStartAt,
             mappedEndedAt,
             command.studyDate(),
-            //studyTime은 계산하여 자동생성
+            // studyTime은 계산하여 자동생성
             command.focus(),
             command.scope(),
             member,
@@ -93,12 +93,12 @@ public class PostService {
     List<PostTag> postTags = findTags.stream().map(tag -> PostTag.of(savedPost, tag)).toList();
     postTagRepository.saveAll(postTags);
 
-/*
-    List<PostCategory> postCategories =
-        findCategories.stream().map(category -> PostCategory.of(savedPost, category)).toList();
-    postCategoryRepository.saveAll(postCategories);
+    /*
+        List<PostCategory> postCategories =
+            findCategories.stream().map(category -> PostCategory.of(savedPost, category)).toList();
+        postCategoryRepository.saveAll(postCategories);
 
-*/
+    */
     // 첫 게시글 뱃지(id:2) 부여 이벤트 발행
     // - 트랜잭션 커밋 후 BadgeEventHandler가 독립 트랜잭션으로 처리
     long totalPosts = postRepository.countByMemberId(member.getId());
@@ -109,7 +109,7 @@ public class PostService {
     return PostTextResponse.from(savedPost);
   }
 
-    private static void validateTitleAndContext(PostCreateCommand command) {
+  private static void validateTitleAndContext(PostCreateCommand command) {
     // title text 입력
     int titleLength = command.title().trim().length();
     if (titleLength < 2 || titleLength > 20) {
@@ -148,18 +148,19 @@ public class PostService {
     return LocalDateTime.of(command.studyDate(), LocalTime.of(request.hour(), request.minute()));
   }
 
-    private static List<PlaceCategoryCode> getFilteredCategoryCodes(PostCreateCommand command) {
-        List<PlaceCategoryCode> filteredCategoryCodes;
-        try {
-            filteredCategoryCodes = command.categoryNames().stream()
-                    .filter(StringUtils::hasText)
-                    .map(String::trim)
-                    .distinct()
-                    .map(PlaceCategoryCode::fromValue)
-                    .toList();
-        } catch (IllegalArgumentException e) {
-            throw new AppException(ErrorType.CATEGORY_NOT_FOUND);
-        }
-        return filteredCategoryCodes;
+  private static List<PlaceCategoryCode> getFilteredCategoryCodes(PostCreateCommand command) {
+    List<PlaceCategoryCode> filteredCategoryCodes;
+    try {
+      filteredCategoryCodes =
+          command.categoryNames().stream()
+              .filter(StringUtils::hasText)
+              .map(String::trim)
+              .distinct()
+              .map(PlaceCategoryCode::fromValue)
+              .toList();
+    } catch (IllegalArgumentException e) {
+      throw new AppException(ErrorType.CATEGORY_NOT_FOUND);
     }
+    return filteredCategoryCodes;
+  }
 }
