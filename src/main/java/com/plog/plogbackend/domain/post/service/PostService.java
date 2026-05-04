@@ -65,7 +65,7 @@ public class PostService {
     List<PlaceCategoryCode> filteredCategoryCodes = getFilteredCategoryCodes(command);
 
     List<PlaceCategory> findCategories =
-        placeCategoryRepository.findByCodeIn(filteredCategoryCodes);
+        placeCategoryRepository.findByCategoryNameIn(filteredCategoryCodes);
 
     if (findCategories.size() != filteredCategoryCodes.size()) {
       throw new AppException(ErrorType.CATEGORY_NOT_FOUND);

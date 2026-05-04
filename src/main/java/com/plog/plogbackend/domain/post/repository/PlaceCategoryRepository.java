@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PlaceCategoryRepository extends JpaRepository<PlaceCategory, Long> {
 
-  Optional<PlaceCategory> findByCode(PlaceCategoryCode code);
+  Optional<PlaceCategory> findByCategoryName(PlaceCategoryCode categoryName);
 
-  List<PlaceCategory> findByCodeIn(List<PlaceCategoryCode> codes);
+  List<PlaceCategory> findByCategoryNameIn(List<PlaceCategoryCode> categoryNames);
 }
