@@ -88,8 +88,10 @@ public class MyPageController {
         ApiResponse.success(myPageService.getMyBookmarksSorted(memberKey, sort, tags)));
   }
 
-  /** 획득한 배지 목록 조회 GET /api/members/badge */
-  @Operation(summary = "배지 목록 조회", description = "로그인한 회원이 획득한 배지 목록을 조회합니다.")
+  /** 획득한 배지 및 미획득 배지 전체 목록 조회 GET /api/members/badge */
+  @Operation(
+      summary = "배지 전체 목록 조회",
+      description = "로그인한 회원이 획득한 배지 및 미획득 배지 전체 목록(획득 여부 포함)을 조회합니다.")
   @GetMapping("/badge")
   public ResponseEntity<ApiResponse<MyPageBadgeResponse>> getMyBadges(
       Authentication authentication) {
