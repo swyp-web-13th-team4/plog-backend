@@ -9,10 +9,9 @@ import com.plog.plogbackend.domain.post.controller.dto.request.post.TimePickerRe
 import com.plog.plogbackend.domain.post.controller.dto.response.PostTextResponse;
 import com.plog.plogbackend.domain.post.entity.PlaceCategory;
 import com.plog.plogbackend.domain.post.entity.Post;
-import com.plog.plogbackend.domain.post.entity.PostCategory;
 import com.plog.plogbackend.domain.post.entity.PostTag;
+import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.post.repository.PlaceCategoryRepository;
-import com.plog.plogbackend.domain.post.repository.PostCategoryRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.post.repository.PostTagRepository;
 import com.plog.plogbackend.domain.post.service.dto.PostCreateCommand;
@@ -44,7 +43,6 @@ public class PostService {
   private final PlaceRepository placeRepository;
   private final PlaceCategoryRepository placeCategoryRepository;
   private final PostRepository postRepository;
-  private final PostCategoryRepository postCategoryRepository;
   private final PostTagRepository postTagRepository;
   private final ApplicationEventPublisher eventPublisher;
 
@@ -64,17 +62,12 @@ public class PostService {
             .findByName(command.placeName())
             .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
 
-    List<String> filteredCategoryNames =
-        command.categoryNames().stream()
-            .filter(StringUtils::hasText)
-            .map(String::trim)
-            .distinct()
-            .toList();
+    List<PlaceCategoryCode> filteredCategoryCodes = getFilteredCategoryCodes(command);
 
     List<PlaceCategory> findCategories =
-        placeCategoryRepository.findByNameIn(filteredCategoryNames);
+        placeCategoryRepository.findByCategoryNameIn(filteredCategoryCodes);
 
-    if (findCategories.size() != filteredCategoryNames.size()) {
+    if (findCategories.size() != filteredCategoryCodes.size()) {
       throw new AppException(ErrorType.CATEGORY_NOT_FOUND);
     }
 
@@ -90,7 +83,7 @@ public class PostService {
             mappedStartAt,
             mappedEndedAt,
             command.studyDate(),
-            command.studyTime(),
+            // studyTime은 계산하여 자동생성
             command.focus(),
             command.scope(),
             member,
@@ -100,10 +93,12 @@ public class PostService {
     List<PostTag> postTags = findTags.stream().map(tag -> PostTag.of(savedPost, tag)).toList();
     postTagRepository.saveAll(postTags);
 
-    List<PostCategory> postCategories =
-        findCategories.stream().map(category -> PostCategory.of(savedPost, category)).toList();
-    postCategoryRepository.saveAll(postCategories);
+    /*
+        List<PostCategory> postCategories =
+            findCategories.stream().map(category -> PostCategory.of(savedPost, category)).toList();
+        postCategoryRepository.saveAll(postCategories);
 
+    */
     // 첫 게시글 뱃지(id:2) 부여 이벤트 발행
     // - 트랜잭션 커밋 후 BadgeEventHandler가 독립 트랜잭션으로 처리
     long totalPosts = postRepository.countByMemberId(member.getId());
@@ -151,5 +146,21 @@ public class PostService {
   private static LocalDateTime mappedLocalDateTime(
       TimePickerRequest request, PostCreateCommand command) {
     return LocalDateTime.of(command.studyDate(), LocalTime.of(request.hour(), request.minute()));
+  }
+
+  private static List<PlaceCategoryCode> getFilteredCategoryCodes(PostCreateCommand command) {
+    List<PlaceCategoryCode> filteredCategoryCodes;
+    try {
+      filteredCategoryCodes =
+          command.categoryNames().stream()
+              .filter(StringUtils::hasText)
+              .map(String::trim)
+              .distinct()
+              .map(PlaceCategoryCode::fromValue)
+              .toList();
+    } catch (IllegalArgumentException e) {
+      throw new AppException(ErrorType.CATEGORY_NOT_FOUND);
+    }
+    return filteredCategoryCodes;
   }
 }

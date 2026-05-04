@@ -1,9 +1,7 @@
 package com.plog.plogbackend.domain.post.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
+import jakarta.persistence.*;
 import lombok.Getter;
 
 @Entity
@@ -14,5 +12,7 @@ public class PlaceCategory {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private String name;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, unique = true)
+  private PlaceCategoryCode categoryName;
 }
