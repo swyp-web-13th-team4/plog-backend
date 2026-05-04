@@ -5,7 +5,7 @@ import java.util.List;
 
 public record PostCreateResponse(PostTextResponse texts, List<ImageUrlResponse> images) {
 
-    public static PostCreateResponse of(PostTextResponse texts, List<ImageUrlResponse> images) {
-        return new PostCreateResponse(texts, images);
-    }
+  public static PostCreateResponse of(PostTextResponse texts, List<ImageUrlResponse> images) {
+    return new PostCreateResponse(texts, images);
+  }
 }

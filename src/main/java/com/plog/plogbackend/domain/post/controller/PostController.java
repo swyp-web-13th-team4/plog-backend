@@ -45,14 +45,15 @@ public class PostController {
 
     PostCreateCommand command = PostMapper.from(request, memberKey);
 
-    //Text 관련 처리
+    // Text 관련 처리
     PostTextResponse postTextResponse = postService.create(command);
 
-    //image 관련 처리
+    // image 관련 처리
     List<ImageUrlResponse> imageResponse =
         postImageService.uploadPostImages(postTextResponse.postId(), images);
 
-    return ResponseEntity.ok(ApiResponse.success(PostCreateResponse.of(postTextResponse, imageResponse)));
+    return ResponseEntity.ok(
+        ApiResponse.success(PostCreateResponse.of(postTextResponse, imageResponse)));
   }
 
   /*

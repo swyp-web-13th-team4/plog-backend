@@ -21,7 +21,6 @@ import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.plog.plogbackend.domain.tag.repository.TagRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
-
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -52,10 +51,10 @@ public class PostService {
   @Transactional
   public PostTextResponse create(PostCreateCommand command) {
 
-      validateTitleAndContext(command);
-      List<Tag> findTags = validateTag(command);
+    validateTitleAndContext(command);
+    List<Tag> findTags = validateTag(command);
 
-      Member member =
+    Member member =
         memberRepository
             .findByMemberKey(command.memberKey())
             .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
@@ -79,17 +78,17 @@ public class PostService {
       throw new AppException(ErrorType.CATEGORY_NOT_FOUND);
     }
 
-    //타임피커Dto -> LocalDateTime 맵핑 로직
-      LocalDateTime mappedStartAt = mappedLocalDateTime(command.startedAt(), command);
-      LocalDateTime mappedEndedAt = mappedLocalDateTime(command.endedAt(), command);
+    // 타임피커Dto -> LocalDateTime 맵핑 로직
+    LocalDateTime mappedStartAt = mappedLocalDateTime(command.startedAt(), command);
+    LocalDateTime mappedEndedAt = mappedLocalDateTime(command.endedAt(), command);
 
-      // Post 생성 및 저장 로직
+    // Post 생성 및 저장 로직
     Post post =
         Post.of(
             command.title(),
             command.contents(),
-                mappedStartAt,
-                mappedEndedAt,
+            mappedStartAt,
+            mappedEndedAt,
             command.studyDate(),
             command.studyTime(),
             command.focus(),
@@ -115,41 +114,42 @@ public class PostService {
     return PostTextResponse.from(savedPost);
   }
 
-    private static void validateTitleAndContext(PostCreateCommand command) {
-        // title text 입력
-        int titleLength = command.title().trim().length();
-        if (titleLength < 2 || titleLength > 20) {
-          throw new AppException(ErrorType.INVALID_TITLE_LENGTH);
-        }
-
-        // contents는 텍스트 + 이모티콘 혼합 허용
-        // codePointCount 함수는 이모티콘까지 한자리수로 인정하여 계산해준다
-        String trimmedContents = command.contents().trim();
-        int contentsCount = trimmedContents.codePointCount(0, trimmedContents.length());
-        if (contentsCount < 20 || contentsCount > 200) {
-          throw new AppException(ErrorType.INVALID_CONTENTS_LENGTH);
-        }
+  private static void validateTitleAndContext(PostCreateCommand command) {
+    // title text 입력
+    int titleLength = command.title().trim().length();
+    if (titleLength < 2 || titleLength > 20) {
+      throw new AppException(ErrorType.INVALID_TITLE_LENGTH);
     }
 
-    private List<Tag> validateTag(PostCreateCommand command) {
-        // 테그 입력값 검증필터
-        // 테그는 5개를 초과할 수 없다
-        List<PlaceTag> placeTags = command.placeTags();
-        if (placeTags.size() > 5) {
-            throw new AppException(ErrorType.TAG_LIMIT_EXCEEDED);
-        }
+    // contents는 텍스트 + 이모티콘 혼합 허용
+    // codePointCount 함수는 이모티콘까지 한자리수로 인정하여 계산해준다
+    String trimmedContents = command.contents().trim();
+    int contentsCount = trimmedContents.codePointCount(0, trimmedContents.length());
+    if (contentsCount < 20 || contentsCount > 200) {
+      throw new AppException(ErrorType.INVALID_CONTENTS_LENGTH);
+    }
+  }
 
-        // 검색 로직
-        List<Tag> findTags = tagRepository.findByPlaceTagIn(placeTags);
-
-        // 전송된 데이터와 DB에 있는 테그 데이터가 정확한지 size로 검증한다
-        if (placeTags.size() != findTags.size()) {
-            throw new AppException(ErrorType.TAG_NOT_FOUND);
-        }
-        return findTags;
+  private List<Tag> validateTag(PostCreateCommand command) {
+    // 테그 입력값 검증필터
+    // 테그는 5개를 초과할 수 없다
+    List<PlaceTag> placeTags = command.placeTags();
+    if (placeTags.size() > 5) {
+      throw new AppException(ErrorType.TAG_LIMIT_EXCEEDED);
     }
 
-    private static LocalDateTime mappedLocalDateTime(TimePickerRequest request, PostCreateCommand command) {
-        return LocalDateTime.of(command.studyDate(), LocalTime.of(request.hour(), request.minute()));
+    // 검색 로직
+    List<Tag> findTags = tagRepository.findByPlaceTagIn(placeTags);
+
+    // 전송된 데이터와 DB에 있는 테그 데이터가 정확한지 size로 검증한다
+    if (placeTags.size() != findTags.size()) {
+      throw new AppException(ErrorType.TAG_NOT_FOUND);
     }
+    return findTags;
+  }
+
+  private static LocalDateTime mappedLocalDateTime(
+      TimePickerRequest request, PostCreateCommand command) {
+    return LocalDateTime.of(command.studyDate(), LocalTime.of(request.hour(), request.minute()));
+  }
 }
