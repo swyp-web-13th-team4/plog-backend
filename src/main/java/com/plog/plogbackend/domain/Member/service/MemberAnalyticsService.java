@@ -16,6 +16,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>MyPageService에서 위임받아 5가지 분석 결과를 생성합니다.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberAnalyticsService {
@@ -41,9 +43,14 @@ public class MemberAnalyticsService {
    * @return 5가지 분석 결과
    */
   @Transactional(readOnly = true)
-  public MemberAnalyticsResponse getAnalytics(UUID memberKey) {
+  public MemberAnalyticsResponse getAnalytics(UUID memberKey) { // I/O 통합 매서드
     List<Post> posts = memberRepository.findMyPostsForAnalytics(memberKey);
     int totalCount = posts.size();
+
+    log.info(
+        "[MemberAnalytics] Starting analytics for memberKey: {}, total posts: {}",
+        memberKey,
+        totalCount);
 
     int totalStudyTime =
         posts.stream().filter(p -> p.getStudyTime() != null).mapToInt(Post::getStudyTime).sum();
@@ -66,12 +73,17 @@ public class MemberAnalyticsService {
   private WorkTypeCardResponse analyzeWorkType(List<Post> posts) {
     Map<Long, Double> scores = new HashMap<>();
 
-    scores.put(1L, calcType1Score(posts));
-    scores.put(2L, calcType2Score(posts));
+    List<Post> validStartedAtPosts = posts.stream().filter(p -> p.getStartedAt() != null).toList();
+    List<Post> validStudyTimePosts = posts.stream().filter(p -> p.getStudyTime() != null).toList();
+
+    scores.put(1L, calcType1Score(validStartedAtPosts));
+    scores.put(2L, calcType2Score(validStartedAtPosts));
     scores.put(3L, calcType3Score(posts));
-    scores.put(4L, calcType4Score(posts));
-    scores.put(5L, calcType5Score(posts));
+    scores.put(4L, calcType4Score(validStudyTimePosts));
+    scores.put(5L, calcType5Score(validStartedAtPosts));
     scores.put(6L, calcType6Score(posts));
+
+    log.info("[MemberAnalytics] WorkTypeCard Scores: {}", scores);
 
     // 조건 미충족(음수 등)인 유형 제거 후 최고 점수 선택
     Long bestTypeId =
@@ -81,6 +93,8 @@ public class MemberAnalyticsService {
             .map(Map.Entry::getKey)
             .orElse(null);
 
+    log.info("[MemberAnalytics] Selected WorkTypeCard ID: {}", bestTypeId);
+
     if (bestTypeId == null) {
       return null;
     }
@@ -89,25 +103,32 @@ public class MemberAnalyticsService {
   }
 
   /** 유형 1: 성실 루틴형 치치 (시간의 규칙성) - 최근 5회 시작 시간 오차 ±30분 이내 */
-  private double calcType1Score(List<Post> posts) {
-    List<Post> recent5 = getRecent(posts, 5);
+  private double calcType1Score(List<Post> postsWithStartedAt) {
+    List<Post> recent5 = getRecent(postsWithStartedAt, 5);
     if (recent5.size() < 5) return -1;
 
-    List<LocalTime> times =
-        recent5.stream()
-            .filter(p -> p.getStartedAt() != null)
-            .map(p -> p.getStartedAt().toLocalTime())
-            .toList();
-    if (times.size() < 5) return -1;
+    List<LocalTime> times = recent5.stream().map(p -> p.getStartedAt().toLocalTime()).toList();
 
-    // 평균 시작 시간 (분 단위)
-    double avgMinutes =
-        times.stream().mapToLong(t -> t.getHour() * 60L + t.getMinute()).average().orElse(0);
+    // 시간은 원형(Circular) 데이터이므로 삼각함수를 이용하여 평균을 계산합니다.
+    double sumSin = 0;
+    double sumCos = 0;
+    for (LocalTime t : times) {
+      double radians = (t.getHour() * 60 + t.getMinute()) * 2 * Math.PI / 1440.0;
+      sumSin += Math.sin(radians);
+      sumCos += Math.cos(radians);
+    }
+    double avgRadians = Math.atan2(sumSin / times.size(), sumCos / times.size());
+    if (avgRadians < 0) avgRadians += 2 * Math.PI;
+    double avgMinutes = avgRadians * 1440.0 / (2 * Math.PI);
 
-    // 각 시간과 평균의 차이(분)의 평균
+    // 각 시간과 평균의 차이(분)의 평균 (원형 거리를 고려)
     double avgDeviation =
         times.stream()
-            .mapToDouble(t -> Math.abs((t.getHour() * 60 + t.getMinute()) - avgMinutes))
+            .mapToDouble(
+                t -> {
+                  double diff = Math.abs((t.getHour() * 60 + t.getMinute()) - avgMinutes);
+                  return Math.min(diff, 1440 - diff);
+                })
             .average()
             .orElse(31);
 
@@ -116,18 +137,13 @@ public class MemberAnalyticsService {
   }
 
   /** 유형 2: 부지런한 아침형 로기 (오전 집중형) - 오전(06:00~10:50) 시작 비중 60% 이상 */
-  private double calcType2Score(List<Post> posts) {
-    long total = posts.stream().filter(p -> p.getStartedAt() != null).count();
+  private double calcType2Score(List<Post> postsWithStartedAt) {
+    long total = postsWithStartedAt.size();
     if (total == 0) return -1;
 
     long morningCount =
-        posts.stream()
-            .filter(p -> p.getStartedAt() != null)
-            .filter(
-                p -> {
-                  LocalTime t = p.getStartedAt().toLocalTime();
-                  return !t.isBefore(LocalTime.of(6, 0)) && !t.isAfter(LocalTime.of(10, 50));
-                })
+        postsWithStartedAt.stream()
+            .filter(p -> "오전".equals(classifyTime(p.getStartedAt().toLocalTime())))
             .count();
 
     double ratio = (morningCount * 100.0) / total;
@@ -154,33 +170,27 @@ public class MemberAnalyticsService {
   }
 
   /** 유형 4: 빠른 스퍼트형 토리 (단기 몰입형) - 평균 작업 120분 미만 & 2시간 미만 빈도 60% 이상 */
-  private double calcType4Score(List<Post> posts) {
-    List<Post> withTime = posts.stream().filter(p -> p.getStudyTime() != null).toList();
-    if (withTime.isEmpty()) return -1;
+  private double calcType4Score(List<Post> postsWithStudyTime) {
+    if (postsWithStudyTime.isEmpty()) return -1;
 
-    double avg = withTime.stream().mapToInt(Post::getStudyTime).average().orElse(120);
+    double avg = postsWithStudyTime.stream().mapToInt(Post::getStudyTime).average().orElse(120);
     if (avg >= 120) return -1;
 
-    long shortCount = withTime.stream().filter(p -> p.getStudyTime() < 120).count();
-    double shortRatio = (shortCount * 100.0) / withTime.size();
+    long shortCount = postsWithStudyTime.stream().filter(p -> p.getStudyTime() < 120).count();
+    double shortRatio = (shortCount * 100.0) / postsWithStudyTime.size();
     if (shortRatio < 60) return -1;
 
     return Math.min(100, 100 - ((avg - 60) * 0.83));
   }
 
   /** 유형 5: 고요한 새벽형 포포 (올빼미형) - 밤(20:00~23:00) 시작 비중 70% 이상 */
-  private double calcType5Score(List<Post> posts) {
-    long total = posts.stream().filter(p -> p.getStartedAt() != null).count();
+  private double calcType5Score(List<Post> postsWithStartedAt) {
+    long total = postsWithStartedAt.size();
     if (total == 0) return -1;
 
     long nightCount =
-        posts.stream()
-            .filter(p -> p.getStartedAt() != null)
-            .filter(
-                p -> {
-                  LocalTime t = p.getStartedAt().toLocalTime();
-                  return !t.isBefore(LocalTime.of(20, 0)) && !t.isAfter(LocalTime.of(23, 0));
-                })
+        postsWithStartedAt.stream()
+            .filter(p -> "밤".equals(classifyTime(p.getStartedAt().toLocalTime())))
             .count();
 
     double ratio = (nightCount * 100.0) / total;
@@ -244,7 +254,14 @@ public class MemberAnalyticsService {
       bestPeriod =
           highFocusCountByPeriod.entrySet().stream()
               .filter(e -> e.getValue() > 0)
-              .max(Map.Entry.comparingByValue())
+              .max(
+                  Comparator.<Map.Entry<String, Long>, Long>comparing(Map.Entry::getValue)
+                      .thenComparingDouble(
+                          e ->
+                              periodFocusMap.get(e.getKey()).stream()
+                                  .mapToInt(Integer::intValue)
+                                  .average()
+                                  .orElse(0)))
               .map(Map.Entry::getKey)
               .orElse(null);
     } else {
@@ -292,31 +309,30 @@ public class MemberAnalyticsService {
       bestPlaceTag = bestTagId != null ? placeTags.get(bestTagId) : null;
     }
 
-    // 영역 3: 방해 요소 - 표준편차가 가장 큰 태그
+    // 영역 3: 방해 요소 - 평균 집중도가 가장 낮은 태그
     Long worstTagId = null;
     PlaceTag worstPlaceTag = null;
 
     if (!tagFocusMap.isEmpty()) {
       worstTagId =
           tagFocusMap.entrySet().stream()
-              .filter(e -> e.getValue().size() >= 2)
-              .max(Comparator.comparingDouble(e -> calcStdDev(e.getValue())))
+              .min(
+                  Comparator.comparingDouble(
+                      e -> e.getValue().stream().mapToInt(Integer::intValue).average().orElse(5)))
               .map(Map.Entry::getKey)
               .orElse(null);
 
-      // 편차 기준 결과가 없으면(모두 1개 기록) 가장 낮은 평균의 태그 선택
-      if (worstTagId == null) {
-        worstTagId =
-            tagFocusMap.entrySet().stream()
-                .min(
-                    Comparator.comparingDouble(
-                        e -> e.getValue().stream().mapToInt(Integer::intValue).average().orElse(5)))
-                .map(Map.Entry::getKey)
-                .orElse(null);
-      }
-
       worstPlaceTag = worstTagId != null ? placeTags.get(worstTagId) : null;
     }
+
+    log.info(
+        "[MemberAnalytics] Focus Environment - Best Period: {} (Avg: {}), Best Tag: {} ({}), Worst Tag: {} ({})",
+        bestPeriod,
+        bestPeriodAvg,
+        bestTagId,
+        bestPlaceTag,
+        worstTagId,
+        worstPlaceTag);
 
     return new FocusEnvironmentResponse(
         bestPeriod, bestPeriodAvg, bestTagId, bestPlaceTag, worstTagId, worstPlaceTag);
@@ -394,25 +410,21 @@ public class MemberAnalyticsService {
 
   private String classifyTime(LocalTime time) {
     int hour = time.getHour();
-    if (hour >= 7 && (hour < 11 || (hour == 10 && time.getMinute() <= 50))) return "오전";
-    if (hour >= 11 && (hour < 20 || (hour == 19 && time.getMinute() <= 50))) return "오후";
-    if (hour >= 20 && hour <= 23) return "밤";
-    return "새벽"; // 0~6
+    if (hour >= 6 && (hour < 10 || (hour == 10 && time.getMinute() <= 50))) return "오전";
+    if (hour > 10 || (hour == 10 && time.getMinute() > 50)) {
+      if (hour < 19 || (hour == 19 && time.getMinute() <= 50)) return "오후";
+    }
+    if (hour >= 20 || (hour == 19 && time.getMinute() > 50)) return "밤";
+    return "새벽";
   }
 
   private double jaccardSimilarity(Set<Long> a, Set<Long> b) {
-    if (a.isEmpty() && b.isEmpty()) return 1.0;
+    if (a.isEmpty() && b.isEmpty()) return 0.0;
     Set<Long> union = new HashSet<>(a);
     union.addAll(b);
-    if (union.isEmpty()) return 1.0;
+    if (union.isEmpty()) return 0.0;
     Set<Long> intersection = new HashSet<>(a);
     intersection.retainAll(b);
     return (double) intersection.size() / union.size();
-  }
-
-  private double calcStdDev(List<Integer> values) {
-    double avg = values.stream().mapToInt(Integer::intValue).average().orElse(0);
-    double variance = values.stream().mapToDouble(v -> Math.pow(v - avg, 2)).average().orElse(0);
-    return Math.sqrt(variance);
   }
 }
