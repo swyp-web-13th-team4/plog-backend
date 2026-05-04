@@ -33,6 +33,8 @@ public class WorkTypeCard {
 
   private String imageUrl;
 
+  private String cardName;
+
   private String name;
 
   private String description;

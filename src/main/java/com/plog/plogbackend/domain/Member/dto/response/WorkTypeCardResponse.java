@@ -8,11 +8,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record WorkTypeCardResponse(
     @Schema(description = "카드 ID") Long id,
     @Schema(description = "카드 이미지 URL") String imageUrl,
-    @Schema(description = "카드명") String name,
+    @Schema(description = "카드명") String cardName,
+    @Schema(description = "캐릭터명") String name,
     @Schema(description = "카드 설명") String description) {
 
   public static WorkTypeCardResponse from(WorkTypeCard card) {
     return new WorkTypeCardResponse(
-        card.getId(), card.getImageUrl(), card.getName(), card.getDescription());
+        card.getId(),
+        card.getImageUrl(),
+        card.getCardName(),
+        card.getName(),
+        card.getDescription());
   }
 }
