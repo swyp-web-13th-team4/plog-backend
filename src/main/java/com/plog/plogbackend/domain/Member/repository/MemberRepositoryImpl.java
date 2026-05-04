@@ -27,35 +27,6 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
   QMemberBadge memberBadge = QMemberBadge.memberBadge;
 
   @Override
-  public List<Post> findMyPosts(UUID memberKey) {
-    return queryFactory
-        .selectFrom(post)
-        .join(post.member, member)
-        .fetchJoin()
-        .leftJoin(post.place)
-        .fetchJoin()
-        .where(member.memberKey.eq(memberKey))
-        .orderBy(post.createdAt.desc(), post.id.desc())
-        .fetch();
-  }
-
-  @Override
-  public List<Post> findMyBookmarks(UUID memberKey) {
-    return queryFactory
-        .select(post)
-        .from(bookMark)
-        .join(bookMark.post, post)
-        .join(bookMark.member, member)
-        .join(post.member)
-        .fetchJoin() // 게시글 작성자 정보
-        .leftJoin(post.place)
-        .fetchJoin() // 게시글 장소 정보
-        .where(member.memberKey.eq(memberKey))
-        .orderBy(post.createdAt.desc(), post.id.desc())
-        .fetch();
-  }
-
-  @Override
   public List<Post> findMyPostsSorted(UUID memberKey, String sort, List<PlaceTag> tags) {
     return queryFactory
         .selectFrom(post)

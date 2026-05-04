@@ -44,28 +44,10 @@ public class MyPageService {
   @Transactional(readOnly = true)
   public MyPagePostsResponse getMyPageData(UUID memberKey) {
     MemberResponse memberInfo = memberService.getMyPageInfo(memberKey);
-    Member member = getMember(memberKey);
 
-    List<Post> feeds = memberRepository.findMyPosts(memberKey);
-    List<FeedFindResponse> posts = createFeedFindResponses(member, feeds);
+    List<FeedFindResponse> posts = getMyPostsSorted(memberKey, "latest", null).posts();
 
     return new MyPagePostsResponse(memberInfo, posts);
-  }
-
-  /**
-   * GET /api/members/bookmark 내가 북마크한 게시글 목록을 반환합니다.
-   *
-   * @param memberKey 회원 UUID
-   * @return 북마크 게시글 목록
-   */
-  @Transactional(readOnly = true)
-  public MyPageBookmarkResponse getMyBookmarks(UUID memberKey) {
-    Member member = getMember(memberKey);
-
-    List<Post> feeds = memberRepository.findMyBookmarks(memberKey);
-    List<FeedFindResponse> bookmarks = createFeedFindResponses(member, feeds);
-
-    return new MyPageBookmarkResponse(bookmarks);
   }
 
   /**

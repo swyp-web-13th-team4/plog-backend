@@ -42,15 +42,6 @@ public class MyPageController {
     return ResponseEntity.ok(ApiResponse.success(myPageService.getMyPageData(memberKey)));
   }
 
-  /** 북마크한 게시글 목록 조회 GET /api/members/bookmark */
-  @Operation(summary = "북마크 목록 조회", description = "로그인한 회원이 북마크한 게시글 목록을 조회합니다.")
-  @GetMapping("/bookmark")
-  public ResponseEntity<ApiResponse<MyPageBookmarkResponse>> getMyBookmarks(
-      Authentication authentication) {
-    UUID memberKey = (UUID) authentication.getPrincipal();
-    return ResponseEntity.ok(ApiResponse.success(myPageService.getMyBookmarks(memberKey)));
-  }
-
   /** 정렬 및 태그 필터링된 게시글 목록 조회 GET /api/members/mypage/posts */
   @Operation(
       summary = "정렬 및 태그 필터링된 작성 게시글 목록 조회",
@@ -71,11 +62,11 @@ public class MyPageController {
         ApiResponse.success(myPageService.getMyPostsSorted(memberKey, sort, tags)));
   }
 
-  /** 정렬 및 태그 필터링된 북마크 목록 조회 GET /api/members/bookmark/sorted */
+  /** 정렬 및 태그 필터링된 북마크 목록 조회 GET /api/members/bookmark */
   @Operation(
-      summary = "정렬 및 태그 필터링된 북마크 목록 조회",
+      summary = "북마크 목록 조회 (정렬 및 필터링)",
       description = "로그인한 회원이 북마크한 게시글 목록을 정렬 조건(latest, likes)과 태그 조건에 따라 조회합니다.")
-  @GetMapping("/bookmark/sorted")
+  @GetMapping("/bookmark")
   public ResponseEntity<ApiResponse<MyPageBookmarkResponse>> getMyBookmarksSorted(
       Authentication authentication,
       @Parameter(description = "정렬 조건: latest(최신순), likes(좋아요순)")
