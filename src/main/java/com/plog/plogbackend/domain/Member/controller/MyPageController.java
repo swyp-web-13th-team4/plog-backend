@@ -5,6 +5,7 @@ import com.plog.plogbackend.domain.Member.dto.response.MyPageBadgeResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBookmarkResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsListResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsResponse;
+import com.plog.plogbackend.domain.Member.service.MemberAnalyticsService;
 import com.plog.plogbackend.domain.Member.service.MyPageService;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.plog.plogbackend.global.response.ApiResponse;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MyPageController {
 
   private final MyPageService myPageService;
+  private final MemberAnalyticsService memberAnalyticsService;
 
   /** 회원 기본 정보 + 내가 작성한 게시글 목록 조회 GET /api/members/mypage */
   @Operation(
@@ -120,6 +122,6 @@ public class MyPageController {
   public ResponseEntity<ApiResponse<MemberAnalyticsResponse>> getMemberAnalytics(
       Authentication authentication) {
     UUID memberKey = (UUID) authentication.getPrincipal();
-    return ResponseEntity.ok(ApiResponse.success(myPageService.getMemberAnalytics(memberKey)));
+    return ResponseEntity.ok(ApiResponse.success(memberAnalyticsService.getAnalytics(memberKey)));
   }
 }

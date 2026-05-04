@@ -2,7 +2,6 @@ package com.plog.plogbackend.domain.Member.service;
 
 import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.dto.response.*;
-import com.plog.plogbackend.domain.Member.dto.response.MemberAnalyticsResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MemberResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBadgeResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBookmarkResponse;
@@ -35,7 +34,6 @@ public class MyPageService {
   private final MemberService memberService;
   private final BadgeRepository badgeRepository;
   private final PostRepository postRepository;
-  private final MemberAnalyticsService memberAnalyticsService;
 
   /**
    * GET /api/members/mypage 회원 기본 정보 + 내가 작성한 게시글 목록을 반환합니다.
@@ -128,17 +126,6 @@ public class MyPageService {
             .toList();
 
     return new MyPageBadgeResponse(badges);
-  }
-
-  /**
-   * GET /api/members/analytics 회원 분석 정보를 반환합니다.
-   *
-   * @param memberKey 회원 UUID
-   * @return 5가지 분석 결과
-   */
-  @Transactional(readOnly = true)
-  public MemberAnalyticsResponse getMemberAnalytics(UUID memberKey) {
-    return memberAnalyticsService.getAnalytics(memberKey);
   }
 
   /**
