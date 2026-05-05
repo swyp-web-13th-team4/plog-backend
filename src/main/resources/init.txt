@@ -10,6 +10,14 @@ INSERT INTO badge (name, description, image_url) VALUES ('첫로그인','로그�
 INSERT INTO badge (name, description, image_url) VALUES ('첫게시글작성','로그인','poqwe');
 INSERT INTO badge (name, description, image_url) VALUES ('첫북마크','로그인','poqwe');
 
+INSERT INTO place_category (category_name) VALUES
+  ('cafe'),
+  ('study_cafe'),
+  ('library'),
+  ('office'),
+  ('shared-office'),
+  ('etc');
+
 INSERT INTO tag (place_tag) VALUES 
 ('GOOD_VIBE'),('NOISY'),('QUIET'),('WHITE_NOISE'),('CALM'),('IMMERSIVE'),('DISTRACTING'),('CROWDED'),
 ('GOOD_FOR_FOCUS'),('BAD_FOR_FOCUS'),('PEACEFUL'),('TRANQUIL'),('SCENIC'),('COZY'),('MODERATE_NOISE'),('FAST_WIFI'),

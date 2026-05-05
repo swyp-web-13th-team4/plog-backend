@@ -6,6 +6,7 @@ import com.plog.plogbackend.domain.Member.dto.response.SpaceRankingResponse;
 import com.plog.plogbackend.domain.Member.enums.WorkType;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.post.entity.PlaceCategory;
+import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostTag;
 import com.plog.plogbackend.domain.tag.Tag;
@@ -326,14 +327,14 @@ public class MemberAnalyticsService {
         worstPlaceTag);
 
     return new FocusEnvironmentResponse(
-        bestPeriod, bestPeriodAvg, bestTagId, bestPlaceTag, worstTagId, worstPlaceTag);
+        bestPeriod, bestPeriodAvg, bestPlaceTag, worstPlaceTag);
   }
 
   // ========== 공간별 순위 분석 ==========
 
   private List<SpaceRankingResponse> analyzeSpaceRanking(List<Post> posts) {
     // PlaceCategory별 Post 그룹화
-    Map<Long, String> categoryNames = new HashMap<>();
+    Map<Long, PlaceCategoryCode> categoryNames = new HashMap<>();
     Map<Long, List<Integer>> categoryFocusMap = new HashMap<>();
     Map<Long, Integer> categoryCountMap = new HashMap<>();
 
@@ -342,7 +343,7 @@ public class MemberAnalyticsService {
       if (placeCategory == null) continue;
 
       Long catId = placeCategory.getId();
-      categoryNames.put(catId, placeCategory.getCategoryName().getLabel());
+      categoryNames.put(catId, placeCategory.getCategoryName());
       categoryCountMap.merge(catId, 1, Integer::sum);
 
       if (p.getFocus() != null) {
@@ -376,7 +377,8 @@ public class MemberAnalyticsService {
                       ? 0.0
                       : focuses.stream().mapToInt(Integer::intValue).average().orElse(0);
               avg = Math.round(avg * 10) / 10.0;
-              return new SpaceRankingResponse(categoryNames.get(e.getKey()), avg);
+              int postCount = e.getValue();
+              return new SpaceRankingResponse(categoryNames.get(e.getKey()), postCount, avg);
             })
         .toList();
   }
