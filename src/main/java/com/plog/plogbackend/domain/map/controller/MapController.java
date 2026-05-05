@@ -3,6 +3,7 @@ package com.plog.plogbackend.domain.map.controller;
 import com.plog.plogbackend.domain.map.controller.dto.request.MapViewportRequest;
 import com.plog.plogbackend.domain.map.controller.dto.response.MapPinResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.PageResponse;
+import com.plog.plogbackend.domain.map.model.RecordSortType;
 import com.plog.plogbackend.domain.map.service.MapService;
 import com.plog.plogbackend.global.response.ApiResponse;
 import com.plog.plogbackend.global.support.paging.CursorDefault;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -28,10 +30,11 @@ public class MapController {
   public ResponseEntity<ApiResponse<PageResponse<MapPinResponse>>> getRecords(
       @AuthenticationPrincipal UUID memberKey,
       @Valid MapViewportRequest request,
-      @CursorDefault Cursorable<Long> cursorable) {
+      @RequestParam(defaultValue = "LATEST") RecordSortType sortType,
+      @CursorDefault Cursorable<String> cursorable) {
     Slice<MapPinResponse> slice =
         mapService
-            .findMyRecordPins(memberKey, request.toViewport(), cursorable)
+            .findMyRecordPins(memberKey, request.toViewport(), sortType, cursorable)
             .map(MapPinResponse::from);
     return ResponseEntity.ok(ApiResponse.success(PageResponse.of(slice)));
   }
@@ -40,10 +43,11 @@ public class MapController {
   public ResponseEntity<ApiResponse<PageResponse<MapPinResponse>>> getBookmarks(
       @AuthenticationPrincipal UUID memberKey,
       @Valid MapViewportRequest request,
-      @CursorDefault Cursorable<Long> cursorable) {
+      @RequestParam(defaultValue = "LATEST") RecordSortType sortType,
+      @CursorDefault Cursorable<String> cursorable) {
     Slice<MapPinResponse> slice =
         mapService
-            .findMyBookmarkPins(memberKey, request.toViewport(), cursorable)
+            .findMyBookmarkPins(memberKey, request.toViewport(), sortType, cursorable)
             .map(MapPinResponse::from);
     return ResponseEntity.ok(ApiResponse.success(PageResponse.of(slice)));
   }

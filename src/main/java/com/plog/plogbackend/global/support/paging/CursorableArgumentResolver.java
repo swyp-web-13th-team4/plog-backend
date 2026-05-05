@@ -2,7 +2,6 @@ package com.plog.plogbackend.global.support.paging;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
-import org.springframework.core.ResolvableType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -25,8 +24,7 @@ public class CursorableArgumentResolver implements HandlerMethodArgumentResolver
       MethodParameter parameter,
       @Nullable ModelAndViewContainer mavContainer,
       NativeWebRequest webRequest,
-      @Nullable WebDataBinderFactory binderFactory)
-      throws Exception {
+      @Nullable WebDataBinderFactory binderFactory) {
     CursorDefault annotation = parameter.getParameterAnnotation(CursorDefault.class);
 
     String limitParam = webRequest.getParameter(LIMIT);
@@ -35,14 +33,8 @@ public class CursorableArgumentResolver implements HandlerMethodArgumentResolver
             ? Integer.parseInt(limitParam)
             : (annotation != null) ? annotation.defaultLimit() : 10;
 
-    String cursorParam = webRequest.getParameter(CURSOR);
-    Object cursor = null;
+    String cursor = webRequest.getParameter(CURSOR);
 
-    if (cursorParam != null && binderFactory != null) {
-      var binder = binderFactory.createBinder(webRequest, null, CURSOR);
-      Class<?> targetType = ResolvableType.forMethodParameter(parameter).getGeneric(0).resolve();
-      cursor = binder.convertIfNecessary(cursorParam, targetType);
-    }
     return new Cursorable<>(cursor, limit);
   }
 }

@@ -1,5 +1,6 @@
 package com.plog.plogbackend.domain.map.service;
 
+import com.plog.plogbackend.domain.map.model.RecordSortType;
 import com.plog.plogbackend.domain.map.implement.MapManager;
 import com.plog.plogbackend.domain.map.model.MapPin;
 import com.plog.plogbackend.domain.map.model.Viewport;
@@ -18,13 +19,13 @@ public class MapService {
 
   @Transactional(readOnly = true)
   public Slice<MapPin> findMyRecordPins(
-      UUID memberKey, Viewport viewport, Cursorable<Long> cursorable) {
-    return mapManager.getRecordsPins(memberKey, viewport, cursorable);
+      UUID memberKey, Viewport viewport, RecordSortType sortType, Cursorable<String> cursorable) {
+    return mapManager.getRecordsPins(memberKey, viewport, sortType, cursorable);
   }
 
   @Transactional(readOnly = true)
   public Slice<MapPin> findMyBookmarkPins(
-      UUID memberKey, Viewport viewport, Cursorable<Long> cursorable) {
-    return mapManager.getBookmarkPins(memberKey, viewport, cursorable);
+      UUID memberKey, Viewport viewport, RecordSortType sortType, Cursorable<String> cursorable) {
+    return mapManager.getBookmarkPins(memberKey, viewport, sortType, cursorable);
   }
 }

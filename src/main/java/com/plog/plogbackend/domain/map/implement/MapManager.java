@@ -5,6 +5,7 @@ import static com.plog.plogbackend.domain.place.entity.QPlace.place;
 import static com.plog.plogbackend.domain.post.entity.QPost.post;
 
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
+import com.plog.plogbackend.domain.map.model.RecordSortType;
 import com.plog.plogbackend.domain.map.model.MapPin;
 import com.plog.plogbackend.domain.map.model.Viewport;
 import com.plog.plogbackend.domain.map.repository.MapQueryRepository;
@@ -24,10 +25,11 @@ public class MapManager {
   private final MemberRepository memberRepository;
 
   public Slice<MapPin> getRecordsPins(
-      UUID memberKey, Viewport viewport, Cursorable<Long> cursorable) {
+      UUID memberKey, Viewport viewport, RecordSortType sortType, Cursorable<String> cursorable) {
 
     Slice<Tuple> tupleSlice =
-        mapQueryRepository.findRecordPinsByMemberId(getMemberId(memberKey), viewport, cursorable);
+        mapQueryRepository.findRecordPinsByMemberId(
+            getMemberId(memberKey), viewport, sortType, cursorable);
 
     return tupleSlice.map(
         tuple ->
@@ -44,9 +46,10 @@ public class MapManager {
   }
 
   public Slice<MapPin> getBookmarkPins(
-      UUID memberKey, Viewport viewport, Cursorable<Long> cursorable) {
+      UUID memberKey, Viewport viewport, RecordSortType sortType, Cursorable<String> cursorable) {
     Slice<Tuple> tupleSlice =
-        mapQueryRepository.findBookmarkPinsByMemberId(getMemberId(memberKey), viewport, cursorable);
+        mapQueryRepository.findBookmarkPinsByMemberId(
+            getMemberId(memberKey), viewport, sortType, cursorable);
 
     return tupleSlice.map(
         tuple ->
