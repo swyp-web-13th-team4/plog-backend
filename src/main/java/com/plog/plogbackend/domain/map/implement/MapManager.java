@@ -64,11 +64,9 @@ public class MapManager {
 
   private Long getMemberId(UUID memberKey) {
 
-
     return memberRepository
         .findByMemberKey(memberKey)
         .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND))
         .getId();
-
   }
 }
