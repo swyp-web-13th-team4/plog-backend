@@ -1,5 +1,6 @@
 package com.plog.plogbackend.domain.Member.dto.response;
 
+import com.plog.plogbackend.domain.Member.enums.WorkType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
@@ -20,7 +21,7 @@ import java.util.List;
 public record MemberAnalyticsResponse(
     @Schema(description = "총 기록 횟수") Integer totalPostCount,
     @Schema(description = "총 작업 시간 (분 단위)") Integer totalStudyTime,
-    @Schema(description = "작업 유형 카드 (게시글 5개 미만 시 null)") WorkTypeCardResponse workTypeCard,
+    @Schema(description = "작업 유형 (게시글 5개 미만 시 null)") WorkType workType,
     @Schema(description = "집중 환경 분석 (게시글 15개 미만 시 null)") FocusEnvironmentResponse focusEnvironment,
     @Schema(description = "공간별 순위 상위 3개 (게시글 15개 미만 시 null)")
         List<SpaceRankingResponse> spaceRankings) {}
