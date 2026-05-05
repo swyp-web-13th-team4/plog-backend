@@ -115,5 +115,4 @@ public class MyPageController {
     UUID memberKey = (UUID) authentication.getPrincipal();
     return ResponseEntity.ok(ApiResponse.success(memberAnalyticsService.getAnalytics(memberKey)));
   }
-
 }

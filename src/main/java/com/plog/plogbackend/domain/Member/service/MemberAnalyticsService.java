@@ -6,9 +6,9 @@ import com.plog.plogbackend.domain.Member.dto.response.SpaceRankingResponse;
 import com.plog.plogbackend.domain.Member.enums.WorkType;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.post.entity.PlaceCategory;
-import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostTag;
+import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.tag.Tag;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import java.time.LocalTime;
@@ -52,8 +52,7 @@ public class MemberAnalyticsService {
     int totalStudyTime =
         posts.stream().filter(p -> p.getStudyTime() != null).mapToInt(Post::getStudyTime).sum();
 
-    WorkType workType =
-        totalCount >= WORK_TYPE_MIN_POSTS ? analyzeWorkType(posts) : null;
+    WorkType workType = totalCount >= WORK_TYPE_MIN_POSTS ? analyzeWorkType(posts) : null;
 
     FocusEnvironmentResponse focusEnv =
         totalCount >= FOCUS_ENV_MIN_POSTS ? analyzeFocusEnvironment(posts) : null;
@@ -326,8 +325,7 @@ public class MemberAnalyticsService {
         worstTagId,
         worstPlaceTag);
 
-    return new FocusEnvironmentResponse(
-        bestPeriod, bestPeriodAvg, bestPlaceTag, worstPlaceTag);
+    return new FocusEnvironmentResponse(bestPeriod, bestPeriodAvg, bestPlaceTag, worstPlaceTag);
   }
 
   // ========== 공간별 순위 분석 ==========
