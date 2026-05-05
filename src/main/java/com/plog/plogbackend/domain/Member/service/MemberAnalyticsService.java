@@ -67,6 +67,18 @@ public class MemberAnalyticsService {
         totalCount, totalStudyTime, workTypeCard, focusEnv, spaceRankings);
   }
 
+  /**
+   * 모든 작업 유형 카드를 ID 순으로 조회합니다.
+   *
+   * @return 작업 유형 카드 목록
+   */
+  @Transactional(readOnly = true)
+  public List<WorkTypeCardResponse> getAllWorkTypeCards() {
+    return workTypeCardRepository.findAllByOrderByIdAsc().stream()
+        .map(WorkTypeCardResponse::from)
+        .toList();
+  }
+
   // ========== 작업 유형 카드 분석 ==========
 
   private WorkTypeCardResponse analyzeWorkType(List<Post> posts) {
