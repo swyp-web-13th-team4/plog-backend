@@ -10,6 +10,14 @@ INSERT INTO badge (name, description, image_url) VALUES ('첫로그인','로그�
 INSERT INTO badge (name, description, image_url) VALUES ('첫게시글작성','로그인','poqwe');
 INSERT INTO badge (name, description, image_url) VALUES ('첫북마크','로그인','poqwe');
 
+INSERT INTO place_category (category_name) VALUES
+  ('cafe'),
+  ('study_cafe'),
+  ('library'),
+  ('office'),
+  ('shared-office'),
+  ('etc');
+
 INSERT INTO tag (place_tag) VALUES 
 ('GOOD_VIBE'),('NOISY'),('QUIET'),('WHITE_NOISE'),('CALM'),('IMMERSIVE'),('DISTRACTING'),('CROWDED'),
 ('GOOD_FOR_FOCUS'),('BAD_FOR_FOCUS'),('PEACEFUL'),('TRANQUIL'),('SCENIC'),('COZY'),('MODERATE_NOISE'),('FAST_WIFI'),
@@ -19,14 +27,6 @@ INSERT INTO tag (place_tag) VALUES
 ('CONVENIENT_LAYOUT'),('WARM'),('COOL'),('GOOD_TEMPERATURE'),('CLEAN'),('MESSY'),('GOOD_VENTILATION'),('BAD_VENTILATION'),
 ('BRIGHT_LIGHTING'),('DARK_LIGHTING'),('GOOD_SUNLIGHT'),('PLEASANT'),('STUFFY'),('PARKING_AVAILABLE'),('NO_PARKING'),('MEETING_ROOM'),
 ('CONVERSATION_FRIENDLY'),('OVERNIGHT_WORK');
-
-INSERT INTO work_type_card (id, image_url, card_name,name, description) VALUES
-  (2, 'https://storage.googleapis.com/plog-imgstorage-bucket/TypeCard/TypeCard_Chichi.png', '성실 루틴형 치치','루틴형 치치', '매일 정해진 시간과 장소에서 나만의 리듬을 지키며, 흔들림 없는 꾸준함으로 단단한 성취를 쌓아가는 타입이에요.'),
-  (1, 'https://storage.googleapis.com/plog-imgstorage-bucket/TypeCard/TypeCard_Logi.png', '부지런한 아침형 로기','아침형 로기', '남들보다 일찍 하루를 시작해 계획한 일을 즉시 실행해요. 부지런한 움직임으로 오전 시간을 누구보다 밀도 있고 효율적으로 채워가요.'),
-  (4, 'https://storage.googleapis.com/plog-imgstorage-bucket/TypeCard/TypeCard_Haru.png', '자유로운 탐험형 하루','탐험형 하루', '새로운 환경에 빠르게 적응해 장소를 옮기며 작업할 때 더 몰입해요. 자유로운 분위기 속에서 나만의 공간을 발견하며 즐겁게 성취를 만드는 타입이에요.'),
-  (3, 'https://storage.googleapis.com/plog-imgstorage-bucket/TypeCard/TypeCard_Tori.png', '빠른 스퍼트형 토리','스퍼트형 토리', '짧은 시간 동안 에너지를 집중시켜 마감 직전 최고의 추진력을 발휘해요. 빠른 실행으로 문제를 해결하며 최상의 효율을 만들어내는 타입이에요.'),
-  (5, 'https://storage.googleapis.com/plog-imgstorage-bucket/TypeCard/TypeCard_Popo.png', '고요한 새벽형 포포','새벽형 포포', '고요한 밤의 시간 속에서 혼자만의 시간에 깊이 몰입해요. 차분하게 생각을 정리하며 아이디어로 결과물을 만들어요.'),
-  (6, 'https://storage.googleapis.com/plog-imgstorage-bucket/TypeCard/TypeCard_Nao.png', '섬세한 예민형 나오','예민형 나오', '나만의 환경이 갖춰져 있을 때 깊이 몰입하며, 작은 차이를 감각적으로 발견해요. 섬세한 감각으로 완성도 있는 결과물을 만들어요.');
 
 
 INSERT INTO terms (name, content, required, version) 

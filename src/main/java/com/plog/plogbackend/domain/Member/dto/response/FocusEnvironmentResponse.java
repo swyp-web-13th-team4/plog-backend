@@ -18,7 +18,5 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record FocusEnvironmentResponse(
     @Schema(description = "가장 집중도가 높은 시간대 (오전/오후/밤/새벽)") String bestTimePeriod,
     @Schema(description = "최고 집중 시간대의 평균 집중도 점수") Double bestTimePeriodAvgFocus,
-    @Schema(description = "평균 집중도가 가장 높은 태그 ID") Long bestTagId,
     @Schema(description = "평균 집중도가 가장 높은 PlaceTag") PlaceTag bestPlaceTag,
-    @Schema(description = "집중 방해 요소 태그 ID (집중도 편차가 가장 큰 태그)") Long worstTagId,
     @Schema(description = "집중 방해 요소 PlaceTag") PlaceTag worstPlaceTag) {}

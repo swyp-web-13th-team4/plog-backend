@@ -3,12 +3,12 @@ package com.plog.plogbackend.domain.Member.service;
 import com.plog.plogbackend.domain.Member.dto.response.FocusEnvironmentResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MemberAnalyticsResponse;
 import com.plog.plogbackend.domain.Member.dto.response.SpaceRankingResponse;
-import com.plog.plogbackend.domain.Member.dto.response.WorkTypeCardResponse;
+import com.plog.plogbackend.domain.Member.enums.WorkType;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
-import com.plog.plogbackend.domain.Member.repository.WorkTypeCardRepository;
 import com.plog.plogbackend.domain.post.entity.PlaceCategory;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostTag;
+import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.tag.Tag;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import java.time.LocalTime;
@@ -30,8 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberAnalyticsService {
 
   private final MemberRepository memberRepository;
-  private final WorkTypeCardRepository workTypeCardRepository;
-
   private static final int WORK_TYPE_MIN_POSTS = 5; // 분석 카드 최소 게시글 개수(이상)
   private static final int FOCUS_ENV_MIN_POSTS = 15; // 몰입 환경 분석 최소 게시글 개수(이상)
 
@@ -54,8 +52,7 @@ public class MemberAnalyticsService {
     int totalStudyTime =
         posts.stream().filter(p -> p.getStudyTime() != null).mapToInt(Post::getStudyTime).sum();
 
-    WorkTypeCardResponse workTypeCard =
-        totalCount >= WORK_TYPE_MIN_POSTS ? analyzeWorkType(posts) : null;
+    WorkType workType = totalCount >= WORK_TYPE_MIN_POSTS ? analyzeWorkType(posts) : null;
 
     FocusEnvironmentResponse focusEnv =
         totalCount >= FOCUS_ENV_MIN_POSTS ? analyzeFocusEnvironment(posts) : null;
@@ -64,53 +61,37 @@ public class MemberAnalyticsService {
         totalCount >= FOCUS_ENV_MIN_POSTS ? analyzeSpaceRanking(posts) : null;
 
     return new MemberAnalyticsResponse(
-        totalCount, totalStudyTime, workTypeCard, focusEnv, spaceRankings);
-  }
-
-  /**
-   * 모든 작업 유형 카드를 ID 순으로 조회합니다.
-   *
-   * @return 작업 유형 카드 목록
-   */
-  @Transactional(readOnly = true)
-  public List<WorkTypeCardResponse> getAllWorkTypeCards() {
-    return workTypeCardRepository.findAllByOrderByIdAsc().stream()
-        .map(WorkTypeCardResponse::from)
-        .toList();
+        totalCount, totalStudyTime, workType, focusEnv, spaceRankings);
   }
 
   // ========== 작업 유형 카드 분석 ==========
 
-  private WorkTypeCardResponse analyzeWorkType(List<Post> posts) {
-    Map<Long, Double> scores = new HashMap<>();
+  private WorkType analyzeWorkType(List<Post> posts) {
+    Map<WorkType, Double> scores = new HashMap<>();
 
     List<Post> validStartedAtPosts = posts.stream().filter(p -> p.getStartedAt() != null).toList();
     List<Post> validStudyTimePosts = posts.stream().filter(p -> p.getStudyTime() != null).toList();
 
-    scores.put(1L, calcType1Score(validStartedAtPosts));
-    scores.put(2L, calcType2Score(validStartedAtPosts));
-    scores.put(3L, calcType3Score(posts));
-    scores.put(4L, calcType4Score(validStudyTimePosts));
-    scores.put(5L, calcType5Score(validStartedAtPosts));
-    scores.put(6L, calcType6Score(posts));
+    scores.put(WorkType.CHICHI, calcType1Score(validStartedAtPosts));
+    scores.put(WorkType.LOGI, calcType2Score(validStartedAtPosts));
+    scores.put(WorkType.HARU, calcType3Score(posts));
+    scores.put(WorkType.TORI, calcType4Score(validStudyTimePosts));
+    scores.put(WorkType.POPO, calcType5Score(validStartedAtPosts));
+    scores.put(WorkType.NAO, calcType6Score(posts));
 
-    log.info("[MemberAnalytics] WorkTypeCard Scores: {}", scores);
+    log.info("[MemberAnalytics] WorkType Scores: {}", scores);
 
     // 조건 미충족(음수 등)인 유형 제거 후 최고 점수 선택
-    Long bestTypeId =
+    WorkType bestType =
         scores.entrySet().stream()
             .filter(e -> e.getValue() > 0)
             .max(Map.Entry.comparingByValue())
             .map(Map.Entry::getKey)
             .orElse(null);
 
-    log.info("[MemberAnalytics] Selected WorkTypeCard ID: {}", bestTypeId);
+    log.info("[MemberAnalytics] Selected WorkType: {}", bestType);
 
-    if (bestTypeId == null) {
-      return null;
-    }
-
-    return workTypeCardRepository.findById(bestTypeId).map(WorkTypeCardResponse::from).orElse(null);
+    return bestType;
   }
 
   /** 유형 1: 성실 루틴형 치치 (시간의 규칙성) - 최근 5회 시작 시간 오차 ±30분 이내 */
@@ -344,15 +325,14 @@ public class MemberAnalyticsService {
         worstTagId,
         worstPlaceTag);
 
-    return new FocusEnvironmentResponse(
-        bestPeriod, bestPeriodAvg, bestTagId, bestPlaceTag, worstTagId, worstPlaceTag);
+    return new FocusEnvironmentResponse(bestPeriod, bestPeriodAvg, bestPlaceTag, worstPlaceTag);
   }
 
   // ========== 공간별 순위 분석 ==========
 
   private List<SpaceRankingResponse> analyzeSpaceRanking(List<Post> posts) {
     // PlaceCategory별 Post 그룹화
-    Map<Long, String> categoryNames = new HashMap<>();
+    Map<Long, PlaceCategoryCode> categoryNames = new HashMap<>();
     Map<Long, List<Integer>> categoryFocusMap = new HashMap<>();
     Map<Long, Integer> categoryCountMap = new HashMap<>();
 
@@ -361,7 +341,7 @@ public class MemberAnalyticsService {
       if (placeCategory == null) continue;
 
       Long catId = placeCategory.getId();
-      categoryNames.put(catId, placeCategory.getCategoryName().getLabel());
+      categoryNames.put(catId, placeCategory.getCategoryName());
       categoryCountMap.merge(catId, 1, Integer::sum);
 
       if (p.getFocus() != null) {
@@ -395,7 +375,8 @@ public class MemberAnalyticsService {
                       ? 0.0
                       : focuses.stream().mapToInt(Integer::intValue).average().orElse(0);
               avg = Math.round(avg * 10) / 10.0;
-              return new SpaceRankingResponse(categoryNames.get(e.getKey()), avg);
+              int postCount = e.getValue();
+              return new SpaceRankingResponse(categoryNames.get(e.getKey()), postCount, avg);
             })
         .toList();
   }
