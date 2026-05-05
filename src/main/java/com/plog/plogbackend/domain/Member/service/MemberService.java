@@ -4,11 +4,13 @@ import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.MemberAgreement;
 import com.plog.plogbackend.domain.Member.dto.request.MemberSignupRequest;
 import com.plog.plogbackend.domain.Member.dto.request.UpdateProfileRequest;
+import com.plog.plogbackend.domain.Member.dto.response.MemberBadgeResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MemberResponse;
 import com.plog.plogbackend.domain.Member.entity.Terms;
 import com.plog.plogbackend.domain.Member.repository.MemberAgreementRepository;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.Member.repository.TermsRepository;
+import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.security.jwt.JwtProvider;
@@ -16,6 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,12 +28,18 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class MemberService {
 
+  /** 첫 로그인(회원가입) 뱃지 ID */
+  private static final long BADGE_ID_FIRST_LOGIN = 1L;
+
   private final MemberRepository memberRepository;
   private final JwtProvider jwtProvider;
   private final MemberImageService memberImageService;
   private final TermsRepository termsRepository;
   private final MemberAgreementRepository memberAgreementRepository;
   private final BadWordFilterService badWordFilterService;
+
+  // 이벤트 처리 객체
+  private final ApplicationEventPublisher eventPublisher;
 
   /**
    * 회원가입을 처리합니다.
@@ -74,10 +83,10 @@ public class MemberService {
     memberRepository.save(member);
 
     if (request.termsAgreements() != null) {
-      for (Map.Entry<Long, Boolean> entry : request.termsAgreements().entrySet()) {
+      for (Map.Entry<String, Boolean> entry : request.termsAgreements().entrySet()) {
         Terms terms =
             termsRepository
-                .findById(entry.getKey())
+                .findByName(entry.getKey())
                 .orElseThrow(() -> new AppException(ErrorType.TERMS_NOT_FOUND));
 
         if (terms.isRequired() && !entry.getValue()) {
@@ -93,6 +102,10 @@ public class MemberService {
         memberAgreementRepository.save(agreement);
       }
     }
+
+    // 첫 로그인 뱃지(id:1) 부여 이벤트 발행
+    // - 트랜잭션 커밋 후 BadgeEventHandler가 독립 트랜잭션으로 처리
+    eventPublisher.publishEvent(new BadgeGrantEvent(member.getId(), BADGE_ID_FIRST_LOGIN));
 
     return member.getMemberKey();
   }
@@ -110,11 +123,16 @@ public class MemberService {
             .findByMemberKey(memberKey)
             .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
 
+    MemberBadgeResponse badgeResponse = null;
+    if (member.getMainBadge() != null) {
+      badgeResponse = MemberBadgeResponse.of(member.getMainBadge(), true);
+    }
+
     return MemberResponse.builder()
         .nickname(member.getNickname())
         .profileImageUrl(member.getProfileImage())
         .introduction(member.getIntroduction())
-        .mainBadge(member.getMainBadge())
+        .mainBadge(badgeResponse)
         .build();
   }
 
