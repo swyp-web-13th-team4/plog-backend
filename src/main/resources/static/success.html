@@ -548,11 +548,29 @@
       
       <div style="margin-bottom: 20px;">
         <p style="font-size:0.85rem; color:var(--muted); line-height: 1.6; margin-bottom: 12px;">
-          획득한 뱃지 목록을 조회하고, 대표 뱃지를 설정합니다.
+          획득한 뱃지 목록을 조회합니다. <strong style="color:var(--accent);">뱃지를 클릭</strong>하거나 아래에서 <strong>ID를 입력</strong>하여 대표 뱃지로 설정할 수 있습니다.
         </p>
-        <button class="api-run-btn" onclick="fetchMyBadges()">나의 뱃지 불러오기 (GET)</button>
+        
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
+          <button class="api-run-btn" onclick="fetchMyBadges()">나의 뱃지 불러오기 (GET)</button>
+        </div>
+        
+        <div class="api-row" style="margin-bottom: 12px; border-bottom: none; padding: 0;">
+          <span class="method-badge post" style="background: rgba(245, 158, 11, 0.15); color: #fcd34d; border-color: rgba(245, 158, 11, 0.25);">PATCH</span>
+          <span class="api-path">/api/members/badge/main</span>
+          <input type="number" id="manual-badge-id" placeholder="뱃지 ID" style="width: 80px; padding: 6px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); font-family: 'Outfit'; outline: none;">
+          <button class="api-run-btn" onclick="setMainBadgeManual()">수동 설정</button>
+        </div>
+
         <div class="api-result" id="result-badges-raw"></div>
         
+        <!-- 대표 뱃지 표시 영역 -->
+        <div id="main-badge-display" style="display:none; margin-top:16px; padding:14px; border-radius:12px;
+             background: rgba(74, 222, 128, 0.06); border: 1px solid rgba(74, 222, 128, 0.2);">
+          <div style="font-size:0.75rem; color:var(--success); font-weight:600; margin-bottom:8px; letter-spacing:0.05em;">✅ 현재 대표 뱃지</div>
+          <div id="main-badge-content" style="display:flex; align-items:center; gap:10px;"></div>
+        </div>
+
         <div id="badge-list" style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px;">
           <!-- JS에서 뱃지 목록 렌더링 -->
         </div>
@@ -617,7 +635,7 @@
     <div class="footer-btns" style="flex-wrap: wrap;">
       <a class="btn-outline" href="index.html">← 처음으로</a>
       <a class="btn-outline" href="post.html">📝 게시글 작성(새창)</a>
-      <a class="btn-outline" href="analytics.html">📊 분석 테스트(새창)</a>
+      <a class="btn-outline" href="mypage.html">👤 마이페이지 테스트(새창)</a>
       <button class="btn-primary" style="width: 100%; flex: none;" onclick="logout()">로그아웃 후 재테스트</button>
     </div>
   </div>
@@ -784,37 +802,78 @@
 
     function renderBadges(badges, mainBadge) {
       const listEl = document.getElementById('badge-list');
+      const mainDisplay = document.getElementById('main-badge-display');
+      const mainContent = document.getElementById('main-badge-content');
       listEl.innerHTML = '';
       
       if (badges.length === 0) {
         listEl.innerHTML = '<span style="color:var(--muted); font-size:0.85rem;">획득한 뱃지가 없습니다.</span>';
+        mainDisplay.style.display = 'none';
         return;
+      }
+
+      // 대표 뱃지 표시 영역 업데이트
+      if (mainBadge) {
+        mainDisplay.style.display = 'block';
+        const imgHtml = mainBadge.imageUrl
+          ? `<img src="${mainBadge.imageUrl}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;" onerror="this.style.display='none'" />`
+          : `<span style="font-size:2rem;">🏅</span>`;
+        mainContent.innerHTML = `
+          ${imgHtml}
+          <div>
+            <div style="font-weight:700; font-size:0.95rem;">${mainBadge.name}</div>
+            <div style="font-size:0.75rem; color:var(--muted); margin-top:2px;">${mainBadge.description || ''}</div>
+          </div>
+        `;
+      } else {
+        mainDisplay.style.display = 'none';
       }
 
       badges.forEach(badge => {
         const isMain = mainBadge && mainBadge.id === badge.id;
         const btn = document.createElement('button');
         btn.className = 'api-run-btn';
+        btn.title = isMain ? '현재 대표 뱃지' : '클릭하여 대표 뱃지로 설정';
         btn.style.cssText = `
-          padding: 10px 14px; 
+          padding: 12px 14px; 
           display: flex; 
           flex-direction: column; 
           align-items: center; 
           gap: 6px;
+          min-width: 90px;
           border-color: ${isMain ? 'var(--success)' : 'var(--border)'};
           background: ${isMain ? 'rgba(74, 222, 128, 0.1)' : 'rgba(255, 255, 255, 0.04)'};
+          cursor: ${isMain ? 'default' : 'pointer'};
+          transition: all 0.2s;
         `;
         
+        const imgHtml = badge.imageUrl
+          ? `<img src="${badge.imageUrl}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;" onerror="this.outerHTML='<span style=font-size:1.5rem>🏅</span>'" />`
+          : `<span style="font-size:1.5rem;">🏅</span>`;
+
         btn.innerHTML = `
-          <span style="font-size: 1.2rem;">${badge.imageUrl || '🏅'}</span>
-          <span style="font-weight: 600; color: ${isMain ? 'var(--success)' : 'var(--text)'};">${badge.name}</span>
-          <span style="font-size: 0.7rem; color: var(--muted);">${badge.description || ''}</span>
-          ${isMain ? '<span style="font-size: 0.65rem; background: var(--success); color: #000; padding: 2px 6px; border-radius: 4px; margin-top: 4px;">대표 뱃지</span>' : ''}
+          ${imgHtml}
+          <span style="font-weight: 600; font-size:0.8rem; color: ${isMain ? 'var(--success)' : 'var(--text)'}; text-align:center;">${badge.name}</span>
+          <span style="font-size: 0.68rem; color: var(--muted); text-align:center;">${badge.description || ''}</span>
+          ${isMain 
+            ? '<span style="font-size:0.65rem; background:var(--success); color:#000; padding:2px 6px; border-radius:4px;">✓ 대표 뱃지</span>' 
+            : '<span style="font-size:0.65rem; color:var(--muted);">클릭하여 설정</span>'}
         `;
         
-        btn.onclick = () => setMainBadge(badge.id);
+        if (!isMain) {
+          btn.onclick = () => setMainBadge(badge.id);
+        }
         listEl.appendChild(btn);
       });
+    }
+
+    async function setMainBadgeManual() {
+      const badgeId = document.getElementById('manual-badge-id').value;
+      if (!badgeId) {
+        alert('뱃지 ID를 입력해주세요.');
+        return;
+      }
+      setMainBadge(badgeId);
     }
 
     async function setMainBadge(badgeId) {

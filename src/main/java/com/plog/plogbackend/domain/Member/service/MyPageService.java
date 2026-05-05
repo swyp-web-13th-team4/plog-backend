@@ -2,6 +2,11 @@ package com.plog.plogbackend.domain.Member.service;
 
 import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.dto.response.*;
+import com.plog.plogbackend.domain.Member.dto.response.MemberResponse;
+import com.plog.plogbackend.domain.Member.dto.response.MyPageBadgeResponse;
+import com.plog.plogbackend.domain.Member.dto.response.MyPageBookmarkResponse;
+import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsListResponse;
+import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsResponse;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.badge.entity.Badge;
 import com.plog.plogbackend.domain.badge.repository.BadgeRepository;
@@ -39,28 +44,10 @@ public class MyPageService {
   @Transactional(readOnly = true)
   public MyPagePostsResponse getMyPageData(UUID memberKey) {
     MemberResponse memberInfo = memberService.getMyPageInfo(memberKey);
-    Member member = getMember(memberKey);
 
-    List<Post> feeds = memberRepository.findMyPosts(memberKey);
-    List<FeedFindResponse> posts = createFeedFindResponses(member, feeds);
+    List<FeedFindResponse> posts = getMyPostsSorted(memberKey, "latest", null).posts();
 
     return new MyPagePostsResponse(memberInfo, posts);
-  }
-
-  /**
-   * GET /api/members/bookmark 내가 북마크한 게시글 목록을 반환합니다.
-   *
-   * @param memberKey 회원 UUID
-   * @return 북마크 게시글 목록
-   */
-  @Transactional(readOnly = true)
-  public MyPageBookmarkResponse getMyBookmarks(UUID memberKey) {
-    Member member = getMember(memberKey);
-
-    List<Post> feeds = memberRepository.findMyBookmarks(memberKey);
-    List<FeedFindResponse> bookmarks = createFeedFindResponses(member, feeds);
-
-    return new MyPageBookmarkResponse(bookmarks);
   }
 
   /**
@@ -122,8 +109,6 @@ public class MyPageService {
 
     return new MyPageBadgeResponse(badges);
   }
-
-  // TODO: GET /api/members/analytics - 분석 정보 메서드 추가 예정
 
   /**
    * PATCH /api/members/badge/main 대표 뱃지를 변경합니다.

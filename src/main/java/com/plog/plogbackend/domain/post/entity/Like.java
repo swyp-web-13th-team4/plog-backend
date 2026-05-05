@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
 
 @Entity
+@Table(name = "likes")
 @RequiredArgsConstructor
 public class Like {
 

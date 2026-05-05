@@ -4,6 +4,7 @@ import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.MemberAgreement;
 import com.plog.plogbackend.domain.Member.dto.request.MemberSignupRequest;
 import com.plog.plogbackend.domain.Member.dto.request.UpdateProfileRequest;
+import com.plog.plogbackend.domain.Member.dto.response.MemberBadgeResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MemberResponse;
 import com.plog.plogbackend.domain.Member.entity.Terms;
 import com.plog.plogbackend.domain.Member.repository.MemberAgreementRepository;
@@ -122,11 +123,16 @@ public class MemberService {
             .findByMemberKey(memberKey)
             .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
 
+    MemberBadgeResponse badgeResponse = null;
+    if (member.getMainBadge() != null) {
+      badgeResponse = MemberBadgeResponse.of(member.getMainBadge(), true);
+    }
+
     return MemberResponse.builder()
         .nickname(member.getNickname())
         .profileImageUrl(member.getProfileImage())
         .introduction(member.getIntroduction())
-        .mainBadge(member.getMainBadge())
+        .mainBadge(badgeResponse)
         .build();
   }
 
