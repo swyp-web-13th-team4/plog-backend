@@ -1,6 +1,7 @@
 package com.plog.plogbackend.global.support.querydsl;
 
 import com.plog.plogbackend.global.support.paging.Cursorable;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.dsl.PathBuilder;
@@ -61,6 +62,10 @@ public abstract class QuerydslRepositorySupport {
     return jpaQueryFactory.update(from);
   }
 
+  protected JPAQuery<Tuple> select(Expression<?>... exprs) {
+    return jpaQueryFactory.select(exprs);
+  }
+
   public void flush() {
     entityManager.flush();
   }
@@ -69,9 +74,9 @@ public abstract class QuerydslRepositorySupport {
     entityManager.clear();
   }
 
-  protected <T> boolean hasNext(Cursorable<?> cursorable, List<T> content){
-    if(content.size() > cursorable.getLimit()){
-      content.remove(content.size()-1);
+  protected <T> boolean hasNext(Cursorable<?> cursorable, List<T> content) {
+    if (content.size() > cursorable.getLimit()) {
+      content.remove(content.size() - 1);
       return true;
     }
     return false;

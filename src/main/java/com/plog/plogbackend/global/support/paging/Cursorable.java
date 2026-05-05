@@ -7,6 +7,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class Cursorable<T> {
 
-    private final T cursor;
-    private  final int limit;
+  private final T cursor;
+  private final int limit;
 }

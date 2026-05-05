@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
 @Documented
 @Target(ElementType.PARAMETER)
 public @interface CursorDefault {
-    int defaultLimit() default 10;
+  int defaultLimit() default 10;
 }
