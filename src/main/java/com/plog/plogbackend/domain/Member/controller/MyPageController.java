@@ -5,7 +5,6 @@ import com.plog.plogbackend.domain.Member.dto.response.MyPageBadgeResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBookmarkResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsListResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsResponse;
-import com.plog.plogbackend.domain.Member.dto.response.WorkTypeCardResponse;
 import com.plog.plogbackend.domain.Member.service.MemberAnalyticsService;
 import com.plog.plogbackend.domain.Member.service.MyPageService;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
@@ -115,12 +114,5 @@ public class MyPageController {
       Authentication authentication) {
     UUID memberKey = (UUID) authentication.getPrincipal();
     return ResponseEntity.ok(ApiResponse.success(memberAnalyticsService.getAnalytics(memberKey)));
-  }
-
-  /** 분석 유형 카드 전체 조회 GET /api/members/analysis/card */
-  @Operation(summary = "분석 유형 카드 전체 조회", description = "분석 유형 카드 전체를 ID 순으로 조회합니다.")
-  @GetMapping("/analysis/card")
-  public ResponseEntity<ApiResponse<List<WorkTypeCardResponse>>> getAllWorkTypeCards() {
-    return ResponseEntity.ok(ApiResponse.success(memberAnalyticsService.getAllWorkTypeCards()));
   }
 }
