@@ -49,8 +49,7 @@ public class Post extends BaseTimeStatusEntity {
   @JoinColumn(name = "place_id")
   private Place place;
 
-  // OneToOne으로 변경
-  @OneToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "place_category_id")
   private PlaceCategory placeCategory;
 

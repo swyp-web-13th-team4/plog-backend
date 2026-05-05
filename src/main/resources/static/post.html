@@ -344,7 +344,7 @@
         </div>
 
         <div class="form-group">
-          <label>카테고리명 (다중 선택 가능)</label>
+          <label>장소 카테고리 <span style="color:var(--muted);font-size:0.75rem;">(단일 선택)</span></label>
           <div class="chip-grid" id="category-grid"></div>
         </div>
 
@@ -370,7 +370,15 @@
   </div>
 
   <script>
-    const PLACE_CATEGORIES = ['카페', '스터디 카페', '도서관', '사무실', '공유 오피스', '기타장소'];
+    // key: 표시 레이블, value: PlaceCategoryCode @JsonValue (서버 전송값)
+    const PLACE_CATEGORIES = [
+      { label: '카페',       value: 'cafe' },
+      { label: '스터디 카페', value: 'study-cafe' },
+      { label: '도서관',     value: 'library' },
+      { label: '사무실',     value: 'office' },
+      { label: '공유 오피스', value: 'shared-office' },
+      { label: '기타 장소',  value: 'etc' },
+    ];
     const PLACE_TAGS = [
       'GOOD_VIBE','NOISY','QUIET','WHITE_NOISE','CALM','IMMERSIVE','DISTRACTING','CROWDED',
       'GOOD_FOR_FOCUS','BAD_FOR_FOCUS','PEACEFUL','TRANQUIL','SCENIC','COZY','MODERATE_NOISE','FAST_WIFI',
@@ -383,10 +391,34 @@
     ];
 
     document.addEventListener('DOMContentLoaded', () => {
-      renderChips('category-grid', PLACE_CATEGORIES, 'category');
+      renderCategoryChips('category-grid', PLACE_CATEGORIES);
       renderChips('tag-grid', PLACE_TAGS, 'tag');
     });
 
+    // 카테고리: 라디오 단일선택
+    function renderCategoryChips(containerId, categories) {
+      const container = document.getElementById(containerId);
+      categories.forEach((cat, idx) => {
+        const label = document.createElement('label');
+
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.className = 'chip-checkbox';
+        input.name = 'category';
+        input.value = cat.value;  // 서버 전송값: 'cafe', 'study-cafe' 등
+        if (idx === 0) input.checked = true; // 기본값: 카페
+
+        const span = document.createElement('span');
+        span.className = 'chip-label';
+        span.textContent = cat.label; // 화면 표시: '카페', '스터디 카페' 등
+
+        label.appendChild(input);
+        label.appendChild(span);
+        container.appendChild(label);
+      });
+    }
+
+    // 태그: 체크박스 다중선택
     function renderChips(containerId, items, name) {
       const container = document.getElementById(containerId);
       items.forEach(item => {
@@ -467,7 +499,9 @@
       try {
         // 1. JSON 텍스트 파트 구성
         const tagNames = Array.from(document.querySelectorAll('input[name="tag"]:checked')).map(el => el.value);
-        const categoryNames = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(el => el.value);
+        // 라디오 단일 선택 -> 배열로 감싸서 전송 (서버 PostCreateCommand.categoryNames가 List<String>)
+        const selectedCategory = document.querySelector('input[name="category"]:checked');
+        const categoryNames = selectedCategory ? [selectedCategory.value] : [];
 
         const payload = {
           title: document.getElementById('p-title').value,
