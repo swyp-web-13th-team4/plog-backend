@@ -391,6 +391,7 @@ class MapQueryRepositoryTest {
     assertThat(page2.getContent().get(0).get(place.id)).isEqualTo(cafe1.getId());
     assertThat(page2.isHasNext()).isFalse();
   }
+
   @Test
   @DisplayName("저장 개수 동일 시 placeId로 정렬되고, 커서 기반 페이지네이션이 중복 없이 동작한다")
   void record_저장개수순_tie_breaker_커서_검증() {
@@ -419,16 +420,15 @@ class MapQueryRepositoryTest {
 
     // 1페이지 (limit=2)
     Slice<Tuple> page1 =
-            mapQueryRepository.findRecordPinsByMemberId(
-                    member.getId(), VIEWPORT, RecordSortType.RECORD_COUNT, cursor(null, 2));
+        mapQueryRepository.findRecordPinsByMemberId(
+            member.getId(), VIEWPORT, RecordSortType.RECORD_COUNT, cursor(null, 2));
 
     assertThat(page1.getContent()).hasSize(2);
     assertThat(page1.isHasNext()).isTrue();
 
     // 기대 순서: count DESC, placeId DESC
     // cafe2(3) -> cafe4(2) (cafe3보다 id 큼)
-    List<Long> page1Ids =
-            page1.getContent().stream().map(t -> t.get(place.id)).toList();
+    List<Long> page1Ids = page1.getContent().stream().map(t -> t.get(place.id)).toList();
 
     assertThat(page1Ids).containsExactly(cafe2.getId(), cafe4.getId());
 
@@ -438,13 +438,12 @@ class MapQueryRepositoryTest {
 
     // 2페이지
     Slice<Tuple> page2 =
-            mapQueryRepository.findRecordPinsByMemberId(
-                    member.getId(), VIEWPORT, RecordSortType.RECORD_COUNT, cursor(nextCursor, 2));
+        mapQueryRepository.findRecordPinsByMemberId(
+            member.getId(), VIEWPORT, RecordSortType.RECORD_COUNT, cursor(nextCursor, 2));
 
     assertThat(page2.getContent()).hasSize(2);
 
-    List<Long> page2Ids =
-            page2.getContent().stream().map(t -> t.get(place.id)).toList();
+    List<Long> page2Ids = page2.getContent().stream().map(t -> t.get(place.id)).toList();
 
     // 남은 순서: cafe3(2), cafe1(1)
     assertThat(page2Ids).containsExactly(cafe3.getId(), cafe1.getId());
@@ -455,11 +454,11 @@ class MapQueryRepositoryTest {
     all.addAll(page2Ids);
 
     assertThat(all)
-            .containsExactly(
-                    cafe2.getId(), // 3
-                    cafe4.getId(), // 2 (id 큰 것 먼저)
-                    cafe3.getId(), // 2
-                    cafe1.getId()  // 1
+        .containsExactly(
+            cafe2.getId(), // 3
+            cafe4.getId(), // 2 (id 큰 것 먼저)
+            cafe3.getId(), // 2
+            cafe1.getId() // 1
             );
   }
 

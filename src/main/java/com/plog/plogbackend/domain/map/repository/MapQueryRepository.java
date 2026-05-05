@@ -114,7 +114,6 @@ public class MapQueryRepository extends QuerydslRepositorySupport {
     return new Slice<>(tuples, cursorable, hasNext(cursorable, tuples));
   }
 
-
   private OrderSpecifier<?>[] orderBy(RecordSortType sortType, NumberExpression<Long> countExpr) {
     if (sortType == RecordSortType.RECORD_COUNT) {
       return new OrderSpecifier<?>[] {countExpr.desc(), place.id.desc()};
@@ -122,7 +121,8 @@ public class MapQueryRepository extends QuerydslRepositorySupport {
     return new OrderSpecifier<?>[] {place.id.desc()};
   }
 
-  private BooleanExpression cursorCondition(RecordSortType sortType, String cursor, NumberExpression<Long> countExpr) {
+  private BooleanExpression cursorCondition(
+      RecordSortType sortType, String cursor, NumberExpression<Long> countExpr) {
     if (cursor == null || cursor.isBlank()) return null;
     if (sortType == RecordSortType.RECORD_COUNT) {
       String[] parts = cursor.split(":");
