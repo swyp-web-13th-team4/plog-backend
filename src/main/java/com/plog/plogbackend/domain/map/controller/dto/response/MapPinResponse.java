@@ -1,0 +1,30 @@
+package com.plog.plogbackend.domain.map.controller.dto.response;
+
+import com.plog.plogbackend.domain.map.model.MapPin;
+import lombok.Builder;
+
+@Builder
+public record MapPinResponse(
+    Long placeId,
+    String placeName,
+    String address,
+    Double latitude,
+    Double longitude,
+    Long count,
+    Integer totalStudyTime,
+    Double avgFocus,
+    String thumbnailUrl) {
+  public static MapPinResponse from(MapPin mapPin) {
+    return MapPinResponse.builder()
+        .placeId(mapPin.getPlaceId())
+        .placeName(mapPin.getPlaceName())
+        .address(mapPin.getAddress())
+        .latitude(mapPin.getLatitude())
+        .longitude(mapPin.getLongitude())
+        .count(mapPin.getCount())
+        .totalStudyTime(mapPin.getTotalStudyTime())
+        .avgFocus(mapPin.getAvgFocus())
+        .thumbnailUrl(mapPin.getThumbnailUrl())
+        .build();
+  }
+}

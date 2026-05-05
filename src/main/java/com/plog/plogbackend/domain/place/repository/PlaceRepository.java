@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.place;
+package com.plog.plogbackend.domain.place.repository;
 
 import com.plog.plogbackend.domain.place.entity.Place;
 import java.util.Optional;
