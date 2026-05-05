@@ -8,7 +8,6 @@ import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.Member.repository.WorkTypeCardRepository;
 import com.plog.plogbackend.domain.post.entity.PlaceCategory;
 import com.plog.plogbackend.domain.post.entity.Post;
-import com.plog.plogbackend.domain.post.entity.PostCategory;
 import com.plog.plogbackend.domain.post.entity.PostTag;
 import com.plog.plogbackend.domain.tag.Tag;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
@@ -158,8 +157,7 @@ public class MemberAnalyticsService {
 
     Set<Long> placeCategoryIds =
         recent5.stream()
-            .flatMap(p -> p.getCategories().stream())
-            .map(PostCategory::getPlaceCategory)
+            .map(Post::getPlaceCategory)
             .filter(Objects::nonNull)
             .map(PlaceCategory::getId)
             .collect(Collectors.toSet());
@@ -347,17 +345,15 @@ public class MemberAnalyticsService {
     Map<Long, Integer> categoryCountMap = new HashMap<>();
 
     for (Post p : posts) {
-      for (PostCategory pc : p.getCategories()) {
-        PlaceCategory placeCategory = pc.getPlaceCategory();
-        if (placeCategory == null) continue;
+      PlaceCategory placeCategory = p.getPlaceCategory();
+      if (placeCategory == null) continue;
 
-        Long catId = placeCategory.getId();
-        categoryNames.put(catId, placeCategory.getName());
-        categoryCountMap.merge(catId, 1, Integer::sum);
+      Long catId = placeCategory.getId();
+      categoryNames.put(catId, placeCategory.getCategoryName().getLabel());
+      categoryCountMap.merge(catId, 1, Integer::sum);
 
-        if (p.getFocus() != null) {
-          categoryFocusMap.computeIfAbsent(catId, k -> new ArrayList<>()).add(p.getFocus());
-        }
+      if (p.getFocus() != null) {
+        categoryFocusMap.computeIfAbsent(catId, k -> new ArrayList<>()).add(p.getFocus());
       }
     }
 

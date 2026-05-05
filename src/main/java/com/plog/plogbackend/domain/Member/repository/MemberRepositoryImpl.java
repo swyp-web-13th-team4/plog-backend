@@ -6,7 +6,6 @@ import com.plog.plogbackend.domain.badge.entity.QMemberBadge;
 import com.plog.plogbackend.domain.bookmark.entity.QBookMark;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.QPost;
-import com.plog.plogbackend.domain.post.entity.QPostCategory;
 import com.plog.plogbackend.domain.post.entity.QPostTag;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.querydsl.core.BooleanBuilder;
@@ -108,9 +107,10 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
   }
 
   /**
-   * 분석용: 회원의 전체 게시글을 tags, categories 와 함께 조회합니다.
+   * 분석용: 회원의 전체 게시글을 tags, placeCategory와 함께 조회합니다.
    *
-   * <p>MultipleBagFetch 예외를 피하기 위해, Post ID 목록을 먼저 조회한 뒤 tags/categories를 별도 쿼리로 초기화합니다.
+   * <p>MultipleBagFetch 예외를 피하기 위해, Post ID 목록을 먼저 조회한 뒤 tags를 별도 쿼리로 초기화합니다.
+   * placeCategory(OneToOne)는 N+1 방지를 위해 최종 쿼리에서 fetch join합니다.
    */
   @Override
   public List<Post> findMyPostsForAnalytics(UUID memberKey) {
@@ -138,14 +138,11 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         .where(post.id.in(postIds))
         .fetch();
 
-    // 3단계: Post를 categories와 함께 조회 (batch fetch)
-    QPostCategory postCategory = QPostCategory.postCategory;
+    // 3단계: Post를 placeCategory와 함께 조회 (N+1 방지 fetch join)
     return queryFactory
         .selectFrom(post)
         .distinct()
-        .leftJoin(post.categories, postCategory)
-        .fetchJoin()
-        .leftJoin(postCategory.placeCategory)
+        .leftJoin(post.placeCategory)
         .fetchJoin()
         .where(post.id.in(postIds))
         .orderBy(post.createdAt.desc())
