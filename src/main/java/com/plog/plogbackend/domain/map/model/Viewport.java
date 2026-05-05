@@ -14,7 +14,11 @@ public class Viewport {
   private final Double neLat;
   private final Double neLng;
 
-  public static Viewport of(Double swLat, Double swLng, Double neLat, Double neLng) {
+  public static Viewport of(double swLat, double swLng, double neLat, double neLng) {
+    if (swLat > neLat || swLng > neLng) {
+      throw new com.plog.plogbackend.global.error.AppException(
+          com.plog.plogbackend.global.error.ErrorType.INVALID_VIEWPORT_RANGE);
+    }
     return Viewport.builder().swLat(swLat).swLng(swLng).neLat(neLat).neLng(neLng).build();
   }
 }

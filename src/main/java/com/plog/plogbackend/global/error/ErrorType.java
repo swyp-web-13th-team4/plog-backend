@@ -76,6 +76,12 @@ public enum ErrorType {
   // 플레이스 관련
   PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 장소를 찾을 수 없습니다.", LogLevel.WARN),
 
+  // 지도 관련
+  INVALID_VIEWPORT_RANGE(
+      HttpStatus.BAD_REQUEST, ErrorCode.E1500, "남서쪽 좌표가 북동쪽보다 클 수 없습니다.", LogLevel.WARN),
+  INVALID_PAGING_LIMIT(
+      HttpStatus.BAD_REQUEST, ErrorCode.E1501, "한 번에 조회 가능한 최대 개수는 100개입니다.", LogLevel.WARN),
+
   // 카테고리 관련
   CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "저장된 카테고리 값과 일치하지 않습니다.", LogLevel.WARN);
 
