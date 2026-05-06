@@ -7,7 +7,6 @@ import com.plog.plogbackend.domain.Member.dto.response.MyPageBadgeResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBookmarkResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageFeedResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsListResponse;
-import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsResponse;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.badge.entity.Badge;
 import com.plog.plogbackend.domain.badge.repository.BadgeRepository;
@@ -36,18 +35,14 @@ public class MyPageService {
   private final PostRepository postRepository;
 
   /**
-   * GET /api/members/mypage 회원 기본 정보 + 내가 작성한 게시글 목록을 반환합니다.
+   * GET /api/members/mypage 회원 기본 정보를 반환합니다.
    *
    * @param memberKey 회원 UUID
-   * @return 회원 정보 + 게시글 목록
+   * @return 회원 정보
    */
   @Transactional(readOnly = true)
-  public MyPagePostsResponse getMyPageData(UUID memberKey) {
-    MemberResponse memberInfo = memberService.getMyPageInfo(memberKey);
-
-    List<MyPageFeedResponse> posts = getMyPostsSorted(memberKey, "latest", null).posts();
-
-    return new MyPagePostsResponse(memberInfo, posts);
+  public MemberResponse getMyPageData(UUID memberKey) {
+    return memberService.getMyPageInfo(memberKey);
   }
 
   /**
