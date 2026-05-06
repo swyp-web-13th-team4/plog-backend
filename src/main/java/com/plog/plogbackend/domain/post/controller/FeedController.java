@@ -4,11 +4,13 @@ import com.plog.plogbackend.domain.post.controller.api.PostMapper;
 import com.plog.plogbackend.domain.post.controller.dto.request.FeedFindRequest;
 import com.plog.plogbackend.domain.post.controller.dto.response.FeedDetailResponse;
 import com.plog.plogbackend.domain.post.controller.dto.response.FeedResponse;
+import com.plog.plogbackend.domain.post.controller.dto.response.FeedUserResponse;
 import com.plog.plogbackend.domain.post.controller.dto.response.UpdateBookMarked;
 import com.plog.plogbackend.domain.post.controller.dto.response.UpdateLiked;
 import com.plog.plogbackend.domain.post.service.FeedService;
 import com.plog.plogbackend.domain.post.service.dto.FeedDetailCommand;
 import com.plog.plogbackend.domain.post.service.dto.FeedFindCommand;
+import com.plog.plogbackend.domain.post.service.dto.FeedMyPageCommand;
 import com.plog.plogbackend.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -54,15 +56,37 @@ public class FeedController {
     return ResponseEntity.ok().body(success);
   }
 
-  //  @GetMapping("/feed/profileView/{memerKey}")
-  //  public ResponseEntity<ApiResponse<FeedMyPageResponse>> mypage(
-  //          UUID memberKey
-  //          ,@Parameter(hidden = true) @AuthenticationPrincipal UUID key) {
-  //
-  //    FeedMyPageCommand command = PostMapper.from(memberKey);
-  // FeedMyPageResponse response  =  feedService.memberProfileView(command);
-  //
-  //  }
+  @Operation(summary = "다른 유저 피드 및 프로필 조회")
+  @GetMapping("/feed/profileView/{memberKey}")
+  public ResponseEntity<ApiResponse<FeedUserResponse>> mypage(
+      @PathVariable("memberKey") UUID targetMemberKey,
+      @Parameter(hidden = true) @AuthenticationPrincipal UUID loggedInMemberKey) {
+
+    FeedMyPageCommand command = PostMapper.from(targetMemberKey);
+    FeedUserResponse response = feedService.memberProfileView(command, loggedInMemberKey);
+
+    return ResponseEntity.ok().body(ApiResponse.success(response));
+  }
+
+  @Operation(
+      summary = "다른 유저 작성 게시글 목록 조회 (정렬)",
+      description = "정렬 조건(latest, focus, studyTime)에 따라 조회합니다. 태그 필터링은 지원하지 않습니다.")
+  @GetMapping("/feed/profileView/{memberKey}/posts")
+  public ResponseEntity<
+          ApiResponse<com.plog.plogbackend.domain.Member.dto.response.MyPagePostsListResponse>>
+      getOtherUserPostsSorted(
+          @PathVariable("memberKey") UUID targetMemberKey,
+          @Parameter(hidden = true) @AuthenticationPrincipal UUID loggedInMemberKey,
+          @Parameter(description = "정렬 조건: latest(최신순), focus(집중도순), studyTime(작업시간순)")
+              @RequestParam(defaultValue = "latest")
+              String sort) {
+
+    com.plog.plogbackend.domain.Member.dto.response.MyPagePostsListResponse response =
+        feedService.getOtherUserPostsSorted(targetMemberKey, loggedInMemberKey, sort);
+
+    return ResponseEntity.ok().body(ApiResponse.success(response));
+  }
+
   @Operation(summary = "북마크 추가/삭제", description = "true 반환 시 추가, false 반환 시 삭제  ")
   @PostMapping("/feed/bookmark/{postId}")
   public ResponseEntity<ApiResponse<UpdateBookMarked>> bookMark(
