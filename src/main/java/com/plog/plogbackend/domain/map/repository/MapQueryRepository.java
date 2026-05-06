@@ -6,7 +6,6 @@ import static com.plog.plogbackend.domain.post.entity.QPost.post;
 
 import com.plog.plogbackend.domain.map.model.RecordSortType;
 import com.plog.plogbackend.domain.map.model.Viewport;
-import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.QPostImage;
 import com.plog.plogbackend.global.support.paging.Cursorable;
 import com.plog.plogbackend.global.support.paging.Slice;
