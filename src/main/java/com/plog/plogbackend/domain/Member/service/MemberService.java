@@ -233,7 +233,6 @@ public class MemberService {
 
     String lowerIntro = introduction.toLowerCase();
 
-    // 2. matches(".*패턴.*") 대신 부분 검색에 최적화된 matcher().find() 사용
     boolean hasPhoneNumber = PHONE_PATTERN.matcher(lowerIntro).find();
     boolean hasEmail = EMAIL_PATTERN.matcher(lowerIntro).find();
     boolean hasSnsKeyword = SNS_PATTERN.matcher(lowerIntro).find();
