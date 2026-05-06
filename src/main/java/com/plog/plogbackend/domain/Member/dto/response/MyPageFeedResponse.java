@@ -4,8 +4,6 @@ import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.format.annotation.DateTimeFormat;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
