@@ -9,6 +9,8 @@ import com.plog.plogbackend.global.response.ApiResponse;
 import com.plog.plogbackend.global.support.paging.CursorDefault;
 import com.plog.plogbackend.global.support.paging.Cursorable;
 import com.plog.plogbackend.global.support.paging.Slice;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -22,11 +24,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/map")
+@Tag(name = "지도", description = "지도 관련 API")
 public class MapController {
 
   private final MapService mapService;
 
   @GetMapping("/records")
+  @Operation(summary = "지도 홈 화면 내 기록 목록 조회", description = "지도 홈 화면에서 뷰포트 내의 핀에 대한 내 기록 목록을 조회합니다.")
   public ResponseEntity<ApiResponse<PageResponse<MapPinResponse>>> getRecords(
       @AuthenticationPrincipal UUID memberKey,
       @Valid MapViewportRequest request,
@@ -40,6 +44,9 @@ public class MapController {
   }
 
   @GetMapping("/bookmarks")
+  @Operation(
+      summary = "지도 홈 화면 북마크 목록 조회",
+      description = "지도 홈 화면에서 뷰포트 내의 핀에 대한 자신의 북마크 목록을 조회합니다.")
   public ResponseEntity<ApiResponse<PageResponse<MapPinResponse>>> getBookmarks(
       @AuthenticationPrincipal UUID memberKey,
       @Valid MapViewportRequest request,
