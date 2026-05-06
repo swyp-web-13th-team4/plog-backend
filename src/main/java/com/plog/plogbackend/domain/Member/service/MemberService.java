@@ -16,6 +16,8 @@ import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.security.jwt.JwtProvider;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -30,6 +32,11 @@ public class MemberService {
 
   /** 첫 로그인(회원가입) 뱃지 ID */
   private static final long BADGE_ID_FIRST_LOGIN = 1L;
+
+  /** 유효성 검사 패턴. (메모리 낭비 방지) */
+  private static final Pattern PHONE_PATTERN = Pattern.compile("(?:010|02|0[3-9]{2})[-.\\s]?\\d{3,4}[-.\\s]?\\d{4}");
+  private static final Pattern EMAIL_PATTERN = Pattern.compile("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}");
+  private static final Pattern SNS_PATTERN = Pattern.compile("kakao|카카오|카톡|insta|인스타|facebook|페이스북|페북|twitter|트위터|telegram|텔레그램|line|라인|@[a-zA-Z0-9._]+");
 
   private final MemberRepository memberRepository;
   private final JwtProvider jwtProvider;
@@ -214,6 +221,27 @@ public class MemberService {
     }
   }
 
+//  /** 소개글 유효성 검사 (개인정보 및 SNS 방지) */
+//  public void validateIntroduction(String introduction) {
+//    if (introduction == null || introduction.isBlank()) {
+//      return;
+//    }
+//
+//    String lowerIntro = introduction.toLowerCase();
+//    boolean hasPhoneNumber =
+//        lowerIntro.matches(".*(?:010|02|0[3-9]{2})[-.\\s]?\\d{3,4}[-.\\s]?\\d{4}.*");
+//    boolean hasEmail = lowerIntro.matches(".*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}.*");
+//    boolean hasSnsKeyword =
+//        lowerIntro.matches(
+//                ".*(kakao|카카오|카톡|insta|인스타|facebook|페이스북|페북|twitter|트위터|telegram|텔레그램|line|라인|@[a-zA-Z0-9._]+|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}).*");
+//
+//    if (hasPhoneNumber || hasEmail || hasSnsKeyword) {
+//      throw new AppException(ErrorType.INVALID_INTRODUCTION_FORMAT);
+//    }
+//
+//    // 금칙어 검사
+//    badWordFilterService.validate(introduction);
+//  }
   /** 소개글 유효성 검사 (개인정보 및 SNS 방지) */
   public void validateIntroduction(String introduction) {
     if (introduction == null || introduction.isBlank()) {
@@ -221,12 +249,11 @@ public class MemberService {
     }
 
     String lowerIntro = introduction.toLowerCase();
-    boolean hasPhoneNumber =
-        lowerIntro.matches(".*(?:010|02|0[3-9]{2})[-.\\s]?\\d{3,4}[-.\\s]?\\d{4}.*");
-    boolean hasEmail = lowerIntro.matches(".*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}.*");
-    boolean hasSnsKeyword =
-        lowerIntro.matches(
-            ".*(kakao|카카오|카톡|insta|인스타|facebook|페이스북|페북|twitter|트위터|telegram|텔레그램|line|라인|@*[a-zA-Z0-9._%+-]).*");
+
+    // 2. matches(".*패턴.*") 대신 부분 검색에 최적화된 matcher().find() 사용
+    boolean hasPhoneNumber = PHONE_PATTERN.matcher(lowerIntro).find();
+    boolean hasEmail = EMAIL_PATTERN.matcher(lowerIntro).find();
+    boolean hasSnsKeyword = SNS_PATTERN.matcher(lowerIntro).find();
 
     if (hasPhoneNumber || hasEmail || hasSnsKeyword) {
       throw new AppException(ErrorType.INVALID_INTRODUCTION_FORMAT);
