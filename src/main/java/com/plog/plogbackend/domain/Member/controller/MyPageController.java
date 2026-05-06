@@ -1,10 +1,10 @@
 package com.plog.plogbackend.domain.Member.controller;
 
 import com.plog.plogbackend.domain.Member.dto.response.MemberAnalyticsResponse;
+import com.plog.plogbackend.domain.Member.dto.response.MemberResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBadgeResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPageBookmarkResponse;
 import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsListResponse;
-import com.plog.plogbackend.domain.Member.dto.response.MyPagePostsResponse;
 import com.plog.plogbackend.domain.Member.service.MemberAnalyticsService;
 import com.plog.plogbackend.domain.Member.service.MyPageService;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
@@ -32,12 +32,10 @@ public class MyPageController {
   private final MyPageService myPageService;
   private final MemberAnalyticsService memberAnalyticsService;
 
-  /** 회원 기본 정보 + 내가 작성한 게시글 목록 조회 GET /api/members/mypage */
-  @Operation(
-      summary = "마이페이지 기본 정보 조회",
-      description = "로그인한 회원의 기본 정보(닉네임·프로필·소개글)와 내가 작성한 게시글 목록을 조회합니다.")
+  /** 회원 기본 정보 조회 GET /api/members/mypage */
+  @Operation(summary = "마이페이지 기본 정보 조회", description = "로그인한 회원의 기본 정보(닉네임·프로필·소개글)를 조회합니다.")
   @GetMapping("/mypage")
-  public ResponseEntity<ApiResponse<MyPagePostsResponse>> getMyPage(Authentication authentication) {
+  public ResponseEntity<ApiResponse<MemberResponse>> getMyPage(Authentication authentication) {
     UUID memberKey = (UUID) authentication.getPrincipal();
     return ResponseEntity.ok(ApiResponse.success(myPageService.getMyPageData(memberKey)));
   }
