@@ -6,32 +6,32 @@ import static com.plog.plogbackend.domain.post.entity.QPost.post;
 
 import com.plog.plogbackend.domain.map.model.RecordSortType;
 import com.plog.plogbackend.domain.map.model.Viewport;
-import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.QPostImage;
 import com.plog.plogbackend.global.support.paging.Cursorable;
 import com.plog.plogbackend.global.support.paging.Slice;
-import com.plog.plogbackend.global.support.querydsl.QuerydslRepositorySupport;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class MapQueryRepository extends QuerydslRepositorySupport {
+@RequiredArgsConstructor
+public class MapQueryRepository {
 
-  public MapQueryRepository() {
-    super(Post.class);
-  }
+  private final JPAQueryFactory queryFactory;
 
   public Slice<Tuple> findRecordPinsByMemberId(
       Long memberId, Viewport viewport, RecordSortType sortType, Cursorable<String> cursorable) {
     QPostImage pi = new QPostImage("pi");
     QPostImage piInner = new QPostImage("piInner");
     List<Tuple> tuples =
-        select(
+        queryFactory
+            .select(
                 place.id,
                 place.name,
                 place.address,
@@ -72,7 +72,8 @@ public class MapQueryRepository extends QuerydslRepositorySupport {
     QPostImage piInner = new QPostImage("piInner");
 
     List<Tuple> tuples =
-        select(
+        queryFactory
+            .select(
                 place.id,
                 place.name,
                 place.address,
@@ -131,5 +132,13 @@ public class MapQueryRepository extends QuerydslRepositorySupport {
       return countExpr.lt(count).or(countExpr.eq(count).and(place.id.lt(id)));
     }
     return place.id.lt(Long.parseLong(cursor));
+  }
+
+  private <T> boolean hasNext(Cursorable<?> cursorable, List<T> content) {
+    if (content.size() > cursorable.getLimit()) {
+      content.remove(content.size() - 1);
+      return true;
+    }
+    return false;
   }
 }
