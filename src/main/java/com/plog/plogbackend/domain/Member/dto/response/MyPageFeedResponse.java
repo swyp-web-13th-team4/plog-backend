@@ -22,7 +22,8 @@ public record MyPageFeedResponse(
     @Schema(description = "집중도") Integer focus,
     @Schema(description = "태그 목록") List<PlaceTag> tags,
     @Schema(description = "좋아요 여부") boolean like,
-    @Schema(description = "북마크 여부") boolean bookMark) {
+    @Schema(description = "북마크 여부") boolean bookMark,
+    @Schema(description = "장소 카테고리(value)") String placeCategory) {
 
   public static MyPageFeedResponse from(Post post, boolean isLiked, boolean isBookMarked) {
     return new MyPageFeedResponse(
@@ -39,6 +40,9 @@ public record MyPageFeedResponse(
         post.getFocus(),
         post.getTags().stream().map(postTag -> postTag.getTag().getPlaceTag()).toList(),
         isLiked,
-        isBookMarked);
+        isBookMarked,
+        post.getPlaceCategory() != null && post.getPlaceCategory().getCategoryName() != null
+            ? post.getPlaceCategory().getCategoryName().getValue()
+            : null);
   }
 }
