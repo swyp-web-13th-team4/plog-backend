@@ -4,6 +4,8 @@ import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,7 +14,8 @@ public record MyPageFeedResponse(
     @Schema(description = "게시글 ID (상세 조회 시 사용)") Long postId,
     @Schema(description = "작성자 닉네임") String name,
     @Schema(description = "작성자 프로필 이미지") String profileImage,
-    @Schema(description = "작성 시각") LocalDateTime createAt,
+    @Schema(description = "작성 시각")
+    @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDateTime createAt,
     @Schema(description = "게시글 이미지 목록") List<String> postImages,
     @Schema(description = "좋아요 수") Long likes,
     @Schema(description = "제목") String title,
