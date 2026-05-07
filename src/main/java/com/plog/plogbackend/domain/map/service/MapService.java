@@ -3,6 +3,7 @@ package com.plog.plogbackend.domain.map.service;
 import com.plog.plogbackend.domain.map.implement.MapManager;
 import com.plog.plogbackend.domain.map.model.MapPin;
 import com.plog.plogbackend.domain.map.model.PlaceRecord;
+import com.plog.plogbackend.domain.map.model.PlaceSearchResult;
 import com.plog.plogbackend.domain.map.model.SortType;
 import com.plog.plogbackend.domain.map.model.Viewport;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
@@ -40,6 +41,11 @@ public class MapService {
       List<PlaceTag> tags,
       Cursorable<String> cursorable) {
     return mapManager.getPlaceRecords(memberKey, placeId, sortType, tags, cursorable);
+  }
+
+  @Transactional(readOnly = true)
+  public List<PlaceSearchResult> searchRecordedPlaces(UUID memberKey, String keyword) {
+    return mapManager.searchRecordedPlaces(memberKey, keyword);
   }
 
   @Transactional(readOnly = true)
