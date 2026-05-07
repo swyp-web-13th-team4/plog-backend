@@ -534,7 +534,7 @@ class MapQueryRepositoryTest {
   void placeRecords_카테고리_null() {
     Member member = saveMember("user");
     Place cafe = savePlace("카페", 37.5, 127.0);
-    Post p = savePost(member, cafe, 60, 80); // 카테고리 없음
+    Post p = savePostWithCategory(member, cafe, 60, 80, null); // 카테고리 없음
     flushAndClear();
 
     Slice<Tuple> result =
@@ -666,6 +666,25 @@ class MapQueryRepositoryTest {
 
   private Post savePost(Member member, Place place, int studyMinutes, int focus) {
     LocalDateTime start = LocalDateTime.of(2024, 1, 1, 9, 0);
+
+    // 1. 이미 저장된 'CAFE' 카테고리가 있는지 DB에서 조회
+    List<PlaceCategory> categories =
+        em.createQuery(
+                "select p from PlaceCategory p where p.categoryName = :name", PlaceCategory.class)
+            .setParameter("name", PlaceCategoryCode.CAFE)
+            .getResultList();
+
+    PlaceCategory placeCategory;
+    if (categories.isEmpty()) {
+      // 2. 없으면 새로 만들어서 영속화(저장)
+      placeCategory = PlaceCategory.builder().categoryName(PlaceCategoryCode.CAFE).build();
+      em.persist(placeCategory);
+    } else {
+      // 3. 있으면 기존에 저장된 객체를 재사용
+      placeCategory = categories.get(0);
+    }
+
+    // 4. Post 생성 및 저장
     return postRepository.save(
         Post.of(
             "title",
@@ -676,7 +695,8 @@ class MapQueryRepositoryTest {
             focus,
             PublicScope.PRIVATE,
             member,
-            place));
+            place,
+            placeCategory));
   }
 
   private PlaceCategory saveCategory(PlaceCategoryCode code) {

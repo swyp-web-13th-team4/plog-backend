@@ -2,10 +2,14 @@ package com.plog.plogbackend.domain.post.entity;
 
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA를 위한 기본 생성자 추가
 public class PlaceCategory {
 
   @Id
@@ -16,9 +20,8 @@ public class PlaceCategory {
   @Column(nullable = false, unique = true)
   private PlaceCategoryCode categoryName;
 
-  public static PlaceCategory of(PlaceCategoryCode code) {
-    PlaceCategory pc = new PlaceCategory();
-    pc.categoryName = code;
-    return pc;
+  @Builder
+  public PlaceCategory(PlaceCategoryCode categoryName) {
+    this.categoryName = categoryName;
   }
 }

@@ -73,6 +73,12 @@ public enum ErrorType {
       "환경 기록 리뷰 글자수는 20글자 이상 200글자 미만 입니다.",
       LogLevel.WARN),
 
+  // 타임피커 공부시간 관련
+  INVALID_STUDY_TIME_RANGE(
+      HttpStatus.BAD_REQUEST, ErrorCode.E1402, "공부 종료 시각은 시작 시각 이후여야 합니다.", LogLevel.WARN),
+  STUDY_TIME_TOO_LONG(
+      HttpStatus.BAD_REQUEST, ErrorCode.E1403, "한 번에 기록 가능한 공부 시간은 최대 24시간입니다.", LogLevel.WARN),
+
   // 플레이스 관련
   PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 장소를 찾을 수 없습니다.", LogLevel.WARN),
 
@@ -83,7 +89,12 @@ public enum ErrorType {
       HttpStatus.BAD_REQUEST, ErrorCode.E1501, "한 번에 조회 가능한 최대 개수는 100개입니다.", LogLevel.WARN),
 
   // 카테고리 관련
-  CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "저장된 카테고리 값과 일치하지 않습니다.", LogLevel.WARN);
+  CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "저장된 카테고리 값과 일치하지 않습니다.", LogLevel.WARN),
+
+  // 최신 검색 관련
+  RECENT_SEARCH_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "최근 검색을 찾을 수 없습니다.", LogLevel.WARN),
+  RECENT_SEARCH_FORBIDDEN(
+      HttpStatus.FORBIDDEN, ErrorCode.E403, "본인의 검색 이력만 삭제할 수 있습니다.", LogLevel.WARN);
 
   // 여기에 추가해주시고 사용하시면 됩니다.
 
