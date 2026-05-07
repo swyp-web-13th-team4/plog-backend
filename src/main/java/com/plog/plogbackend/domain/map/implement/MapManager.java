@@ -7,6 +7,7 @@ import static com.plog.plogbackend.domain.post.entity.QPost.post;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.map.model.MapPin;
 import com.plog.plogbackend.domain.map.model.PlaceRecord;
+import com.plog.plogbackend.domain.map.model.PlaceSearchResult;
 import com.plog.plogbackend.domain.map.model.SortType;
 import com.plog.plogbackend.domain.map.model.Viewport;
 import com.plog.plogbackend.domain.map.repository.MapQueryRepository;
@@ -55,7 +56,8 @@ public class MapManager {
                 tuple.get(post.studyTime.sum()),
                 tuple.get(post.focus.avg()),
                 tuple.get(8, String.class),
-                categoryMap.get(tuple.get(place.id))));
+                categoryMap.get(tuple.get(place.id)),
+                tuple.get(post.studyDate.max())));
   }
 
   public Slice<MapPin> getBookmarkPins(
@@ -83,7 +85,8 @@ public class MapManager {
                 tuple.get(post.studyTime.sum()),
                 tuple.get(post.focus.avg()),
                 tuple.get(8, String.class),
-                categoryMap.get(tuple.get(place.id))));
+                categoryMap.get(tuple.get(place.id)),
+                tuple.get(post.studyDate.max())));
   }
 
   public Slice<PlaceRecord> getPlaceRecords(
@@ -108,6 +111,21 @@ public class MapManager {
         mapQueryRepository.findBookmarksByPlaceId(
             getMemberId(memberKey), placeId, sortType, tags, cursorable);
     return tupleSlice.map(this::toPlaceRecord);
+  }
+
+  public List<PlaceSearchResult> searchRecordedPlaces(UUID memberKey, String keyword) {
+    Long memberId = getMemberId(memberKey);
+    return mapQueryRepository.findRecordedPlacesByKeyword(memberId, keyword).stream()
+        .map(
+            t ->
+                new PlaceSearchResult(
+                    t.get(place.id),
+                    t.get(place.name),
+                    t.get(place.address),
+                    t.get(place.latitude),
+                    t.get(place.longitude),
+                    t.get(post.studyDate.max())))
+        .toList();
   }
 
   private PlaceRecord toPlaceRecord(Tuple tuple) {

@@ -1,6 +1,7 @@
 package com.plog.plogbackend.domain.map.model;
 
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -17,4 +18,5 @@ public class MapPin {
   private Double avgFocus;
   private String thumbnailUrl;
   private PlaceCategoryCode categoryCode;
+  private LocalDate lastStudyDate;
 }
