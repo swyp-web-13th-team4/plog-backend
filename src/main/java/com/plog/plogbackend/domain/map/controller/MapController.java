@@ -4,6 +4,7 @@ import com.plog.plogbackend.domain.map.controller.dto.request.MapRequest;
 import com.plog.plogbackend.domain.map.controller.dto.response.MapPinResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.PageResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.PlaceRecordResponse;
+import com.plog.plogbackend.domain.map.controller.dto.response.PlaceSearchResponse;
 import com.plog.plogbackend.domain.map.model.SortType;
 import com.plog.plogbackend.domain.map.service.MapService;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
@@ -32,6 +33,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class MapController {
 
   private final MapService mapService;
+
+  @GetMapping("/places")
+  @Operation(summary = "기록한 장소 검색", description = "키워드에 해당하는 내 기록이 있는 장소 목록을 최신 공부 날짜순으로 반환합니다.")
+  public ResponseEntity<ApiResponse<List<PlaceSearchResponse>>> searchPlaces(
+      @AuthenticationPrincipal UUID memberKey, @RequestParam String keyword) {
+    List<PlaceSearchResponse> result =
+        mapService.searchRecordedPlaces(memberKey, keyword).stream()
+            .map(PlaceSearchResponse::from)
+            .toList();
+    return ResponseEntity.ok(ApiResponse.success(result));
+  }
 
   @GetMapping("/records")
   @Operation(summary = "지도 홈 화면 내 기록 목록 조회", description = "지도 홈 화면에서 뷰포트 내의 핀에 대한 내 기록 목록을 조회합니다.")

@@ -19,6 +19,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -44,7 +45,8 @@ public class MapQueryRepository {
                 countExpr,
                 post.studyTime.sum(),
                 post.focus.avg(),
-                latestThumbnailByPlace(memberId))
+                latestThumbnailByPlace(memberId),
+                post.studyDate.max())
             .from(post)
             .join(post.place, place)
             .where(
@@ -52,7 +54,9 @@ public class MapQueryRepository {
                 place.latitude.between(viewport.getSwLat(), viewport.getNeLat()),
                 place.longitude.between(viewport.getSwLng(), viewport.getNeLng()))
             .groupBy(place.id)
-            .having(cursorConditionByPlace(sortType, cursorable.getCursor(), countExpr))
+            .having(
+                latestCursorHaving(sortType, cursorable.getCursor()),
+                countCursorHaving(sortType, cursorable.getCursor(), countExpr))
             .orderBy(orderByPlace(sortType, countExpr))
             .limit(cursorable.getLimit() + 1)
             .fetch();
@@ -74,7 +78,8 @@ public class MapQueryRepository {
                 countExpr,
                 post.studyTime.sum(),
                 post.focus.avg(),
-                latestThumbnailByPlace(memberId))
+                latestThumbnailByPlace(memberId),
+                post.studyDate.max())
             .from(bookMark)
             .join(bookMark.post, post)
             .join(post.place, place)
@@ -83,7 +88,9 @@ public class MapQueryRepository {
                 place.latitude.between(viewport.getSwLat(), viewport.getNeLat()),
                 place.longitude.between(viewport.getSwLng(), viewport.getNeLng()))
             .groupBy(place.id)
-            .having(cursorConditionByPlace(sortType, cursorable.getCursor(), countExpr))
+            .having(
+                latestCursorHaving(sortType, cursorable.getCursor()),
+                countCursorHaving(sortType, cursorable.getCursor(), countExpr))
             .orderBy(orderByPlace(sortType, countExpr))
             .limit(cursorable.getLimit() + 1)
             .fetch();
@@ -141,6 +148,23 @@ public class MapQueryRepository {
     return new Slice<>(tuples, cursorable, hasNext(cursorable, tuples));
   }
 
+  public List<Tuple> findRecordedPlacesByKeyword(Long memberId, String keyword) {
+    return queryFactory
+        .select(
+            place.id,
+            place.name,
+            place.address,
+            place.latitude,
+            place.longitude,
+            post.studyDate.max())
+        .from(post)
+        .join(post.place, place)
+        .where(post.member.id.eq(memberId), place.name.containsIgnoreCase(keyword))
+        .groupBy(place.id)
+        .orderBy(post.studyDate.max().desc())
+        .fetch();
+  }
+
   public List<Tuple> findRecordCategoryCountsByPlaceIds(Long memberId, List<Long> placeIds) {
     return queryFactory
         .select(post.place.id, post.placeCategory.categoryName, post.id.count())
@@ -166,7 +190,7 @@ public class MapQueryRepository {
     if (sortType == SortType.RECORD_COUNT) {
       return new OrderSpecifier<?>[] {countExpr.desc(), place.id.desc()};
     }
-    return new OrderSpecifier<?>[] {place.id.desc()};
+    return new OrderSpecifier<?>[] {post.studyDate.max().desc(), place.id.desc()};
   }
 
   private OrderSpecifier<?>[] orderByPost(SortType sortType) {
@@ -177,16 +201,24 @@ public class MapQueryRepository {
     };
   }
 
-  private BooleanExpression cursorConditionByPlace(
+  private BooleanExpression latestCursorHaving(SortType sortType, String cursor) {
+    if (cursor == null || cursor.isBlank() || sortType == SortType.RECORD_COUNT) return null;
+    String[] parts = cursor.split(":");
+    LocalDate studyDate = LocalDate.parse(parts[0]);
+    long id = Long.parseLong(parts[1]);
+    return post.studyDate
+        .max()
+        .lt(studyDate)
+        .or(post.studyDate.max().eq(studyDate).and(place.id.lt(id)));
+  }
+
+  private BooleanExpression countCursorHaving(
       SortType sortType, String cursor, NumberExpression<Long> countExpr) {
-    if (cursor == null || cursor.isBlank()) return null;
-    if (sortType == SortType.RECORD_COUNT) {
-      String[] parts = cursor.split(":");
-      long count = Long.parseLong(parts[0]);
-      long id = Long.parseLong(parts[1]);
-      return countExpr.lt(count).or(countExpr.eq(count).and(place.id.lt(id)));
-    }
-    return place.id.lt(Long.parseLong(cursor));
+    if (cursor == null || cursor.isBlank() || sortType != SortType.RECORD_COUNT) return null;
+    String[] parts = cursor.split(":");
+    long count = Long.parseLong(parts[0]);
+    long id = Long.parseLong(parts[1]);
+    return countExpr.lt(count).or(countExpr.eq(count).and(place.id.lt(id)));
   }
 
   private BooleanExpression cursorConditionByPost(SortType sortType, String cursor) {
