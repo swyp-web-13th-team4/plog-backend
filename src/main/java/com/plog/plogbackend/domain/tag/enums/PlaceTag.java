@@ -85,6 +85,7 @@ public enum PlaceTag {
    */
   @JsonCreator
   public static PlaceTag from(String value) {
+    // validate 엔드포인트에서 이미 방어로직
     if (value == null || value.isEmpty()) {
       return null;
     }
