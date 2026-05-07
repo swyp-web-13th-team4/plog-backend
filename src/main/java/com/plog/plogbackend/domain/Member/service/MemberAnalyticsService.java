@@ -113,19 +113,21 @@ public class MemberAnalyticsService {
     if (avgRadians < 0) avgRadians += 2 * Math.PI;
     double avgMinutes = avgRadians * 1440.0 / (2 * Math.PI);
 
-    // 각 시간과 평균의 차이(분)의 평균 (원형 거리를 고려)
-    double avgDeviation =
+    // [개선] 평균 편차(avgDeviation) → 최대 편차(maxDeviation)로 교체
+    // 기획서 요구사항: '시작 시간 오차가 ±30분 이내로 규칙적인 경우'
+    // 하루라도 30분을 초과하면 조건을 불충족해야 하므로 최대 편차로 검증합니다.
+    double maxDeviation =
         times.stream()
             .mapToDouble(
                 t -> {
                   double diff = Math.abs((t.getHour() * 60 + t.getMinute()) - avgMinutes);
                   return Math.min(diff, 1440 - diff);
                 })
-            .average()
+            .max()
             .orElse(31);
 
-    if (avgDeviation > 30) return -1; // 조건 미충족
-    return Math.max(0, 100 - (avgDeviation * 1.66));
+    if (maxDeviation > 30) return -1; // 단 하나의 기록이라도 ±30분을 초과하면 미충족
+    return Math.max(0, 100 - (maxDeviation * 1.66));
   }
 
   /** 유형 2: 부지런한 아침형 로기 (오전 집중형) - 오전(06:00~10:50) 시작 비중 60% 이상 */
@@ -275,6 +277,7 @@ public class MemberAnalyticsService {
     // 영역 2: 태그별 평균 집중도 - 가장 높은 태그
     Long bestTagId = null;
     PlaceTag bestPlaceTag = null;
+    Double bestPlaceTagAvgFocus = null;
 
     Map<Long, PlaceTag> placeTags = new HashMap<>();
     Map<Long, List<Integer>> tagFocusMap = new HashMap<>();
@@ -298,22 +301,49 @@ public class MemberAnalyticsService {
               .map(Map.Entry::getKey)
               .orElse(null);
       bestPlaceTag = bestTagId != null ? placeTags.get(bestTagId) : null;
+      if (bestTagId != null) {
+        double raw =
+            tagFocusMap.get(bestTagId).stream().mapToInt(Integer::intValue).average().orElse(0);
+        bestPlaceTagAvgFocus = Math.round(raw * 10) / 10.0;
+      }
     }
 
-    // 영역 3: 방해 요소 - 평균 집중도가 가장 낮은 태그
+    // 영역 3: 방해 요소 - 평균 집중도가 낮거나 점수 편차가 큰 태그
+    // [개선] 단순 평균 최솟값 → (낮은 평균 + 높은 분산) 복합 점수로 교체
+    // 기획서 요구사항: "평균 점수가 가장 낮거나 기록 간 점수 편차가 큰 환경 태그를 분석"
     Long worstTagId = null;
     PlaceTag worstPlaceTag = null;
+    Double worstPlaceTagAvgFocus = null;
 
     if (!tagFocusMap.isEmpty()) {
       worstTagId =
           tagFocusMap.entrySet().stream()
               .min(
                   Comparator.comparingDouble(
-                      e -> e.getValue().stream().mapToInt(Integer::intValue).average().orElse(5)))
+                      e -> {
+                        List<Integer> focuses = e.getValue();
+                        double avg =
+                            focuses.stream().mapToInt(Integer::intValue).average().orElse(5.0);
+                        // 분산(Variance) = E[(X - μ)²]
+                        double variance =
+                            focuses.stream()
+                                .mapToDouble(f -> Math.pow(f - avg, 2))
+                                .average()
+                                .orElse(0.0);
+                        // 복합 점수: 평균이 낮을수록, 분산이 클수록 값이 작아짐 (낮은 값이 worst)
+                        // 가중치: 평균(70%) + 분산 패널티(30%)
+                        // 0~5점 척도에서 이론상 최대 분산은 6.25((5-0)^2 / 4)이므로 정규화 후 차감
+                        return avg * 0.7 - (variance / 6.25) * 0.3 * 5;
+                      }))
               .map(Map.Entry::getKey)
               .orElse(null);
 
       worstPlaceTag = worstTagId != null ? placeTags.get(worstTagId) : null;
+      if (worstTagId != null) {
+        double raw =
+            tagFocusMap.get(worstTagId).stream().mapToInt(Integer::intValue).average().orElse(0);
+        worstPlaceTagAvgFocus = Math.round(raw * 10) / 10.0;
+      }
     }
 
     log.info(
@@ -325,7 +355,13 @@ public class MemberAnalyticsService {
         worstTagId,
         worstPlaceTag);
 
-    return new FocusEnvironmentResponse(bestPeriod, bestPeriodAvg, bestPlaceTag, worstPlaceTag);
+    return new FocusEnvironmentResponse(
+        bestPeriod,
+        bestPeriodAvg,
+        bestPlaceTag,
+        bestPlaceTagAvgFocus,
+        worstPlaceTag,
+        worstPlaceTagAvgFocus);
   }
 
   // ========== 공간별 순위 분석 ==========
@@ -397,13 +433,25 @@ public class MemberAnalyticsService {
     return classifyTime(post.getStartedAt().toLocalTime());
   }
 
+  /**
+   * 시간대 분류 (기획서 기준)
+   *
+   * <ul>
+   *   <li>오전: 07:00 ~ 10:50
+   *   <li>오후: 11:00 ~ 19:50
+   *   <li>밤: 20:00 ~ 23:00
+   *   <li>새벽: 그 외 (00:00~06:59, 23:01~23:59)
+   * </ul>
+   */
   private String classifyTime(LocalTime time) {
-    int hour = time.getHour();
-    if (hour >= 6 && (hour < 10 || (hour == 10 && time.getMinute() <= 50))) return "오전";
-    if (hour > 10 || (hour == 10 && time.getMinute() > 50)) {
-      if (hour < 19 || (hour == 19 && time.getMinute() <= 50)) return "오후";
-    }
-    if (hour >= 20 || (hour == 19 && time.getMinute() > 50)) return "밤";
+    int totalMinutes = time.getHour() * 60 + time.getMinute();
+    // 오전: 07:00(420) ~ 10:50(650)
+    if (totalMinutes >= 420 && totalMinutes <= 650) return "오전";
+    // 오후: 11:00(660) ~ 19:50(1190)
+    if (totalMinutes >= 660 && totalMinutes <= 1190) return "오후";
+    // 밤: 20:00(1200) ~ 23:00(1380)
+    if (totalMinutes >= 1200 && totalMinutes <= 1380) return "밤";
+    // 새벽: 그 외 (00:00~06:59, 23:01~23:59)
     return "새벽";
   }
 
