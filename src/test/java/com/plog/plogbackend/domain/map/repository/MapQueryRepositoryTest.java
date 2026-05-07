@@ -13,9 +13,11 @@ import com.plog.plogbackend.domain.map.model.RecordSortType;
 import com.plog.plogbackend.domain.map.model.Viewport;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.domain.place.repository.PlaceRepository;
+import com.plog.plogbackend.domain.post.entity.PlaceCategory;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
 import com.plog.plogbackend.domain.post.entity.PublicScope;
+import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.post.repository.PostImageRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.global.support.paging.Cursorable;
@@ -486,6 +488,25 @@ class MapQueryRepositoryTest {
 
   private Post savePost(Member member, Place place, int studyMinutes, int focus) {
     LocalDateTime start = LocalDateTime.of(2024, 1, 1, 9, 0);
+
+    // 1. 이미 저장된 'CAFE' 카테고리가 있는지 DB에서 조회
+    List<PlaceCategory> categories =
+        em.createQuery(
+                "select p from PlaceCategory p where p.categoryName = :name", PlaceCategory.class)
+            .setParameter("name", PlaceCategoryCode.CAFE)
+            .getResultList();
+
+    PlaceCategory placeCategory;
+    if (categories.isEmpty()) {
+      // 2. 없으면 새로 만들어서 영속화(저장)
+      placeCategory = PlaceCategory.builder().categoryName(PlaceCategoryCode.CAFE).build();
+      em.persist(placeCategory);
+    } else {
+      // 3. 있으면 기존에 저장된 객체를 재사용
+      placeCategory = categories.get(0);
+    }
+
+    // 4. Post 생성 및 저장
     return postRepository.save(
         Post.of(
             "title",
@@ -496,6 +517,8 @@ class MapQueryRepositoryTest {
             focus,
             PublicScope.PRIVATE,
             member,
-            place));
+            place,
+            placeCategory
+            ));
   }
 }
