@@ -72,7 +72,8 @@ public class Post extends BaseTimeStatusEntity {
       Integer focus,
       PublicScope scope,
       Member member,
-      Place place) {
+      Place place,
+      PlaceCategory placeCategory) {
 
     this.title = title;
     this.contents = contents;
@@ -84,6 +85,7 @@ public class Post extends BaseTimeStatusEntity {
     this.scope = scope;
     this.member = member;
     this.place = place;
+    this.placeCategory = placeCategory;
     this.likes = 0L;
   }
 

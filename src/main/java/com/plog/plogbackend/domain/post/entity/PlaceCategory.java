@@ -15,4 +15,10 @@ public class PlaceCategory {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, unique = true)
   private PlaceCategoryCode categoryName;
+
+  public static PlaceCategory of(PlaceCategoryCode code) {
+    PlaceCategory pc = new PlaceCategory();
+    pc.categoryName = code;
+    return pc;
+  }
 }
