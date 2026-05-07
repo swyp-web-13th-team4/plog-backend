@@ -59,25 +59,25 @@ public class MemberController {
       description =
           """
           로그인한 회원의 프로필(닉네임, 소개글, 이미지)을 한 번에 변경합니다.
-          - `request` 파트: 닉네임, 소개글 (multipart form-data 파라미터)
-          - `image` 파트: 업로드할 이미지 파일 (선택)
+          - `request` 파트: 닉네임, 소개글 (JSON)
+          - `profileImage` 파트: 업로드할 이미지 파일 (선택)
           - `defaultImageId` 파트: 기본 이미지 ID (image가 없을 때 사용, 선택)
           - 이미지 파라미터가 모두 없으면 이미지는 그대로 유지됩니다.
           """)
   @PatchMapping(value = "/me/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<Void>> updateProfile(
       Authentication authentication,
-      @Parameter(description = "프로필 변경 정보 (닉네임, 소개글)") @Valid @ModelAttribute
+      @Parameter(description = "프로필 변경 정보 (닉네임, 소개글)") @Valid @RequestPart("request")
           UpdateProfileRequest request,
       @Parameter(description = "업로드할 이미지 파일 (jpg, png 등, 최대 10MB, 선택)")
-          @RequestPart(value = "image", required = false)
-          MultipartFile image,
+          @RequestPart(value = "profileImage", required = false)
+          MultipartFile profileImage,
       @Parameter(description = "선택한 기본 이미지 ID (image가 없을 때 사용, 선택)")
           @RequestParam(value = "defaultImageId", required = false)
           Long defaultImageId) {
 
     UUID memberKey = (UUID) authentication.getPrincipal();
-    memberService.updateProfile(memberKey, request, image, defaultImageId);
+    memberService.updateProfile(memberKey, request, profileImage, defaultImageId);
     return ResponseEntity.ok(ApiResponse.success());
   }
 

@@ -1,6 +1,7 @@
 package com.plog.plogbackend.domain.post.service;
 
 import com.plog.plogbackend.domain.Member.Member;
+import com.plog.plogbackend.domain.Member.dto.response.*;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
 import com.plog.plogbackend.domain.bookmark.entity.BookMark;
@@ -12,6 +13,7 @@ import com.plog.plogbackend.domain.post.repository.LikeRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.post.service.dto.FeedDetailCommand;
 import com.plog.plogbackend.domain.post.service.dto.FeedFindCommand;
+import com.plog.plogbackend.domain.post.service.dto.FeedMyPageCommand;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import java.time.LocalDateTime;
@@ -182,11 +184,99 @@ public class FeedService {
     }
   }
 
-  //    public FeedMyPageResponse memberProfileView(FeedMyPageCommand command) {
-  //
-  //      Member member = memberRepository.findByMemberKey(command.memberKey()).orElseThrow(()->
-  //              new AppException(ErrorType.MEMBER_NOT_FOUND));
-  //
-  //    }
+  // 다른 유저의 피드+유저정보 조회
+  @Transactional(readOnly = true)
+  public FeedUserResponse memberProfileView(FeedMyPageCommand command, UUID loggedInMemberKey) {
 
+    Member targetMember =
+        memberRepository
+            .findByMemberKey(command.memberKey())
+            .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
+
+    // 메인 뱃지 불러오기
+    MemberBadgeResponse badgeResponse = null;
+    if (targetMember.getMainBadge() != null) {
+      badgeResponse = MemberBadgeResponse.of(targetMember.getMainBadge(), true);
+    }
+
+    MemberResponse memberInfo =
+        MemberResponse.builder()
+            .nickname(targetMember.getNickname())
+            .profileImageUrl(targetMember.getProfileImage())
+            .introduction(targetMember.getIntroduction())
+            .mainBadge(badgeResponse)
+            .build();
+
+    // 대상 유저의 게시글 조회
+    List<Post> feeds = memberRepository.findMyPostsSorted(command.memberKey(), "latest", null);
+
+    // 로그인한 유저(자신) 기준으로 좋아요/북마크 여부 확인
+    Member loggedInMember = null;
+    if (loggedInMemberKey != null) {
+      loggedInMember = memberRepository.findByMemberKey(loggedInMemberKey).orElse(null);
+    }
+
+    List<Long> postIds = feeds.stream().map(Post::getId).toList();
+    Set<Long> likedPosts;
+    Set<Long> bookMarks;
+
+    if (loggedInMember != null && !postIds.isEmpty()) {
+      likedPosts = new HashSet<>(postRepository.checkLikes(loggedInMember.getId(), postIds));
+      bookMarks = new HashSet<>(postRepository.checkBookmarks(loggedInMember.getId(), postIds));
+    } else {
+      likedPosts = Collections.emptySet();
+      bookMarks = Collections.emptySet();
+    }
+
+    List<MyPageFeedResponse> posts =
+        feeds.stream()
+            .map(
+                post -> {
+                  boolean isLiked = likedPosts.contains(post.getId());
+                  boolean isBookMarked = bookMarks.contains(post.getId());
+                  return MyPageFeedResponse.from(post, isLiked, isBookMarked);
+                })
+            .toList();
+
+    return new FeedUserResponse(memberInfo, posts);
+  }
+
+  // 다른 유저의 게시글만 정렬(최신순, 집중도순, 작업시간순)해서 조회
+  @Transactional(readOnly = true)
+  public MyPagePostsListResponse getOtherUserPostsSorted(
+      UUID targetMemberKey, UUID loggedInMemberKey, String sort) {
+
+    // 대상 유저의 게시글 조회 (정렬 포함, 태그 조건은 null)
+    List<Post> feeds = memberRepository.findMyPostsSorted(targetMemberKey, sort, null);
+
+    // 로그인한 유저 기준으로 좋아요/북마크 여부 확인
+    Member loggedInMember = null;
+    if (loggedInMemberKey != null) {
+      loggedInMember = memberRepository.findByMemberKey(loggedInMemberKey).orElse(null);
+    }
+
+    List<Long> postIds = feeds.stream().map(Post::getId).toList();
+    Set<Long> likedPosts;
+    Set<Long> bookMarks;
+
+    if (loggedInMember != null && !postIds.isEmpty()) {
+      likedPosts = new HashSet<>(postRepository.checkLikes(loggedInMember.getId(), postIds));
+      bookMarks = new HashSet<>(postRepository.checkBookmarks(loggedInMember.getId(), postIds));
+    } else {
+      likedPosts = Collections.emptySet();
+      bookMarks = Collections.emptySet();
+    }
+
+    List<MyPageFeedResponse> posts =
+        feeds.stream()
+            .map(
+                post -> {
+                  boolean isLiked = likedPosts.contains(post.getId());
+                  boolean isBookMarked = bookMarks.contains(post.getId());
+                  return MyPageFeedResponse.from(post, isLiked, isBookMarked);
+                })
+            .toList();
+
+    return new MyPagePostsListResponse(posts);
+  }
 }

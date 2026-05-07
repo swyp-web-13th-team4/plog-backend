@@ -1,11 +1,12 @@
 package com.plog.plogbackend.domain.map.repository;
 
-import com.plog.plogbackend.domain.place.entity.Place;
-import com.plog.plogbackend.global.support.querydsl.QuerydslRepositorySupport;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 
-public class PlaceQueryRepository extends QuerydslRepositorySupport {
+@Repository
+@RequiredArgsConstructor
+public class PlaceQueryRepository {
 
-  public PlaceQueryRepository() {
-    super(Place.class);
-  }
+  private final JPAQueryFactory queryFactory;
 }

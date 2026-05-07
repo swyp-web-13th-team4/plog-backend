@@ -67,6 +67,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
   private OrderSpecifier<?> getPostOrderSpecifier(String sort) {
     if (sort == null) return post.createdAt.desc();
     return switch (sort) {
+      case "likes" -> post.likes.desc();
       case "focus" -> post.focus.desc();
       case "studyTime" -> post.studyTime.desc();
       case "latest" -> post.createdAt.desc();
