@@ -33,7 +33,7 @@ public class MyPageController {
   private final MemberAnalyticsService memberAnalyticsService;
 
   /** 회원 기본 정보 조회 GET /api/members/mypage */
-  @Operation(summary = "마이페이지 기본 정보 조회", description = "로그인한 회원의 기본 정보(닉네임·프로필·소개글)를 조회합니다.")
+  @Operation(summary = "마이페이지 기본 정보 조회", description = "로그인한 회원의 기본 정보(닉네임·프로필·소개글)를 조회합니다")
   @GetMapping("/mypage")
   public ResponseEntity<ApiResponse<MemberResponse>> getMyPage(Authentication authentication) {
     UUID memberKey = (UUID) authentication.getPrincipal();
