@@ -518,7 +518,6 @@ class MapQueryRepositoryTest {
             PublicScope.PRIVATE,
             member,
             place,
-            placeCategory
-            ));
+            placeCategory));
   }
 }
