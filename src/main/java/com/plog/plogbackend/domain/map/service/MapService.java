@@ -2,10 +2,13 @@ package com.plog.plogbackend.domain.map.service;
 
 import com.plog.plogbackend.domain.map.implement.MapManager;
 import com.plog.plogbackend.domain.map.model.MapPin;
-import com.plog.plogbackend.domain.map.model.RecordSortType;
+import com.plog.plogbackend.domain.map.model.PlaceRecord;
+import com.plog.plogbackend.domain.map.model.SortType;
 import com.plog.plogbackend.domain.map.model.Viewport;
+import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.plog.plogbackend.global.support.paging.Cursorable;
 import com.plog.plogbackend.global.support.paging.Slice;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,13 +22,33 @@ public class MapService {
 
   @Transactional(readOnly = true)
   public Slice<MapPin> findMyRecordPins(
-      UUID memberKey, Viewport viewport, RecordSortType sortType, Cursorable<String> cursorable) {
+      UUID memberKey, Viewport viewport, SortType sortType, Cursorable<String> cursorable) {
     return mapManager.getRecordsPins(memberKey, viewport, sortType, cursorable);
   }
 
   @Transactional(readOnly = true)
   public Slice<MapPin> findMyBookmarkPins(
-      UUID memberKey, Viewport viewport, RecordSortType sortType, Cursorable<String> cursorable) {
+      UUID memberKey, Viewport viewport, SortType sortType, Cursorable<String> cursorable) {
     return mapManager.getBookmarkPins(memberKey, viewport, sortType, cursorable);
+  }
+
+  @Transactional(readOnly = true)
+  public Slice<PlaceRecord> findPlaceRecords(
+      UUID memberKey,
+      Long placeId,
+      SortType sortType,
+      List<PlaceTag> tags,
+      Cursorable<String> cursorable) {
+    return mapManager.getPlaceRecords(memberKey, placeId, sortType, tags, cursorable);
+  }
+
+  @Transactional(readOnly = true)
+  public Slice<PlaceRecord> findPlaceBookmarks(
+      UUID memberKey,
+      Long placeId,
+      SortType sortType,
+      List<PlaceTag> tags,
+      Cursorable<String> cursorable) {
+    return mapManager.getPlaceBookmarks(memberKey, placeId, sortType, tags, cursorable);
   }
 }
