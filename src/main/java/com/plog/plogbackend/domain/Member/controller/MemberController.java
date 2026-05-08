@@ -110,14 +110,14 @@ public class MemberController {
 
   @Operation(
       summary = "회원 탈퇴",
-      description = "로그인한 회원 정보와 작성한 모든 게시글, 북마크, 좋아요, 배지 등 모든 연관 데이터를 " +
-          "소프트 딜리트 없이 완전히 삭제(하드 딜리트)합니다. " +
-          "리프레시 토큰 DB 삭제 및 쿠키(액세스/리프레시 토큰)도 함께 제거합니다."+
-          "이미지 삭제는 가장 마지막에 이루어집니다.")
+      description =
+          "로그인한 회원 정보와 작성한 모든 게시글, 북마크, 좋아요, 배지 등 모든 연관 데이터를 "
+              + "소프트 딜리트 없이 완전히 삭제(하드 딜리트)합니다. "
+              + "리프레시 토큰 DB 삭제 및 쿠키(액세스/리프레시 토큰)도 함께 제거합니다."
+              + "이미지 삭제는 가장 마지막에 이루어집니다.")
   @DeleteMapping("/me")
   public ResponseEntity<ApiResponse<Void>> withdraw(
-      Authentication authentication,
-      HttpServletResponse response) {
+      Authentication authentication, HttpServletResponse response) {
     UUID memberKey = (UUID) authentication.getPrincipal();
 
     memberService.withdraw(memberKey);

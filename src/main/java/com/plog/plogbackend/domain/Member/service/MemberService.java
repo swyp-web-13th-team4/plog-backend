@@ -47,11 +47,14 @@ public class MemberService {
   private static final long BADGE_ID_FIRST_LOGIN = 1L;
 
   /** 유효성 검사 패턴. (메모리 낭비 방지) */
-  private static final Pattern PHONE_PATTERN = Pattern.compile("(?:010|02|0[3-9]{2})[-.\\s]?\\d{3,4}[-.\\s]?\\d{4}");
+  private static final Pattern PHONE_PATTERN =
+      Pattern.compile("(?:010|02|0[3-9]{2})[-.\\s]?\\d{3,4}[-.\\s]?\\d{4}");
 
-  private static final Pattern EMAIL_PATTERN = Pattern.compile("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}");
-  private static final Pattern SNS_PATTERN = Pattern.compile(
-      "kakao|카카오|카톡|insta|인스타|facebook|페이스북|페북|twitter|트위터|telegram|텔레그램|line|라인|@[a-zA-Z0-9._]+");
+  private static final Pattern EMAIL_PATTERN =
+      Pattern.compile("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}");
+  private static final Pattern SNS_PATTERN =
+      Pattern.compile(
+          "kakao|카카오|카톡|insta|인스타|facebook|페이스북|페북|twitter|트위터|telegram|텔레그램|line|라인|@[a-zA-Z0-9._]+");
 
   private final MemberRepository memberRepository;
   private final JwtProvider jwtProvider;
@@ -78,13 +81,12 @@ public class MemberService {
   /**
    * 회원가입을 처리합니다.
    *
-   * <p>
-   * 프로필 이미지는 파일 업로드 또는 기본 이미지 URL 중 하나를 반드시 제공해야 합니다. 이미지 결정은 {@link
+   * <p>프로필 이미지는 파일 업로드 또는 기본 이미지 URL 중 하나를 반드시 제공해야 합니다. 이미지 결정은 {@link
    * MemberImageService#resolveSignupProfileImage}에 위임합니다.
    *
-   * @param registerToken  카카오 인증 후 발급된 임시 가입 토큰
-   * @param request        닉네임, 약관동의 정보
-   * @param profileImage   직접 업로드할 이미지 파일 (nullable)
+   * @param registerToken 카카오 인증 후 발급된 임시 가입 토큰
+   * @param request 닉네임, 약관동의 정보
+   * @param profileImage 직접 업로드할 이미지 파일 (nullable)
    * @param defaultImageId 기본 이미지 ID (profileImage가 없을 때 사용, nullable)
    * @return 생성된 회원의 memberKey
    */
@@ -109,27 +111,31 @@ public class MemberService {
     validateIntroduction(request.introduction());
 
     // 파일 또는 기본 이미지 ID 중 하나는 반드시 있어야 함 (없으면 FILE_EMPTY 예외)
-    String profileImageUrl = memberImageService.resolveSignupProfileImage(profileImage, defaultImageId);
+    String profileImageUrl =
+        memberImageService.resolveSignupProfileImage(profileImage, defaultImageId);
 
-    Member member = Member.createNewMember(
-        request.nickname(), providerId, profileImageUrl, request.introduction());
+    Member member =
+        Member.createNewMember(
+            request.nickname(), providerId, profileImageUrl, request.introduction());
     memberRepository.save(member);
 
     if (request.termsAgreements() != null) {
       for (Map.Entry<String, Boolean> entry : request.termsAgreements().entrySet()) {
-        Terms terms = termsRepository
-            .findByName(entry.getKey())
-            .orElseThrow(() -> new AppException(ErrorType.TERMS_NOT_FOUND));
+        Terms terms =
+            termsRepository
+                .findByName(entry.getKey())
+                .orElseThrow(() -> new AppException(ErrorType.TERMS_NOT_FOUND));
 
         if (terms.isRequired() && !entry.getValue()) {
           throw new AppException(ErrorType.REQUIRED_TERMS_NOT_AGREED);
         }
 
-        MemberAgreement agreement = MemberAgreement.builder()
-            .member(member)
-            .terms(terms)
-            .isAgreed(entry.getValue())
-            .build();
+        MemberAgreement agreement =
+            MemberAgreement.builder()
+                .member(member)
+                .terms(terms)
+                .isAgreed(entry.getValue())
+                .build();
         memberAgreementRepository.save(agreement);
       }
     }
@@ -149,9 +155,10 @@ public class MemberService {
    */
   @Transactional(readOnly = true)
   public MemberResponse getMyPageInfo(UUID memberKey) {
-    Member member = memberRepository
-        .findByMemberKey(memberKey)
-        .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
+    Member member =
+        memberRepository
+            .findByMemberKey(memberKey)
+            .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
 
     MemberBadgeResponse badgeResponse = null;
     if (member.getMainBadge() != null) {
@@ -169,35 +176,34 @@ public class MemberService {
   /**
    * 프로필(닉네임 + 이미지)을 한 번에 수정합니다.
    *
-   * <p>
-   * 이미지가 제공된 경우:
+   * <p>이미지가 제공된 경우:
    *
    * <ul>
-   * <li>파일이면 GCS에 업로드 후 URL 저장, 기존 커스텀 이미지는 커밋 후 GCS 삭제
-   * <li>기본 이미지 ID이면 DB 검증 후 해당 URL로 교체
+   *   <li>파일이면 GCS에 업로드 후 URL 저장, 기존 커스텀 이미지는 커밋 후 GCS 삭제
+   *   <li>기본 이미지 ID이면 DB 검증 후 해당 URL로 교체
    * </ul>
    *
-   * <p>
-   * 닉네임이 null 또는 빈 값이면 닉네임은 변경하지 않습니다.
+   * <p>닉네임이 null 또는 빈 값이면 닉네임은 변경하지 않습니다.
    *
-   * <p>
-   * 이미지가 null이고 defaultImageId도 null이면 이미지는 변경하지 않습니다.
+   * <p>이미지가 null이고 defaultImageId도 null이면 이미지는 변경하지 않습니다.
    *
-   * @param memberKey      회원 UUID
-   * @param request        닉네임 변경 정보 (nullable 허용)
-   * @param file           업로드할 이미지 파일 (nullable)
+   * @param memberKey 회원 UUID
+   * @param request 닉네임 변경 정보 (nullable 허용)
+   * @param file 업로드할 이미지 파일 (nullable)
    * @param defaultImageId 기본 이미지 ID (file이 없을 때 사용, nullable)
    */
   @Transactional
   public void updateProfile(
       UUID memberKey, UpdateProfileRequest request, MultipartFile file, Long defaultImageId) {
 
-    Member member = memberRepository
-        .findByMemberKey(memberKey)
-        .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
+    Member member =
+        memberRepository
+            .findByMemberKey(memberKey)
+            .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
 
     // 이미지 변경 처리 (변경 없으면 null 반환)
-    String newImageUrl = memberImageService.resolveAndScheduleImageUpdate(member, file, defaultImageId);
+    String newImageUrl =
+        memberImageService.resolveAndScheduleImageUpdate(member, file, defaultImageId);
 
     String newNickname = request.nickname();
     String newIntroduction = request.introduction();
@@ -268,14 +274,8 @@ public class MemberService {
   /**
    * 회원 탈퇴 - 하드 딜리트
    *
-   * <p>삭제 순서:
-   * 1) 리프레시 토큰 DB 삭제
-   * 2) 최근 장소 검색 기록 삭제
-   * 3) 회원이 누른 좋아요/북마크 삭제
-   * 4) 획득 배지·약관 동의 내역 삭제
-   * 5) 작성 게시글 하위 데이터 + GCS 파일 + 게시글 삭제
-   * 6) GCS 프로필 이미지 삭제
-   * 7) flush & clear → Member DB 삭제 (영속성 충돌 해소)
+   * <p>삭제 순서: 1) 리프레시 토큰 DB 삭제 2) 최근 장소 검색 기록 삭제 3) 회원이 누른 좋아요/북마크 삭제 4) 획득 배지·약관 동의 내역 삭제 5) 작성
+   * 게시글 하위 데이터 + GCS 파일 + 게시글 삭제 6) GCS 프로필 이미지 삭제 7) flush & clear → Member DB 삭제 (영속성 충돌 해소)
    *
    * <p>쿠키 초기화는 호출 측 컨트롤러에서 HttpServletResponse로 처리한다.
    *
@@ -283,8 +283,10 @@ public class MemberService {
    */
   @Transactional
   public void withdraw(UUID memberKey) {
-    Member member = memberRepository.findByMemberKey(memberKey)
-        .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
+    Member member =
+        memberRepository
+            .findByMemberKey(memberKey)
+            .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
 
     Long memberId = member.getId();
     String profileImageUrl = member.getProfileImage(); // 프로필 삭제하기 전에 프로필 사진 수집
@@ -310,13 +312,15 @@ public class MemberService {
       List<Long> postIds = myPosts.stream().map(Post::getId).collect(Collectors.toList());
 
       // GCS 삭제를 위해 URL만 미리 수집
-      postImageUrls = postImageRepository.findAllByPostIdIn(postIds)
-          .stream().map(PostImage::getImageUrl).collect(Collectors.toList());
+      postImageUrls =
+          postImageRepository.findAllByPostIdIn(postIds).stream()
+              .map(PostImage::getImageUrl)
+              .collect(Collectors.toList());
 
       // 하위 레코드 bulk JPQL delete
       postImageRepository.deleteAllByPostIdIn(postIds);
       postTagRepository.deleteAllByPostIdIn(postIds);
-      likeRepository.deleteAllByPostIdIn(postIds);   // 어떤 타 회원의 좋아요도 있을 수 있음
+      likeRepository.deleteAllByPostIdIn(postIds); // 어떤 타 회원의 좋아요도 있을 수 있음
       bookMarkRepository.deleteAllByPostIdIn(postIds); // 같은 이유
 
       // 게시글 bulk delete
@@ -333,13 +337,14 @@ public class MemberService {
 
     // 7. DB 삭제가 완전히 완료된 후 GCS 파일 삭제
     final List<String> finalPostImageUrls = postImageUrls;
-    finalPostImageUrls.forEach(url -> {
-      try {
-        gcsService.delete(url);
-      } catch (Exception e) {
-        log.warn("게시글 이미지 GCS 삭제 실패 - url: {}, error: {}", url, e.getMessage());
-      }
-    });
+    finalPostImageUrls.forEach(
+        url -> {
+          try {
+            gcsService.delete(url);
+          } catch (Exception e) {
+            log.warn("게시글 이미지 GCS 삭제 실패 - url: {}, error: {}", url, e.getMessage());
+          }
+        });
 
     try {
       gcsService.delete(profileImageUrl);
