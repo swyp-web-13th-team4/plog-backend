@@ -2,6 +2,7 @@ package com.plog.plogbackend.domain.Member.dto.response;
 
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
+import com.plog.plogbackend.domain.post.entity.PublicScope;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
@@ -23,7 +24,8 @@ public record MyPageFeedResponse(
     @Schema(description = "태그 목록") List<PlaceTag> tags,
     @Schema(description = "좋아요 여부") boolean like,
     @Schema(description = "북마크 여부") boolean bookMark,
-    @Schema(description = "장소 카테고리(value)") String placeCategory) {
+    @Schema(description = "장소 카테고리(value)") String placeCategory,
+    @Schema(description = "공개 여부 (true: PUBLIC, false: PRIVATE)") boolean isPublic) {
 
   public static MyPageFeedResponse from(Post post, boolean isLiked, boolean isBookMarked) {
     return new MyPageFeedResponse(
@@ -43,6 +45,7 @@ public record MyPageFeedResponse(
         isBookMarked,
         post.getPlaceCategory() != null && post.getPlaceCategory().getCategoryName() != null
             ? post.getPlaceCategory().getCategoryName().getValue()
-            : null);
+            : null,
+        post.getScope() == PublicScope.PUBLIC);
   }
 }
