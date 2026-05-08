@@ -192,6 +192,16 @@ public class MapQueryRepository {
         .fetch();
   }
 
+  public List<Tuple> findPlaceTagsByPostIds(List<Long> postIds) {
+    if (postIds.isEmpty()) return List.of();
+    return queryFactory
+        .select(postTag.post.id, tag.placeTag)
+        .from(postTag)
+        .join(postTag.tag, tag)
+        .where(postTag.post.id.in(postIds))
+        .fetch();
+  }
+
   public List<Tuple> findRecordCategoryCountsByPlaceIds(Long memberId, List<Long> placeIds) {
     return queryFactory
         .select(post.place.id, post.placeCategory.categoryName, post.id.count())
