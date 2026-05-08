@@ -1,7 +1,9 @@
 package com.plog.plogbackend.domain.map.model;
 
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
+import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -9,9 +11,12 @@ import lombok.Getter;
 @AllArgsConstructor
 public class PlaceRecord {
   private Long postId;
+  private String title;
   private LocalDate studyDate;
   private Integer studyTime;
   private Integer focus;
+  private String contents;
   private String thumbnailUrl;
   private PlaceCategoryCode categoryCode;
+  private List<PlaceTag> tags;
 }

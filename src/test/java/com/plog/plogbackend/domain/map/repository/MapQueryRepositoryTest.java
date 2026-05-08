@@ -3,6 +3,7 @@ package com.plog.plogbackend.domain.map.repository;
 import static com.plog.plogbackend.domain.bookmark.entity.QBookMark.bookMark;
 import static com.plog.plogbackend.domain.place.entity.QPlace.place;
 import static com.plog.plogbackend.domain.post.entity.QPost.post;
+import static com.plog.plogbackend.domain.tag.QTag.tag;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.plog.plogbackend.domain.Member.Member;
@@ -16,11 +17,16 @@ import com.plog.plogbackend.domain.place.repository.PlaceRepository;
 import com.plog.plogbackend.domain.post.entity.PlaceCategory;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
+import com.plog.plogbackend.domain.post.entity.PostTag;
 import com.plog.plogbackend.domain.post.entity.PublicScope;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.post.repository.PlaceCategoryRepository;
 import com.plog.plogbackend.domain.post.repository.PostImageRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
+import com.plog.plogbackend.domain.post.repository.PostTagRepository;
+import com.plog.plogbackend.domain.tag.Tag;
+import com.plog.plogbackend.domain.tag.enums.PlaceTag;
+import com.plog.plogbackend.domain.tag.repository.TagRepository;
 import com.plog.plogbackend.global.support.paging.Cursorable;
 import com.plog.plogbackend.global.support.paging.Slice;
 import com.querydsl.core.Tuple;
@@ -51,6 +57,8 @@ class MapQueryRepositoryTest {
   @Autowired private PostImageRepository postImageRepository;
   @Autowired private BookMarkRepository bookMarkRepository;
   @Autowired private PlaceCategoryRepository placeCategoryRepository;
+  @Autowired private TagRepository tagRepository;
+  @Autowired private PostTagRepository postTagRepository;
   @PersistenceContext private EntityManager em;
 
   static final Viewport VIEWPORT = Viewport.of(37.4, 126.9, 37.6, 127.1);
@@ -923,6 +931,311 @@ class MapQueryRepositoryTest {
   }
 
   // =====================
+  //   장소 태그 조회 테스트
+  // =====================
+
+  @Test
+  @DisplayName("findPlaceTagsByPostIds - post의 태그가 반환된다")
+  void placeTagsByPostIds_태그_반환() {
+    Member member = saveMember("user");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    Post p = savePost(member, cafe, 60, 80);
+    Tag quietTag = getTag(PlaceTag.QUIET);
+    postTagRepository.save(PostTag.of(p, quietTag));
+    flushAndClear();
+
+    List<Tuple> result = mapQueryRepository.findPlaceTagsByPostIds(List.of(p.getId()));
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).get(tag.placeTag)).isEqualTo(PlaceTag.QUIET);
+  }
+
+  @Test
+  @DisplayName("findPlaceTagsByPostIds - 다른 post의 태그는 제외된다")
+  void placeTagsByPostIds_다른_post_태그_제외() {
+    Member member = saveMember("user");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    Post p1 = savePost(member, cafe, 60, 80);
+    Post p2 = savePost(member, cafe, 60, 80);
+    Tag quietTag = getTag(PlaceTag.QUIET);
+    Tag noisyTag = getTag(PlaceTag.NOISY);
+    postTagRepository.save(PostTag.of(p1, quietTag));
+    postTagRepository.save(PostTag.of(p2, noisyTag));
+    flushAndClear();
+
+    List<Tuple> result = mapQueryRepository.findPlaceTagsByPostIds(List.of(p1.getId()));
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).get(tag.placeTag)).isEqualTo(PlaceTag.QUIET);
+  }
+
+  @Test
+  @DisplayName("findPlaceTagsByPostIds - 빈 목록 입력 시 빈 결과가 반환된다")
+  void placeTagsByPostIds_빈_목록_입력() {
+    List<Tuple> result = mapQueryRepository.findPlaceTagsByPostIds(List.of());
+
+    assertThat(result).isEmpty();
+  }
+
+  // =====================
+  //   장소별 기록 보완 테스트
+  // =====================
+
+  @Test
+  @DisplayName("장소별 기록 조회 - 다른 멤버의 기록은 포함되지 않는다")
+  void placeRecords_멤버_격리() {
+    Member me = saveMember("me");
+    Member other = saveMember("other");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    savePost(me, cafe, 60, 80);
+    savePost(other, cafe, 90, 70);
+    flushAndClear();
+
+    Slice<Tuple> result =
+        mapQueryRepository.findRecordsByPlaceId(
+            me.getId(), cafe.getId(), SortType.LATEST, null, cursor(null, 10));
+
+    assertThat(result.getContent()).hasSize(1);
+  }
+
+  @Test
+  @DisplayName("장소별 기록 조회 - 썸네일은 index 1(imageUrl.min())에 반환된다")
+  void placeRecords_썸네일_반환() {
+    Member member = saveMember("user");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    Post p = savePost(member, cafe, 60, 80);
+    postImageRepository.save(PostImage.of("thumb.jpg", p));
+    flushAndClear();
+
+    Slice<Tuple> result =
+        mapQueryRepository.findRecordsByPlaceId(
+            member.getId(), cafe.getId(), SortType.LATEST, null, cursor(null, 10));
+
+    assertThat(result.getContent().get(0).get(1, String.class)).isEqualTo("thumb.jpg");
+  }
+
+  @Test
+  @DisplayName("장소별 기록 조회 - 태그 필터 시 태그가 있는 게시글만 포함된다")
+  void placeRecords_태그_필터_동작() {
+    Member member = saveMember("user");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    Post tagged = savePost(member, cafe, 60, 80);
+    Post untagged = savePost(member, cafe, 90, 70);
+    Tag quietTag = getTag(PlaceTag.QUIET);
+    postTagRepository.save(PostTag.of(tagged, quietTag));
+    flushAndClear();
+
+    Slice<Tuple> result =
+        mapQueryRepository.findRecordsByPlaceId(
+            member.getId(),
+            cafe.getId(),
+            SortType.LATEST,
+            List.of(PlaceTag.QUIET),
+            cursor(null, 10));
+
+    assertThat(result.getContent()).hasSize(1);
+    assertThat(result.getContent().get(0).get(post).getId()).isEqualTo(tagged.getId());
+  }
+
+  @Test
+  @DisplayName("장소별 기록 조회 - limit+1 초과 시 hasNext가 true이다")
+  void placeRecords_hasNext() {
+    Member member = saveMember("user");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    savePost(member, cafe, 60, 80);
+    savePost(member, cafe, 70, 70);
+    savePost(member, cafe, 80, 60);
+    flushAndClear();
+
+    Slice<Tuple> result =
+        mapQueryRepository.findRecordsByPlaceId(
+            member.getId(), cafe.getId(), SortType.LATEST, null, cursor(null, 2));
+
+    assertThat(result.isHasNext()).isTrue();
+    assertThat(result.getContent()).hasSize(2);
+  }
+
+  @Test
+  @DisplayName("장소별 기록 조회 - LATEST 커서 페이징이 동작한다")
+  void placeRecords_LATEST_커서_페이징() {
+    Member member = saveMember("user");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    Post p1 = savePost(member, cafe, 60, 80);
+    Post p2 = savePost(member, cafe, 70, 70);
+    Post p3 = savePost(member, cafe, 80, 60);
+    flushAndClear();
+
+    // LATEST: desc by id → p3, p2, p1
+    Slice<Tuple> page1 =
+        mapQueryRepository.findRecordsByPlaceId(
+            member.getId(), cafe.getId(), SortType.LATEST, null, cursor(null, 2));
+    assertThat(page1.isHasNext()).isTrue();
+
+    // cursor = postId of last item on page1
+    Long lastId = page1.getContent().get(1).get(post).getId();
+    Slice<Tuple> page2 =
+        mapQueryRepository.findRecordsByPlaceId(
+            member.getId(), cafe.getId(), SortType.LATEST, null, cursor(lastId, 2));
+
+    assertThat(page2.isHasNext()).isFalse();
+    assertThat(page2.getContent()).hasSize(1);
+    assertThat(page2.getContent().get(0).get(post).getId()).isEqualTo(p1.getId());
+  }
+
+  @Test
+  @DisplayName("장소별 기록 조회 - STUDY_TIME 커서 페이징이 동작한다")
+  void placeRecords_STUDY_TIME_커서_페이징() {
+    Member member = saveMember("user");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    Post p1 = savePost(member, cafe, 30, 80); // studyTime=30
+    Post p2 = savePost(member, cafe, 60, 70); // studyTime=60
+    Post p3 = savePost(member, cafe, 90, 60); // studyTime=90
+    flushAndClear();
+
+    // STUDY_TIME desc → p3(90), p2(60), p1(30)
+    Slice<Tuple> page1 =
+        mapQueryRepository.findRecordsByPlaceId(
+            member.getId(), cafe.getId(), SortType.STUDY_TIME, null, cursor(null, 2));
+    assertThat(page1.isHasNext()).isTrue();
+
+    Post lastPost = page1.getContent().get(1).get(post);
+    String nextCursor = lastPost.getStudyTime() + ":" + lastPost.getId();
+
+    Slice<Tuple> page2 =
+        mapQueryRepository.findRecordsByPlaceId(
+            member.getId(), cafe.getId(), SortType.STUDY_TIME, null, cursor(nextCursor, 2));
+
+    assertThat(page2.isHasNext()).isFalse();
+    assertThat(page2.getContent()).hasSize(1);
+    assertThat(page2.getContent().get(0).get(post).getId()).isEqualTo(p1.getId());
+  }
+
+  @Test
+  @DisplayName("장소별 기록 조회 - FOCUS 커서 페이징이 동작한다")
+  void placeRecords_FOCUS_커서_페이징() {
+    Member member = saveMember("user");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    Post p1 = savePost(member, cafe, 60, 30); // focus=30
+    Post p2 = savePost(member, cafe, 60, 60); // focus=60
+    Post p3 = savePost(member, cafe, 60, 90); // focus=90
+    flushAndClear();
+
+    // FOCUS desc → p3(90), p2(60), p1(30)
+    Slice<Tuple> page1 =
+        mapQueryRepository.findRecordsByPlaceId(
+            member.getId(), cafe.getId(), SortType.FOCUS, null, cursor(null, 2));
+    assertThat(page1.isHasNext()).isTrue();
+
+    Post lastPost = page1.getContent().get(1).get(post);
+    String nextCursor = lastPost.getFocus() + ":" + lastPost.getId();
+
+    Slice<Tuple> page2 =
+        mapQueryRepository.findRecordsByPlaceId(
+            member.getId(), cafe.getId(), SortType.FOCUS, null, cursor(nextCursor, 2));
+
+    assertThat(page2.isHasNext()).isFalse();
+    assertThat(page2.getContent()).hasSize(1);
+    assertThat(page2.getContent().get(0).get(post).getId()).isEqualTo(p1.getId());
+  }
+
+  // =====================
+  //   장소별 북마크 보완 테스트
+  // =====================
+
+  @Test
+  @DisplayName("장소별 북마크 조회 - 다른 멤버의 북마크는 포함되지 않는다")
+  void placeBookmarks_멤버_격리() {
+    Member me = saveMember("me");
+    Member other = saveMember("other");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    Post p1 = savePost(me, cafe, 60, 80);
+    Post p2 = savePost(other, cafe, 90, 70);
+    bookMarkRepository.save(new BookMark(me, p1));
+    bookMarkRepository.save(new BookMark(other, p2));
+    flushAndClear();
+
+    Slice<Tuple> result =
+        mapQueryRepository.findBookmarksByPlaceId(
+            me.getId(), cafe.getId(), SortType.LATEST, null, cursor(null, 10));
+
+    assertThat(result.getContent()).hasSize(1);
+  }
+
+  @Test
+  @DisplayName("장소별 북마크 조회 - 태그 필터 시 태그가 있는 게시글만 포함된다")
+  void placeBookmarks_태그_필터_동작() {
+    Member me = saveMember("me");
+    Member other = saveMember("other");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    Post tagged = savePost(other, cafe, 60, 80);
+    Post untagged = savePost(other, cafe, 90, 70);
+    Tag quietTag = getTag(PlaceTag.QUIET);
+    postTagRepository.save(PostTag.of(tagged, quietTag));
+    bookMarkRepository.save(new BookMark(me, tagged));
+    bookMarkRepository.save(new BookMark(me, untagged));
+    flushAndClear();
+
+    Slice<Tuple> result =
+        mapQueryRepository.findBookmarksByPlaceId(
+            me.getId(), cafe.getId(), SortType.LATEST, List.of(PlaceTag.QUIET), cursor(null, 10));
+
+    assertThat(result.getContent()).hasSize(1);
+    assertThat(result.getContent().get(0).get(post).getId()).isEqualTo(tagged.getId());
+  }
+
+  @Test
+  @DisplayName("장소별 북마크 조회 - limit+1 초과 시 hasNext가 true이다")
+  void placeBookmarks_hasNext() {
+    Member me = saveMember("me");
+    Member other = saveMember("other");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    Post p1 = savePost(other, cafe, 60, 80);
+    Post p2 = savePost(other, cafe, 70, 70);
+    Post p3 = savePost(other, cafe, 80, 60);
+    bookMarkRepository.save(new BookMark(me, p1));
+    bookMarkRepository.save(new BookMark(me, p2));
+    bookMarkRepository.save(new BookMark(me, p3));
+    flushAndClear();
+
+    Slice<Tuple> result =
+        mapQueryRepository.findBookmarksByPlaceId(
+            me.getId(), cafe.getId(), SortType.LATEST, null, cursor(null, 2));
+
+    assertThat(result.isHasNext()).isTrue();
+    assertThat(result.getContent()).hasSize(2);
+  }
+
+  @Test
+  @DisplayName("장소별 북마크 조회 - LATEST 커서 페이징이 동작한다")
+  void placeBookmarks_LATEST_커서_페이징() {
+    Member me = saveMember("me");
+    Member other = saveMember("other");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    Post p1 = savePost(other, cafe, 60, 80);
+    Post p2 = savePost(other, cafe, 70, 70);
+    Post p3 = savePost(other, cafe, 80, 60);
+    bookMarkRepository.save(new BookMark(me, p1));
+    bookMarkRepository.save(new BookMark(me, p2));
+    bookMarkRepository.save(new BookMark(me, p3));
+    flushAndClear();
+
+    // LATEST: desc by id → p3, p2, p1
+    Slice<Tuple> page1 =
+        mapQueryRepository.findBookmarksByPlaceId(
+            me.getId(), cafe.getId(), SortType.LATEST, null, cursor(null, 2));
+    assertThat(page1.isHasNext()).isTrue();
+
+    Long lastId = page1.getContent().get(1).get(post).getId();
+    Slice<Tuple> page2 =
+        mapQueryRepository.findBookmarksByPlaceId(
+            me.getId(), cafe.getId(), SortType.LATEST, null, cursor(lastId, 2));
+
+    assertThat(page2.isHasNext()).isFalse();
+    assertThat(page2.getContent()).hasSize(1);
+    assertThat(page2.getContent().get(0).get(post).getId()).isEqualTo(p1.getId());
+  }
+
+  // =====================
   //       helpers
   // =====================
 
@@ -973,6 +1286,14 @@ class MapQueryRepositoryTest {
             member,
             place,
             placeCategory));
+  }
+
+  private Tag getTag(PlaceTag placeTag) {
+    List<Tag> tags = tagRepository.findByPlaceTag(placeTag);
+    if (tags.isEmpty()) {
+      throw new IllegalStateException("Tag not initialized for PlaceTag: " + placeTag);
+    }
+    return tags.get(0);
   }
 
   private PlaceCategory saveCategory(PlaceCategoryCode code) {

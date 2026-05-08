@@ -3,6 +3,8 @@ package com.plog.plogbackend.domain.map.implement;
 import static com.plog.plogbackend.domain.bookmark.entity.QBookMark.bookMark;
 import static com.plog.plogbackend.domain.place.entity.QPlace.place;
 import static com.plog.plogbackend.domain.post.entity.QPost.post;
+import static com.plog.plogbackend.domain.post.entity.QPostTag.postTag;
+import static com.plog.plogbackend.domain.tag.QTag.tag;
 
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
@@ -27,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -78,7 +81,8 @@ public class MapManager {
     Slice<Tuple> tupleSlice =
         mapQueryRepository.findRecordsByPlaceId(
             getMemberId(memberKey), placeId, sortType, tags, cursorable);
-    return tupleSlice.map(this::toPlaceRecord);
+    Map<Long, List<PlaceTag>> tagsMap = fetchTagsMap(tupleSlice);
+    return tupleSlice.map(t -> toPlaceRecord(t, tagsMap));
   }
 
   public Slice<PlaceRecord> getPlaceBookmarks(
@@ -90,7 +94,8 @@ public class MapManager {
     Slice<Tuple> tupleSlice =
         mapQueryRepository.findBookmarksByPlaceId(
             getMemberId(memberKey), placeId, sortType, tags, cursorable);
-    return tupleSlice.map(this::toPlaceRecord);
+    Map<Long, List<PlaceTag>> tagsMap = fetchTagsMap(tupleSlice);
+    return tupleSlice.map(t -> toPlaceRecord(t, tagsMap));
   }
 
   public Slice<PlaceSummary> getAllRecordPlaces(
@@ -151,15 +156,27 @@ public class MapManager {
         .toList();
   }
 
-  private PlaceRecord toPlaceRecord(Tuple tuple) {
+  private PlaceRecord toPlaceRecord(Tuple tuple, Map<Long, List<PlaceTag>> tagsMap) {
     var p = tuple.get(post);
     return new PlaceRecord(
         p.getId(),
+        p.getTitle(),
         p.getStudyDate(),
         p.getStudyTime(),
         p.getFocus(),
+        p.getContents(),
         tuple.get(1, String.class),
-        tuple.get(post.placeCategory.categoryName));
+        tuple.get(post.placeCategory.categoryName),
+        tagsMap.getOrDefault(p.getId(), List.of()));
+  }
+
+  private Map<Long, List<PlaceTag>> fetchTagsMap(Slice<Tuple> tupleSlice) {
+    List<Long> postIds = tupleSlice.getContent().stream().map(t -> t.get(post).getId()).toList();
+    return mapQueryRepository.findPlaceTagsByPostIds(postIds).stream()
+        .collect(
+            Collectors.groupingBy(
+                t -> t.get(postTag.post.id),
+                Collectors.mapping(t -> t.get(tag.placeTag), Collectors.toList())));
   }
 
   private Map<Long, PlaceCategoryCode> toCategoryModeMap(List<Tuple> tuples) {
