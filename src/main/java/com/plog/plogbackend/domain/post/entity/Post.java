@@ -72,7 +72,8 @@ public class Post extends BaseTimeStatusEntity {
       Integer focus,
       PublicScope scope,
       Member member,
-      Place place) {
+      Place place,
+      PlaceCategory placeCategory) {
 
     this.title = title;
     this.contents = contents;
@@ -84,6 +85,7 @@ public class Post extends BaseTimeStatusEntity {
     this.scope = scope;
     this.member = member;
     this.place = place;
+    this.placeCategory = placeCategory;
     this.likes = 0L;
   }
 
@@ -96,7 +98,8 @@ public class Post extends BaseTimeStatusEntity {
       Integer focus,
       PublicScope scope,
       Member member,
-      Place place) {
+      Place place,
+      PlaceCategory placeCategory) {
     // toIntExact은 캐스팅 실패시 예외를 던져준다
     Integer calculatedStudyTime = Math.toIntExact(Duration.between(startedAt, endedAt).toMinutes());
 
@@ -112,6 +115,7 @@ public class Post extends BaseTimeStatusEntity {
         .scope(scope)
         .member(member)
         .place(place)
+        .placeCategory(placeCategory)
         .build();
   }
 

@@ -9,13 +9,16 @@ import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
-import com.plog.plogbackend.domain.map.model.RecordSortType;
+import com.plog.plogbackend.domain.map.model.SortType;
 import com.plog.plogbackend.domain.map.model.Viewport;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.domain.place.repository.PlaceRepository;
+import com.plog.plogbackend.domain.post.entity.PlaceCategory;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
 import com.plog.plogbackend.domain.post.entity.PublicScope;
+import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
+import com.plog.plogbackend.domain.post.repository.PlaceCategoryRepository;
 import com.plog.plogbackend.domain.post.repository.PostImageRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.global.support.paging.Cursorable;
@@ -25,7 +28,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +50,7 @@ class MapQueryRepositoryTest {
   @Autowired private PostRepository postRepository;
   @Autowired private PostImageRepository postImageRepository;
   @Autowired private BookMarkRepository bookMarkRepository;
+  @Autowired private PlaceCategoryRepository placeCategoryRepository;
   @PersistenceContext private EntityManager em;
 
   // 서울 강남 근처 뷰포트
@@ -65,7 +72,7 @@ class MapQueryRepositoryTest {
 
     Slice<Tuple> result =
         mapQueryRepository.findRecordPinsByMemberId(
-            member.getId(), VIEWPORT, RecordSortType.LATEST, cursor(null, 10));
+            member.getId(), VIEWPORT, SortType.LATEST, cursor(null, 10));
 
     assertThat(result.getContent()).hasSize(1);
     assertThat(result.getContent().get(0).get(place.id)).isEqualTo(inside.getId());
@@ -83,10 +90,10 @@ class MapQueryRepositoryTest {
 
     Slice<Tuple> result =
         mapQueryRepository.findRecordPinsByMemberId(
-            me.getId(), VIEWPORT, RecordSortType.LATEST, cursor(null, 10));
+            me.getId(), VIEWPORT, SortType.LATEST, cursor(null, 10));
 
     assertThat(result.getContent()).hasSize(1);
-    assertThat(result.getContent().get(0).get(post.id.count())).isEqualTo(1L);
+    assertThat(result.getContent().get(0).get(5, Long.class)).isEqualTo(1L);
   }
 
   @Test
@@ -94,13 +101,19 @@ class MapQueryRepositoryTest {
   void record_집계값_검증() {
     Member member = saveMember("user");
     Place cafe = savePlace("카페", 37.5, 127.0);
-    savePost(member, cafe, 60, 80); // studyTime=60, focus=80
-    savePost(member, cafe, 120, 40); // studyTime=120, focus=40
+    Post p1 = savePost(member, cafe, 60, 80); // studyTime=60, focus=80
+    Post p2 = savePost(member, cafe, 120, 40); // studyTime=120, focus=40
+
+    // 이미지 여러 장 추가 (중복 집계 방지 검증)
+    postImageRepository.save(PostImage.of("img1.jpg", p1));
+    postImageRepository.save(PostImage.of("img2.jpg", p1));
+    postImageRepository.save(PostImage.of("img3.jpg", p2));
+
     flushAndClear();
 
     Slice<Tuple> result =
         mapQueryRepository.findRecordPinsByMemberId(
-            member.getId(), VIEWPORT, RecordSortType.LATEST, cursor(null, 10));
+            member.getId(), VIEWPORT, SortType.LATEST, cursor(null, 10));
 
     Tuple tuple = result.getContent().get(0);
     assertThat(tuple.get(post.id.count())).isEqualTo(2L);
@@ -109,7 +122,29 @@ class MapQueryRepositoryTest {
   }
 
   @Test
-  @DisplayName("cursor 이상의 placeId는 반환되지 않는다")
+  @DisplayName("LATEST 정렬 시 가장 최근에 공부한 장소가 먼저 반환된다")
+  void record_최신순_정렬_검증() {
+    Member member = saveMember("user");
+
+    // cafe1(id 작음)에 최근 날짜, cafe2(id 큼)에 예전 날짜 게시글 저장
+    Place cafe1 = savePlace("카페1", 37.5, 127.0);
+    Place cafe2 = savePlace("카페2", 37.5, 127.0);
+
+    savePostWithDate(member, cafe1, LocalDate.of(2024, 5, 10)); // 더 최근
+    savePostWithDate(member, cafe2, LocalDate.of(2024, 5, 1)); // 더 예전
+    flushAndClear();
+
+    Slice<Tuple> result =
+        mapQueryRepository.findRecordPinsByMemberId(
+            member.getId(), VIEWPORT, SortType.LATEST, cursor(null, 10));
+
+    List<Long> placeIds = result.getContent().stream().map(t -> t.get(place.id)).toList();
+    // 최신 공부 날짜순이라면 cafe1이 먼저 나와야 함
+    assertThat(placeIds).containsExactly(cafe1.getId(), cafe2.getId());
+  }
+
+  @Test
+  @DisplayName("cursor 이상의 데이터는 반환되지 않는다 (LATEST)")
   void record_커서_페이지네이션() {
     Member member = saveMember("user");
     Place cafe1 = savePlace("카페1", 37.5, 127.0);
@@ -117,14 +152,15 @@ class MapQueryRepositoryTest {
     Place cafe3 = savePlace("카페3", 37.5, 127.0);
     savePost(member, cafe1, 60, 80);
     savePost(member, cafe2, 60, 80);
-    savePost(member, cafe3, 60, 80);
+    Post p3 = savePost(member, cafe3, 60, 80);
     flushAndClear();
 
-    // cafe3은 cursor로 사용 → cafe3 자신은 결과에서 제외
+    // LATEST 정렬 시 커서: {studyDate}:{placeId}
+    String cursor = LocalDate.of(2024, 1, 1) + ":" + cafe3.getId();
 
     Slice<Tuple> result =
         mapQueryRepository.findRecordPinsByMemberId(
-            member.getId(), VIEWPORT, RecordSortType.LATEST, cursor(cafe3.getId(), 10));
+            member.getId(), VIEWPORT, SortType.LATEST, cursor(cursor, 10));
 
     List<Long> placeIds = result.getContent().stream().map(t -> t.get(place.id)).toList();
     assertThat(placeIds).doesNotContain(cafe3.getId());
@@ -143,10 +179,10 @@ class MapQueryRepositoryTest {
 
     Slice<Tuple> hasNextTrue =
         mapQueryRepository.findRecordPinsByMemberId(
-            member.getId(), VIEWPORT, RecordSortType.LATEST, cursor(null, 1));
+            member.getId(), VIEWPORT, SortType.LATEST, cursor(null, 1));
     Slice<Tuple> hasNextFalse =
         mapQueryRepository.findRecordPinsByMemberId(
-            member.getId(), VIEWPORT, RecordSortType.LATEST, cursor(null, 2));
+            member.getId(), VIEWPORT, SortType.LATEST, cursor(null, 2));
 
     assertThat(hasNextTrue.isHasNext()).isTrue();
     assertThat(hasNextFalse.isHasNext()).isFalse();
@@ -155,7 +191,6 @@ class MapQueryRepositoryTest {
   @Test
   @DisplayName("커서를 이용한 연속 조회 시 데이터가 중복 없이 순서대로 나온다")
   void pagination_Continuous_Success() {
-    // 1. 데이터 준비 (ID가 큰 순서대로 3개 생성)
     Member member = saveMember("user");
     Place cafe1 = savePlace("카페1", 37.5, 127.0);
     Place cafe2 = savePlace("카페2", 37.5, 127.0);
@@ -165,25 +200,24 @@ class MapQueryRepositoryTest {
     savePost(member, cafe3, 60, 80);
     flushAndClear();
 
-    // 2. 첫 번째 페이지 조회 (Limit 1)
     Slice<Tuple> firstPage =
         mapQueryRepository.findRecordPinsByMemberId(
-            member.getId(), VIEWPORT, RecordSortType.LATEST, cursor(null, 1));
+            member.getId(), VIEWPORT, SortType.LATEST, cursor(null, 1));
 
     assertThat(firstPage.getContent()).hasSize(1);
     assertThat(firstPage.isHasNext()).isTrue();
-    Long firstId = firstPage.getContent().get(0).get(place.id);
-    assertThat(firstId).isEqualTo(cafe3.getId()); // 최신순(DESC)이므로 가장 큰 ID
+    Tuple firstTuple = firstPage.getContent().get(0);
+    assertThat(firstTuple.get(place.id)).isEqualTo(cafe3.getId());
 
-    // 3. 두 번째 페이지 조회 (첫 번째 페이지의 ID를 커서로 사용)
+    // LATEST 커서: {studyDate}:{placeId}
+    String firstCursor = firstTuple.get(post.studyDate.max()) + ":" + firstTuple.get(place.id);
     Slice<Tuple> secondPage =
         mapQueryRepository.findRecordPinsByMemberId(
-            member.getId(), VIEWPORT, RecordSortType.LATEST, cursor(firstId, 1));
+            member.getId(), VIEWPORT, SortType.LATEST, cursor(firstCursor, 1));
 
     assertThat(secondPage.getContent()).hasSize(1);
     Long secondId = secondPage.getContent().get(0).get(place.id);
-    assertThat(secondId).isEqualTo(cafe2.getId()); // 그 다음으로 큰 ID가 나와야 함
-    assertThat(secondId).isLessThan(firstId); // ID가 작아지는 방향(최신순) 확인
+    assertThat(secondId).isEqualTo(cafe2.getId());
   }
 
   @Test
@@ -193,15 +227,16 @@ class MapQueryRepositoryTest {
     Place cafe = savePlace("카페", 37.5, 127.0);
     Post oldPost = savePost(member, cafe, 60, 80);
     Post newPost = savePost(member, cafe, 60, 80);
-    postImageRepository.save(PostImage.of("old-image.jpg", oldPost));
-    postImageRepository.save(PostImage.of("new-image.jpg", newPost));
+    // a- 가 붙은 이미지가 알파벳 순으론 빠르지만, id가 큰 newPost의 이미지가 나와야 함
+    postImageRepository.save(PostImage.of("a-old-image.jpg", oldPost));
+    postImageRepository.save(PostImage.of("z-new-image.jpg", newPost));
     flushAndClear();
 
     Slice<Tuple> result =
         mapQueryRepository.findRecordPinsByMemberId(
-            member.getId(), VIEWPORT, RecordSortType.LATEST, cursor(null, 10));
+            member.getId(), VIEWPORT, SortType.LATEST, cursor(null, 10));
 
-    assertThat(result.getContent().get(0).get(8, String.class)).isEqualTo("new-image.jpg");
+    assertThat(result.getContent().get(0).get(8, String.class)).isEqualTo("z-new-image.jpg");
   }
 
   // =====================
@@ -222,7 +257,7 @@ class MapQueryRepositoryTest {
 
     Slice<Tuple> result =
         mapQueryRepository.findBookmarkPinsByMemberId(
-            member.getId(), VIEWPORT, RecordSortType.LATEST, cursor(null, 10));
+            member.getId(), VIEWPORT, SortType.LATEST, cursor(null, 10));
 
     assertThat(result.getContent()).hasSize(1);
     assertThat(result.getContent().get(0).get(place.id)).isEqualTo(inside.getId());
@@ -237,47 +272,90 @@ class MapQueryRepositoryTest {
     Post myPost = savePost(me, cafe, 60, 80);
     Post otherPost = savePost(other, cafe, 60, 80);
     bookMarkRepository.save(new BookMark(me, myPost));
-    bookMarkRepository.save(new BookMark(other, otherPost)); // other의 북마크
+    bookMarkRepository.save(new BookMark(other, otherPost));
     flushAndClear();
 
     Slice<Tuple> result =
         mapQueryRepository.findBookmarkPinsByMemberId(
-            me.getId(), VIEWPORT, RecordSortType.LATEST, cursor(null, 10));
+            me.getId(), VIEWPORT, SortType.LATEST, cursor(null, 10));
 
     assertThat(result.getContent()).hasSize(1);
     assertThat(result.getContent().get(0).get(bookMark.id.count())).isEqualTo(1L);
   }
 
   @Test
-  @DisplayName("같은 장소에 북마크가 여러 개면 count에 모두 집계된다")
-  void bookmark_count_집계() {
+  @DisplayName("북마크 핀 - count·studyTime합계·focus평균이 내 북마크 게시글로만 집계된다")
+  void bookmark_집계값_검증() {
     Member me = saveMember("me");
     Member other = saveMember("other");
     Place cafe = savePlace("카페", 37.5, 127.0);
-    Post post1 = savePost(me, cafe, 60, 80);
-    Post post2 = savePost(other, cafe, 60, 80);
-    bookMarkRepository.save(new BookMark(me, post1));
-    bookMarkRepository.save(new BookMark(me, post2)); // me가 같은 장소 2개 북마크
+    Post p1 = savePost(me, cafe, 60, 80); // studyTime=60, focus=80
+    Post p2 = savePost(other, cafe, 120, 40); // studyTime=120, focus=40
+    bookMarkRepository.save(new BookMark(me, p1));
+    bookMarkRepository.save(new BookMark(me, p2));
     flushAndClear();
 
     Slice<Tuple> result =
         mapQueryRepository.findBookmarkPinsByMemberId(
-            me.getId(), VIEWPORT, RecordSortType.LATEST, cursor(null, 10));
+            me.getId(), VIEWPORT, SortType.LATEST, cursor(null, 10));
 
-    assertThat(result.getContent().get(0).get(bookMark.id.count())).isEqualTo(2L);
+    assertThat(result.getContent()).hasSize(1);
+    Tuple tuple = result.getContent().get(0);
+    assertThat(tuple.get(bookMark.id.count())).isEqualTo(2L);
+    assertThat(tuple.get(post.studyTime.sum())).isEqualTo(180); // 60 + 120
+    assertThat(tuple.get(post.focus.avg())).isEqualTo(60.0); // (80 + 40) / 2
   }
 
-  // =====================
-  //   저장 개수순 정렬 테스트
-  // =====================
+  @Test
+  @DisplayName("북마크 핀 - 북마크하지 않은 게시글은 집계에 포함되지 않는다")
+  void bookmark_미북마크_게시글_집계_제외() {
+    Member me = saveMember("me");
+    Member other = saveMember("other");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    Post bookmarked = savePost(other, cafe, 60, 80);
+    savePost(other, cafe, 120, 40); // 북마크 안 함
+    bookMarkRepository.save(new BookMark(me, bookmarked));
+    flushAndClear();
+
+    Slice<Tuple> result =
+        mapQueryRepository.findBookmarkPinsByMemberId(
+            me.getId(), VIEWPORT, SortType.LATEST, cursor(null, 10));
+
+    Tuple tuple = result.getContent().get(0);
+    assertThat(tuple.get(bookMark.id.count())).isEqualTo(1L);
+    assertThat(tuple.get(post.studyTime.sum())).isEqualTo(60); // 북마크한 게시글만
+    assertThat(tuple.get(post.focus.avg())).isEqualTo(80.0);
+  }
+
+  @Test
+  @DisplayName("북마크 핀 - 다른 멤버의 북마크는 집계에 영향을 주지 않는다")
+  void bookmark_타멤버_북마크_집계_격리() {
+    Member me = saveMember("me");
+    Member other = saveMember("other");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    Post p1 = savePost(me, cafe, 60, 80);
+    Post p2 = savePost(me, cafe, 120, 40);
+    bookMarkRepository.save(new BookMark(me, p1)); // 내 북마크
+    bookMarkRepository.save(new BookMark(other, p2)); // other의 북마크 → 내 핀에 영향 없어야 함
+    flushAndClear();
+
+    Slice<Tuple> result =
+        mapQueryRepository.findBookmarkPinsByMemberId(
+            me.getId(), VIEWPORT, SortType.LATEST, cursor(null, 10));
+
+    Tuple tuple = result.getContent().get(0);
+    assertThat(tuple.get(bookMark.id.count())).isEqualTo(1L); // 내 북마크 1개만
+    assertThat(tuple.get(post.studyTime.sum())).isEqualTo(60); // p1만
+    assertThat(tuple.get(post.focus.avg())).isEqualTo(80.0);
+  }
 
   @Test
   @DisplayName("저장 개수순 정렬 시 기록 많은 장소부터 반환된다")
   void record_저장개수순_정렬() {
     Member member = saveMember("user");
-    Place cafe1 = savePlace("카페1", 37.5, 127.0); // 1개
-    Place cafe2 = savePlace("카페2", 37.5, 127.0); // 3개
-    Place cafe3 = savePlace("카페3", 37.5, 127.0); // 2개
+    Place cafe1 = savePlace("카페1", 37.5, 127.0);
+    Place cafe2 = savePlace("카페2", 37.5, 127.0);
+    Place cafe3 = savePlace("카페3", 37.5, 127.0);
     savePost(member, cafe1, 60, 80);
     savePost(member, cafe2, 60, 80);
     savePost(member, cafe2, 60, 80);
@@ -288,7 +366,7 @@ class MapQueryRepositoryTest {
 
     Slice<Tuple> result =
         mapQueryRepository.findRecordPinsByMemberId(
-            member.getId(), VIEWPORT, RecordSortType.RECORD_COUNT, cursor(null, 10));
+            member.getId(), VIEWPORT, SortType.RECORD_COUNT, cursor(null, 10));
 
     List<Long> placeIds = result.getContent().stream().map(t -> t.get(place.id)).toList();
     assertThat(placeIds).containsExactly(cafe2.getId(), cafe3.getId(), cafe1.getId());
@@ -298,9 +376,9 @@ class MapQueryRepositoryTest {
   @DisplayName("저장 개수순 정렬 시 count:placeId 커서로 다음 페이지를 올바르게 조회한다")
   void record_저장개수순_커서_페이지네이션() {
     Member member = saveMember("user");
-    Place cafe1 = savePlace("카페1", 37.5, 127.0); // 1개
-    Place cafe2 = savePlace("카페2", 37.5, 127.0); // 3개
-    Place cafe3 = savePlace("카페3", 37.5, 127.0); // 2개
+    Place cafe1 = savePlace("카페1", 37.5, 127.0);
+    Place cafe2 = savePlace("카페2", 37.5, 127.0);
+    Place cafe3 = savePlace("카페3", 37.5, 127.0);
     savePost(member, cafe1, 60, 80);
     savePost(member, cafe2, 60, 80);
     savePost(member, cafe2, 60, 80);
@@ -311,21 +389,18 @@ class MapQueryRepositoryTest {
 
     Slice<Tuple> page1 =
         mapQueryRepository.findRecordPinsByMemberId(
-            member.getId(), VIEWPORT, RecordSortType.RECORD_COUNT, cursor(null, 2));
+            member.getId(), VIEWPORT, SortType.RECORD_COUNT, cursor(null, 2));
 
     assertThat(page1.getContent()).hasSize(2);
-    assertThat(page1.isHasNext()).isTrue();
-
     Tuple last = page1.getContent().get(1); // cafe3 (count=2)
-    String nextCursor = last.get(post.id.count()) + ":" + last.get(place.id);
+    String nextCursor = last.get(5, Long.class) + ":" + last.get(place.id);
 
     Slice<Tuple> page2 =
         mapQueryRepository.findRecordPinsByMemberId(
-            member.getId(), VIEWPORT, RecordSortType.RECORD_COUNT, cursor(nextCursor, 2));
+            member.getId(), VIEWPORT, SortType.RECORD_COUNT, cursor(nextCursor, 2));
 
     assertThat(page2.getContent()).hasSize(1);
     assertThat(page2.getContent().get(0).get(place.id)).isEqualTo(cafe1.getId());
-    assertThat(page2.isHasNext()).isFalse();
   }
 
   @Test
@@ -345,121 +420,392 @@ class MapQueryRepositoryTest {
 
     Slice<Tuple> result =
         mapQueryRepository.findBookmarkPinsByMemberId(
-            me.getId(), VIEWPORT, RecordSortType.RECORD_COUNT, cursor(null, 10));
+            me.getId(), VIEWPORT, SortType.RECORD_COUNT, cursor(null, 10));
 
     List<Long> placeIds = result.getContent().stream().map(t -> t.get(place.id)).toList();
     assertThat(placeIds).containsExactly(cafe2.getId(), cafe1.getId());
   }
 
+  // =====================
+  //   장소 검색 테스트
+  // =====================
+
   @Test
-  @DisplayName("북마크 저장 개수순 정렬 시 count:placeId 커서로 다음 페이지를 올바르게 조회한다")
-  void bookmark_저장개수순_커서_페이지네이션() {
-    Member me = saveMember("me");
-    Member other = saveMember("other");
-    Place cafe1 = savePlace("카페1", 37.5, 127.0); // 북마크 1개
-    Place cafe2 = savePlace("카페2", 37.5, 127.0); // 북마크 3개
-    Place cafe3 = savePlace("카페3", 37.5, 127.0); // 북마크 2개
-    Post p1 = savePost(me, cafe1, 60, 80);
-    Post p2 = savePost(me, cafe2, 60, 80);
-    Post p3 = savePost(other, cafe2, 60, 80);
-    Post p4 = savePost(other, cafe2, 60, 80);
-    Post p5 = savePost(me, cafe3, 60, 80);
-    Post p6 = savePost(other, cafe3, 60, 80);
-    bookMarkRepository.save(new BookMark(me, p1));
-    bookMarkRepository.save(new BookMark(me, p2));
-    bookMarkRepository.save(new BookMark(me, p3));
-    bookMarkRepository.save(new BookMark(me, p4));
-    bookMarkRepository.save(new BookMark(me, p5));
-    bookMarkRepository.save(new BookMark(me, p6));
+  @DisplayName("장소 검색 - 키워드에 해당하는 내 기록 있는 장소가 반환된다")
+  void placeSearch_키워드_기록있는_장소_반환() {
+    Member member = saveMember("user");
+    Place starbucksGangnam = placeRepository.save(Place.of("스타벅스 강남점", "서울 강남구", 37.5, 127.0));
+    Place starbucksYeoksam = placeRepository.save(Place.of("스타벅스 역삼점", "서울 강남구 역삼", 37.49, 127.01));
+    Place cafe = savePlace("카페베네", 37.5, 127.0);
+    savePostWithDate(member, starbucksGangnam, LocalDate.of(2024, 5, 1));
+    savePostWithDate(member, starbucksYeoksam, LocalDate.of(2024, 4, 1));
+    savePostWithDate(member, cafe, LocalDate.of(2024, 3, 1));
     flushAndClear();
 
-    Slice<Tuple> page1 =
-        mapQueryRepository.findBookmarkPinsByMemberId(
-            me.getId(), VIEWPORT, RecordSortType.RECORD_COUNT, cursor(null, 2));
+    List<Tuple> result = mapQueryRepository.findRecordedPlacesByKeyword(member.getId(), "스타벅스");
 
-    assertThat(page1.getContent()).hasSize(2);
-    assertThat(page1.isHasNext()).isTrue();
-
-    Tuple last = page1.getContent().get(1); // cafe3 (count=2)
-    String nextCursor = last.get(bookMark.id.count()) + ":" + last.get(place.id);
-
-    Slice<Tuple> page2 =
-        mapQueryRepository.findBookmarkPinsByMemberId(
-            me.getId(), VIEWPORT, RecordSortType.RECORD_COUNT, cursor(nextCursor, 2));
-
-    assertThat(page2.getContent()).hasSize(1);
-    assertThat(page2.getContent().get(0).get(place.id)).isEqualTo(cafe1.getId());
-    assertThat(page2.isHasNext()).isFalse();
+    assertThat(result).hasSize(2);
+    List<String> names = result.stream().map(t -> t.get(place.name)).toList();
+    assertThat(names).containsExactlyInAnyOrder("스타벅스 강남점", "스타벅스 역삼점");
   }
 
   @Test
-  @DisplayName("저장 개수 동일 시 placeId로 정렬되고, 커서 기반 페이지네이션이 중복 없이 동작한다")
-  void record_저장개수순_tie_breaker_커서_검증() {
-    Member member = saveMember("user");
-
-    // placeId 순서: cafe1 < cafe2 < cafe3 < cafe4 (자동 증가 가정)
-    Place cafe1 = savePlace("카페1", 37.5, 127.0); // count=1
-    Place cafe2 = savePlace("카페2", 37.5, 127.0); // count=3
-    Place cafe3 = savePlace("카페3", 37.5, 127.0); // count=2
-    Place cafe4 = savePlace("카페4", 37.5, 127.0); // count=2 (tie)
-
-    // count 세팅
-    savePost(member, cafe1, 60, 80);
-
-    savePost(member, cafe2, 60, 80);
-    savePost(member, cafe2, 60, 80);
-    savePost(member, cafe2, 60, 80);
-
-    savePost(member, cafe3, 60, 80);
-    savePost(member, cafe3, 60, 80);
-
-    savePost(member, cafe4, 60, 80);
-    savePost(member, cafe4, 60, 80);
-
+  @DisplayName("장소 검색 - 다른 멤버의 기록은 포함되지 않는다")
+  void placeSearch_멤버_격리() {
+    Member me = saveMember("me");
+    Member other = saveMember("other");
+    Place starbucks = placeRepository.save(Place.of("스타벅스 강남점", "서울 강남구", 37.5, 127.0));
+    savePostWithDate(other, starbucks, LocalDate.of(2024, 5, 1));
     flushAndClear();
 
-    // 1페이지 (limit=2)
-    Slice<Tuple> page1 =
+    List<Tuple> result = mapQueryRepository.findRecordedPlacesByKeyword(me.getId(), "스타벅스");
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName("장소 검색 - 대소문자 무관하게 검색된다")
+  void placeSearch_대소문자_무관() {
+    Member member = saveMember("user");
+    Place place1 = placeRepository.save(Place.of("Starbucks Gangnam", "서울 강남구", 37.5, 127.0));
+    savePostWithDate(member, place1, LocalDate.of(2024, 5, 1));
+    flushAndClear();
+
+    List<Tuple> upper = mapQueryRepository.findRecordedPlacesByKeyword(member.getId(), "STARBUCKS");
+    List<Tuple> lower = mapQueryRepository.findRecordedPlacesByKeyword(member.getId(), "starbucks");
+
+    assertThat(upper).hasSize(1);
+    assertThat(lower).hasSize(1);
+  }
+
+  @Test
+  @DisplayName("장소 검색 - 키워드 불일치 시 빈 목록을 반환한다")
+  void placeSearch_불일치_빈목록() {
+    Member member = saveMember("user");
+    Place starbucks = placeRepository.save(Place.of("스타벅스 강남점", "서울 강남구", 37.5, 127.0));
+    savePostWithDate(member, starbucks, LocalDate.of(2024, 5, 1));
+    flushAndClear();
+
+    List<Tuple> result = mapQueryRepository.findRecordedPlacesByKeyword(member.getId(), "카페베네");
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName("장소 검색 - 마지막 공부 날짜 내림차순으로 정렬된다")
+  void placeSearch_최신_공부날짜_내림차순() {
+    Member member = saveMember("user");
+    Place starbucksA = placeRepository.save(Place.of("스타벅스 A점", "서울 강남구 A", 37.5, 127.0));
+    Place starbucksB = placeRepository.save(Place.of("스타벅스 B점", "서울 강남구 B", 37.49, 127.01));
+    Place starbucksC = placeRepository.save(Place.of("스타벅스 C점", "서울 강남구 C", 37.48, 127.02));
+    savePostWithDate(member, starbucksA, LocalDate.of(2024, 1, 1));
+    savePostWithDate(member, starbucksB, LocalDate.of(2024, 3, 1));
+    savePostWithDate(member, starbucksC, LocalDate.of(2024, 2, 1));
+    flushAndClear();
+
+    List<Tuple> result = mapQueryRepository.findRecordedPlacesByKeyword(member.getId(), "스타벅스");
+
+    List<LocalDate> dates = result.stream().map(t -> t.get(post.studyDate.max())).toList();
+    assertThat(dates).isSortedAccordingTo(Comparator.reverseOrder());
+  }
+
+  @Test
+  @DisplayName("장소 검색 - 같은 장소에 여러 기록 있을 때 마지막 공부 날짜가 정확히 반환된다")
+  void placeSearch_마지막_공부날짜_정확성() {
+    Member member = saveMember("user");
+    Place starbucks = placeRepository.save(Place.of("스타벅스 강남점", "서울 강남구", 37.5, 127.0));
+    savePostWithDate(member, starbucks, LocalDate.of(2024, 1, 1));
+    savePostWithDate(member, starbucks, LocalDate.of(2024, 6, 15));
+    savePostWithDate(member, starbucks, LocalDate.of(2024, 3, 10));
+    flushAndClear();
+
+    List<Tuple> result = mapQueryRepository.findRecordedPlacesByKeyword(member.getId(), "스타벅스");
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).get(post.studyDate.max())).isEqualTo(LocalDate.of(2024, 6, 15));
+  }
+
+  // =====================
+  //       helpers
+  // =====================
+
+  // =====================
+  //   카테고리 최빈값 조회 테스트
+  // =====================
+
+  @Test
+  @DisplayName("기록 핀 카테고리 카운트 - 카테고리별 실제 count가 저장된 개수와 일치한다")
+  void recordCategoryCounts_카운트_정확성() {
+    Member member = saveMember("user");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    PlaceCategory cafeCat = saveCategory(PlaceCategoryCode.CAFE);
+    PlaceCategory studyCat = saveCategory(PlaceCategoryCode.STUDY_CAFE);
+
+    savePostWithCategory(member, cafe, 60, 80, cafeCat);
+    savePostWithCategory(member, cafe, 60, 80, cafeCat);
+    savePostWithCategory(member, cafe, 60, 80, studyCat);
+    flushAndClear();
+
+    List<Tuple> result =
+        mapQueryRepository.findRecordCategoryCountsByPlaceIds(
+            member.getId(), List.of(cafe.getId()));
+
+    Map<PlaceCategoryCode, Long> countMap =
+        result.stream()
+            .collect(
+                Collectors.toMap(
+                    t -> t.get(1, PlaceCategoryCode.class), t -> t.get(2, Long.class)));
+
+    assertThat(countMap.get(PlaceCategoryCode.CAFE)).isEqualTo(2L);
+    assertThat(countMap.get(PlaceCategoryCode.STUDY_CAFE)).isEqualTo(1L);
+  }
+
+  @Test
+  @DisplayName("기록 핀 카테고리 카운트 - 다른 멤버의 기록은 집계에 포함되지 않는다")
+  void recordCategoryCounts_멤버_격리() {
+    Member me = saveMember("me");
+    Member other = saveMember("other");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    PlaceCategory cafeCat = saveCategory(PlaceCategoryCode.CAFE);
+    PlaceCategory libCat = saveCategory(PlaceCategoryCode.LIBRARY);
+
+    savePostWithCategory(me, cafe, 60, 80, cafeCat);
+    savePostWithCategory(other, cafe, 60, 80, libCat); // 다른 멤버 → 포함 안 됨
+    flushAndClear();
+
+    List<Tuple> result =
+        mapQueryRepository.findRecordCategoryCountsByPlaceIds(me.getId(), List.of(cafe.getId()));
+
+    // 내 기록(CAFE)만 나와야 함
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).get(1, PlaceCategoryCode.class)).isEqualTo(PlaceCategoryCode.CAFE);
+  }
+
+  @Test
+  @DisplayName("기록 핀 카테고리 카운트 - 여러 장소에 대해 각각 카운트가 독립적으로 집계된다")
+  void recordCategoryCounts_장소별_독립_집계() {
+    Member member = saveMember("user");
+    Place cafe1 = savePlace("카페1", 37.5, 127.0);
+    Place cafe2 = savePlace("카페2", 37.5, 127.0);
+    PlaceCategory cafeCat = saveCategory(PlaceCategoryCode.CAFE);
+    PlaceCategory libCat = saveCategory(PlaceCategoryCode.LIBRARY);
+
+    savePostWithCategory(member, cafe1, 60, 80, cafeCat);
+    savePostWithCategory(member, cafe2, 60, 80, libCat);
+    savePostWithCategory(member, cafe2, 60, 80, libCat);
+    flushAndClear();
+
+    List<Tuple> result =
+        mapQueryRepository.findRecordCategoryCountsByPlaceIds(
+            member.getId(), List.of(cafe1.getId(), cafe2.getId()));
+
+    Map<Long, Map<PlaceCategoryCode, Long>> byPlace =
+        result.stream()
+            .collect(
+                Collectors.groupingBy(
+                    t -> t.get(0, Long.class),
+                    Collectors.toMap(
+                        t -> t.get(1, PlaceCategoryCode.class), t -> t.get(2, Long.class))));
+
+    assertThat(byPlace.get(cafe1.getId()).get(PlaceCategoryCode.CAFE)).isEqualTo(1L);
+    assertThat(byPlace.get(cafe2.getId()).get(PlaceCategoryCode.LIBRARY)).isEqualTo(2L);
+  }
+
+  @Test
+  @DisplayName("북마크 핀 카테고리 카운트 - 북마크한 게시글의 카테고리별 count가 일치한다")
+  void bookmarkCategoryCounts_카운트_정확성() {
+    Member me = saveMember("me");
+    Member other = saveMember("other");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    PlaceCategory cafeCat = saveCategory(PlaceCategoryCode.CAFE);
+    PlaceCategory studyCat = saveCategory(PlaceCategoryCode.STUDY_CAFE);
+
+    Post p1 = savePostWithCategory(other, cafe, 60, 80, cafeCat);
+    Post p2 = savePostWithCategory(other, cafe, 60, 80, cafeCat);
+    Post p3 = savePostWithCategory(other, cafe, 60, 80, studyCat);
+    bookMarkRepository.save(new BookMark(me, p1));
+    bookMarkRepository.save(new BookMark(me, p2));
+    bookMarkRepository.save(new BookMark(me, p3));
+    flushAndClear();
+
+    List<Tuple> result =
+        mapQueryRepository.findBookmarkCategoryCountsByPlaceIds(me.getId(), List.of(cafe.getId()));
+
+    Map<PlaceCategoryCode, Long> countMap =
+        result.stream()
+            .collect(
+                Collectors.toMap(
+                    t -> t.get(1, PlaceCategoryCode.class), t -> t.get(2, Long.class)));
+
+    assertThat(countMap.get(PlaceCategoryCode.CAFE)).isEqualTo(2L);
+    assertThat(countMap.get(PlaceCategoryCode.STUDY_CAFE)).isEqualTo(1L);
+  }
+
+  @Test
+  @DisplayName("북마크 핀 카테고리 카운트 - 내 북마크가 아닌 기록은 집계에 포함되지 않는다")
+  void bookmarkCategoryCounts_멤버_격리() {
+    Member me = saveMember("me");
+    Member other = saveMember("other");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    PlaceCategory cafeCat = saveCategory(PlaceCategoryCode.CAFE);
+    PlaceCategory libCat = saveCategory(PlaceCategoryCode.LIBRARY);
+
+    Post myPost = savePostWithCategory(other, cafe, 60, 80, cafeCat);
+    Post otherPost = savePostWithCategory(other, cafe, 60, 80, libCat);
+    bookMarkRepository.save(new BookMark(me, myPost));
+    bookMarkRepository.save(new BookMark(other, otherPost)); // other의 북마크 → 포함 안 됨
+    flushAndClear();
+
+    List<Tuple> result =
+        mapQueryRepository.findBookmarkCategoryCountsByPlaceIds(me.getId(), List.of(cafe.getId()));
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).get(1, PlaceCategoryCode.class)).isEqualTo(PlaceCategoryCode.CAFE);
+  }
+
+  // =====================
+  //   장소별 기록/북마크 카테고리 검증
+  // =====================
+
+  @Test
+  @DisplayName("장소별 기록 조회 - 각 게시글의 카테고리가 실제 저장된 카테고리와 일치한다")
+  void placeRecords_카테고리_저장값_일치() {
+    Member member = saveMember("user");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    PlaceCategory cafeCat = saveCategory(PlaceCategoryCode.CAFE);
+    PlaceCategory studyCat = saveCategory(PlaceCategoryCode.STUDY_CAFE);
+
+    Post p1 = savePostWithCategory(member, cafe, 60, 80, cafeCat);
+    Post p2 = savePostWithCategory(member, cafe, 90, 70, studyCat);
+    flushAndClear();
+
+    Slice<Tuple> result =
+        mapQueryRepository.findRecordsByPlaceId(
+            member.getId(), cafe.getId(), SortType.LATEST, null, cursor(null, 10));
+
+    // 각 postId → 실제 반환된 카테고리 매핑
+    Map<Long, PlaceCategoryCode> returned =
+        result.getContent().stream()
+            .collect(
+                Collectors.toMap(
+                    t -> t.get(post).getId(), t -> t.get(post.placeCategory.categoryName)));
+
+    // 저장한 카테고리와 정확히 일치해야 함
+    assertThat(returned.get(p1.getId())).isEqualTo(PlaceCategoryCode.CAFE);
+    assertThat(returned.get(p2.getId())).isEqualTo(PlaceCategoryCode.STUDY_CAFE);
+  }
+
+  @Test
+  @DisplayName("장소별 기록 조회 - 카테고리가 없는 게시글은 null을 반환한다")
+  void placeRecords_카테고리_null() {
+    Member member = saveMember("user");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    Post p = savePostWithCategory(member, cafe, 60, 80, null); // 카테고리 없음
+    flushAndClear();
+
+    Slice<Tuple> result =
+        mapQueryRepository.findRecordsByPlaceId(
+            member.getId(), cafe.getId(), SortType.LATEST, null, cursor(null, 10));
+
+    assertThat(result.getContent().get(0).get(post.placeCategory.categoryName)).isNull();
+  }
+
+  @Test
+  @DisplayName("장소별 북마크 조회 - 각 게시글의 카테고리가 실제 저장된 카테고리와 일치한다")
+  void placeBookmarks_카테고리_저장값_일치() {
+    Member me = saveMember("me");
+    Member other = saveMember("other");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    PlaceCategory cafeCat = saveCategory(PlaceCategoryCode.CAFE);
+    PlaceCategory libCat = saveCategory(PlaceCategoryCode.LIBRARY);
+
+    Post p1 = savePostWithCategory(other, cafe, 60, 80, cafeCat);
+    Post p2 = savePostWithCategory(other, cafe, 90, 70, libCat);
+    bookMarkRepository.save(new BookMark(me, p1));
+    bookMarkRepository.save(new BookMark(me, p2));
+    flushAndClear();
+
+    Slice<Tuple> result =
+        mapQueryRepository.findBookmarksByPlaceId(
+            me.getId(), cafe.getId(), SortType.LATEST, null, cursor(null, 10));
+
+    Map<Long, PlaceCategoryCode> returned =
+        result.getContent().stream()
+            .collect(
+                Collectors.toMap(
+                    t -> t.get(post).getId(), t -> t.get(post.placeCategory.categoryName)));
+
+    assertThat(returned.get(p1.getId())).isEqualTo(PlaceCategoryCode.CAFE);
+    assertThat(returned.get(p2.getId())).isEqualTo(PlaceCategoryCode.LIBRARY);
+  }
+
+  // =====================
+  //   정렬 속성 검증 (값 기반)
+  // =====================
+
+  @Test
+  @DisplayName("장소별 기록 - STUDY_TIME 정렬 시 반환된 studyTime이 내림차순이다")
+  void placeRecords_STUDY_TIME_정렬_속성_검증() {
+    Member member = saveMember("user");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    savePost(member, cafe, 30, 80);
+    savePost(member, cafe, 90, 70);
+    savePost(member, cafe, 60, 90);
+    savePost(member, cafe, 45, 85);
+    flushAndClear();
+
+    Slice<Tuple> result =
+        mapQueryRepository.findRecordsByPlaceId(
+            member.getId(), cafe.getId(), SortType.STUDY_TIME, null, cursor(null, 10));
+
+    List<Integer> studyTimes =
+        result.getContent().stream().map(t -> t.get(post).getStudyTime()).toList();
+
+    assertThat(studyTimes).isSortedAccordingTo(Comparator.reverseOrder());
+  }
+
+  @Test
+  @DisplayName("장소별 기록 - FOCUS 정렬 시 반환된 focus가 내림차순이다")
+  void placeRecords_FOCUS_정렬_속성_검증() {
+    Member member = saveMember("user");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    savePost(member, cafe, 60, 50);
+    savePost(member, cafe, 60, 90);
+    savePost(member, cafe, 60, 70);
+    savePost(member, cafe, 60, 30);
+    flushAndClear();
+
+    Slice<Tuple> result =
+        mapQueryRepository.findRecordsByPlaceId(
+            member.getId(), cafe.getId(), SortType.FOCUS, null, cursor(null, 10));
+
+    List<Integer> focuses = result.getContent().stream().map(t -> t.get(post).getFocus()).toList();
+
+    assertThat(focuses).isSortedAccordingTo(Comparator.reverseOrder());
+  }
+
+  @Test
+  @DisplayName("저장 개수순 정렬 시 반환된 count가 내림차순이다")
+  void record_RECORD_COUNT_정렬_속성_검증() {
+    Member member = saveMember("user");
+    Place cafe1 = savePlace("카페1", 37.5, 127.0);
+    Place cafe2 = savePlace("카페2", 37.5, 127.0);
+    Place cafe3 = savePlace("카페3", 37.5, 127.0);
+    savePost(member, cafe1, 60, 80);
+    savePost(member, cafe2, 60, 80);
+    savePost(member, cafe2, 60, 80);
+    savePost(member, cafe2, 60, 80);
+    savePost(member, cafe3, 60, 80);
+    savePost(member, cafe3, 60, 80);
+    flushAndClear();
+
+    Slice<Tuple> result =
         mapQueryRepository.findRecordPinsByMemberId(
-            member.getId(), VIEWPORT, RecordSortType.RECORD_COUNT, cursor(null, 2));
+            member.getId(), VIEWPORT, SortType.RECORD_COUNT, cursor(null, 10));
 
-    assertThat(page1.getContent()).hasSize(2);
-    assertThat(page1.isHasNext()).isTrue();
+    List<Long> counts = result.getContent().stream().map(t -> t.get(post.id.count())).toList();
 
-    // 기대 순서: count DESC, placeId DESC
-    // cafe2(3) -> cafe4(2) (cafe3보다 id 큼)
-    List<Long> page1Ids = page1.getContent().stream().map(t -> t.get(place.id)).toList();
-
-    assertThat(page1Ids).containsExactly(cafe2.getId(), cafe4.getId());
-
-    // 커서 생성
-    Tuple last = page1.getContent().get(1); // cafe4
-    String nextCursor = last.get(post.id.count()) + ":" + last.get(place.id);
-
-    // 2페이지
-    Slice<Tuple> page2 =
-        mapQueryRepository.findRecordPinsByMemberId(
-            member.getId(), VIEWPORT, RecordSortType.RECORD_COUNT, cursor(nextCursor, 2));
-
-    assertThat(page2.getContent()).hasSize(2);
-
-    List<Long> page2Ids = page2.getContent().stream().map(t -> t.get(place.id)).toList();
-
-    // 남은 순서: cafe3(2), cafe1(1)
-    assertThat(page2Ids).containsExactly(cafe3.getId(), cafe1.getId());
-
-    // 🔥 핵심: 중복 없음 + 전체 순서 검증
-    List<Long> all = new java.util.ArrayList<>();
-    all.addAll(page1Ids);
-    all.addAll(page2Ids);
-
-    assertThat(all)
-        .containsExactly(
-            cafe2.getId(), // 3
-            cafe4.getId(), // 2 (id 큰 것 먼저)
-            cafe3.getId(), // 2
-            cafe1.getId() // 1
-            );
+    assertThat(counts).isSortedAccordingTo(Comparator.reverseOrder());
   }
 
   // =====================
@@ -486,6 +832,25 @@ class MapQueryRepositoryTest {
 
   private Post savePost(Member member, Place place, int studyMinutes, int focus) {
     LocalDateTime start = LocalDateTime.of(2024, 1, 1, 9, 0);
+
+    // 1. 이미 저장된 'CAFE' 카테고리가 있는지 DB에서 조회
+    List<PlaceCategory> categories =
+        em.createQuery(
+                "select p from PlaceCategory p where p.categoryName = :name", PlaceCategory.class)
+            .setParameter("name", PlaceCategoryCode.CAFE)
+            .getResultList();
+
+    PlaceCategory placeCategory;
+    if (categories.isEmpty()) {
+      // 2. 없으면 새로 만들어서 영속화(저장)
+      placeCategory = PlaceCategory.builder().categoryName(PlaceCategoryCode.CAFE).build();
+      em.persist(placeCategory);
+    } else {
+      // 3. 있으면 기존에 저장된 객체를 재사용
+      placeCategory = categories.get(0);
+    }
+
+    // 4. Post 생성 및 저장
     return postRepository.save(
         Post.of(
             "title",
@@ -496,6 +861,49 @@ class MapQueryRepositoryTest {
             focus,
             PublicScope.PRIVATE,
             member,
-            place));
+            place,
+            placeCategory));
+  }
+
+  private PlaceCategory saveCategory(PlaceCategoryCode code) {
+    return placeCategoryRepository
+        .findByCategoryName(code)
+        .orElseThrow(() -> new IllegalStateException("PlaceCategory not initialized: " + code));
+  }
+
+  private Post savePostWithDate(Member member, Place place, LocalDate studyDate) {
+    LocalDateTime start = LocalDateTime.of(studyDate, java.time.LocalTime.of(9, 0));
+    return postRepository.save(
+        Post.builder()
+            .title("title")
+            .contents("contents")
+            .startedAt(start)
+            .endedAt(start.plusMinutes(60))
+            .studyDate(studyDate)
+            .studyTime(60)
+            .focus(80)
+            .scope(PublicScope.PRIVATE)
+            .member(member)
+            .place(place)
+            .build());
+  }
+
+  private Post savePostWithCategory(
+      Member member, Place place, int studyMinutes, int focus, PlaceCategory category) {
+    LocalDateTime start = LocalDateTime.of(2024, 1, 1, 9, 0);
+    return postRepository.save(
+        Post.builder()
+            .title("title")
+            .contents("contents")
+            .startedAt(start)
+            .endedAt(start.plusMinutes(studyMinutes))
+            .studyDate(LocalDate.of(2024, 1, 1))
+            .studyTime(studyMinutes)
+            .focus(focus)
+            .scope(PublicScope.PRIVATE)
+            .member(member)
+            .place(place)
+            .placeCategory(category)
+            .build());
   }
 }

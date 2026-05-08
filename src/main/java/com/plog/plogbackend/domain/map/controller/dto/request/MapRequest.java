@@ -1,6 +1,6 @@
 package com.plog.plogbackend.domain.map.controller.dto.request;
 
-import com.plog.plogbackend.domain.map.model.RecordSortType;
+import com.plog.plogbackend.domain.map.model.SortType;
 import com.plog.plogbackend.domain.map.model.Viewport;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -11,8 +11,12 @@ public record MapRequest(
     @NotNull @Min(-180) @Max(180) Double swLng,
     @NotNull @Min(-90) @Max(90) Double neLat,
     @NotNull @Min(-180) @Max(180) Double neLng,
-    @NotNull RecordSortType sortType) {
+    SortType sortType) {
   public Viewport toViewport() {
     return Viewport.of(swLat, swLng, neLat, neLng);
+  }
+
+  public SortType sortType() {
+    return sortType == null ? SortType.LATEST : sortType;
   }
 }
