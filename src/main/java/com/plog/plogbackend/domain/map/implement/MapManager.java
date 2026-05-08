@@ -10,6 +10,7 @@ import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.map.model.MapCount;
 import com.plog.plogbackend.domain.map.model.MapPin;
+import com.plog.plogbackend.domain.map.model.PlaceDetail;
 import com.plog.plogbackend.domain.map.model.PlaceRecord;
 import com.plog.plogbackend.domain.map.model.PlaceSearchResult;
 import com.plog.plogbackend.domain.map.model.PlaceSummary;
@@ -126,9 +127,52 @@ public class MapManager {
     return tupleSlice.map(t -> toPlaceSummary(t, categoryMap, bookMark.id.count()));
   }
 
+  public PlaceDetail getRecordPinDetail(UUID memberKey, Long placeId) {
+    Long memberId = getMemberId(memberKey);
+    Tuple t =
+        mapQueryRepository
+            .findRecordPinDetailByPlaceId(memberId, placeId)
+            .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
+    PlaceCategoryCode category =
+        toCategoryModeMap(
+                mapQueryRepository.findRecordCategoryCountsByPlaceIds(memberId, List.of(placeId)))
+            .get(placeId);
+    return PlaceDetail.of(
+        t.get(place.id),
+        t.get(place.name),
+        t.get(place.address),
+        t.get(post.id.count()),
+        t.get(post.focus.avg()),
+        t.get(post.studyTime.sum()).longValue(),
+        t.get(6, String.class),
+        category);
+  }
+
+  public PlaceDetail getBookmarkPinDetail(UUID memberKey, Long placeId) {
+    Long memberId = getMemberId(memberKey);
+    Tuple t =
+        mapQueryRepository
+            .findBookmarkPinDetailByPlaceId(memberId, placeId)
+            .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
+    PlaceCategoryCode category =
+        toCategoryModeMap(
+                mapQueryRepository.findBookmarkCategoryCountsByPlaceIds(memberId, List.of(placeId)))
+            .get(placeId);
+    return PlaceDetail.of(
+        t.get(place.id),
+        t.get(place.name),
+        t.get(place.address),
+        t.get(bookMark.id.count()),
+        t.get(post.focus.avg()),
+        t.get(post.studyTime.sum()).longValue(),
+        t.get(6, String.class),
+        category);
+  }
+
   private PlaceSummary toPlaceSummary(
       Tuple t, Map<Long, PlaceCategoryCode> categoryMap, NumberExpression<Long> countExpr) {
     Long placeId = t.get(place.id);
+    Integer studyTimeSum = t.get(8, Integer.class);
     return PlaceSummary.of(
         placeId,
         t.get(place.name),
@@ -138,7 +182,8 @@ public class MapManager {
         t.get(countExpr),
         t.get(6, String.class),
         categoryMap.get(placeId),
-        t.get(post.studyDate.max()));
+        t.get(post.studyDate.max()),
+        studyTimeSum != null ? studyTimeSum.longValue() : 0L);
   }
 
   public List<PlaceSearchResult> searchRecordedPlaces(UUID memberKey, String keyword) {
