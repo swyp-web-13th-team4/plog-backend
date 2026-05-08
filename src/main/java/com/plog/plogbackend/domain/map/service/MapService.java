@@ -1,6 +1,7 @@
 package com.plog.plogbackend.domain.map.service;
 
 import com.plog.plogbackend.domain.map.implement.MapManager;
+import com.plog.plogbackend.domain.map.model.MapCount;
 import com.plog.plogbackend.domain.map.model.MapPin;
 import com.plog.plogbackend.domain.map.model.PlaceRecord;
 import com.plog.plogbackend.domain.map.model.PlaceSearchResult;
@@ -56,5 +57,10 @@ public class MapService {
       List<PlaceTag> tags,
       Cursorable<String> cursorable) {
     return mapManager.getPlaceBookmarks(memberKey, placeId, sortType, tags, cursorable);
+  }
+
+  @Transactional(readOnly = true)
+  public MapCount getMapCount(UUID memberKey) {
+    return mapManager.getMapCount(memberKey);
   }
 }
