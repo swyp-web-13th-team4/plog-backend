@@ -93,18 +93,16 @@ public class PostService {
 
   private Place findOrCreatePlace(PostCreateCommand command) {
     PlaceCommand placeReq = command.place();
-    Place findPlace =
-        placeRepository
-            .findByNameAndAddress(placeReq.name(), placeReq.address())
-            .orElseGet(
-                () ->
-                    placeRepository.save(
-                        Place.of(
-                            placeReq.name(),
-                            placeReq.address(),
-                            placeReq.latitude(),
-                            placeReq.longitude())));
-    return findPlace;
+    return placeRepository
+        .findByNameAndAddress(placeReq.name(), placeReq.address())
+        .orElseGet(
+            () ->
+                placeRepository.save(
+                    Place.of(
+                        placeReq.name(),
+                        placeReq.address(),
+                        placeReq.latitude(),
+                        placeReq.longitude())));
   }
 
   private PlaceCategory findPlaceCategory(PostCreateCommand command) {
