@@ -22,8 +22,8 @@ import com.plog.plogbackend.domain.post.entity.PublicScope;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.post.repository.PlaceCategoryRepository;
 import com.plog.plogbackend.domain.post.repository.PostImageRepository;
-import com.plog.plogbackend.domain.post.repository.PostTagRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
+import com.plog.plogbackend.domain.post.repository.PostTagRepository;
 import com.plog.plogbackend.domain.tag.Tag;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.plog.plogbackend.domain.tag.repository.TagRepository;
@@ -1027,7 +1027,11 @@ class MapQueryRepositoryTest {
 
     Slice<Tuple> result =
         mapQueryRepository.findRecordsByPlaceId(
-            member.getId(), cafe.getId(), SortType.LATEST, List.of(PlaceTag.QUIET), cursor(null, 10));
+            member.getId(),
+            cafe.getId(),
+            SortType.LATEST,
+            List.of(PlaceTag.QUIET),
+            cursor(null, 10));
 
     assertThat(result.getContent()).hasSize(1);
     assertThat(result.getContent().get(0).get(post).getId()).isEqualTo(tagged.getId());
@@ -1083,9 +1087,9 @@ class MapQueryRepositoryTest {
   void placeRecords_STUDY_TIME_커서_페이징() {
     Member member = saveMember("user");
     Place cafe = savePlace("카페", 37.5, 127.0);
-    Post p1 = savePost(member, cafe, 30, 80);  // studyTime=30
-    Post p2 = savePost(member, cafe, 60, 70);  // studyTime=60
-    Post p3 = savePost(member, cafe, 90, 60);  // studyTime=90
+    Post p1 = savePost(member, cafe, 30, 80); // studyTime=30
+    Post p2 = savePost(member, cafe, 60, 70); // studyTime=60
+    Post p3 = savePost(member, cafe, 90, 60); // studyTime=90
     flushAndClear();
 
     // STUDY_TIME desc → p3(90), p2(60), p1(30)
@@ -1111,9 +1115,9 @@ class MapQueryRepositoryTest {
   void placeRecords_FOCUS_커서_페이징() {
     Member member = saveMember("user");
     Place cafe = savePlace("카페", 37.5, 127.0);
-    Post p1 = savePost(member, cafe, 60, 30);  // focus=30
-    Post p2 = savePost(member, cafe, 60, 60);  // focus=60
-    Post p3 = savePost(member, cafe, 60, 90);  // focus=90
+    Post p1 = savePost(member, cafe, 60, 30); // focus=30
+    Post p2 = savePost(member, cafe, 60, 60); // focus=60
+    Post p3 = savePost(member, cafe, 60, 90); // focus=90
     flushAndClear();
 
     // FOCUS desc → p3(90), p2(60), p1(30)

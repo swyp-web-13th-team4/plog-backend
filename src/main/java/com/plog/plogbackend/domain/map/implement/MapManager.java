@@ -20,7 +20,6 @@ import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.plog.plogbackend.global.error.AppException;
-import java.util.stream.Collectors;
 import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.global.support.paging.Cursorable;
 import com.plog.plogbackend.global.support.paging.Slice;
@@ -30,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -171,8 +171,7 @@ public class MapManager {
   }
 
   private Map<Long, List<PlaceTag>> fetchTagsMap(Slice<Tuple> tupleSlice) {
-    List<Long> postIds =
-        tupleSlice.getContent().stream().map(t -> t.get(post).getId()).toList();
+    List<Long> postIds = tupleSlice.getContent().stream().map(t -> t.get(post).getId()).toList();
     return mapQueryRepository.findPlaceTagsByPostIds(postIds).stream()
         .collect(
             Collectors.groupingBy(
