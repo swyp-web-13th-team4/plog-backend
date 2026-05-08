@@ -110,7 +110,7 @@ public class MapController {
   @GetMapping("/pins/records/{placeId}")
   @Operation(
       summary = "기록 핀 상세 조회",
-      description = "기록 핀을 탭했을 때 장소명, 주소, 기록 수, 평균 집중도, 평균 공부시간, 장소 카테고리를 반환합니다.")
+      description = "기록 핀을 탭했을 때 장소에 대한 정보를 반환합니다.")
   public ResponseEntity<ApiResponse<PlaceDetailResponse>> getRecordPinDetail(
       @AuthenticationPrincipal UUID memberKey, @PathVariable Long placeId) {
     return ResponseEntity.ok(
@@ -121,7 +121,7 @@ public class MapController {
   @GetMapping("/pins/bookmarks/{placeId}")
   @Operation(
       summary = "북마크 핀 상세 조회",
-      description = "북마크 핀을 탭했을 때 장소명, 주소, 북마크 수, 평균 집중도, 평균 공부시간, 장소 카테고리를 반환합니다.")
+      description = "북마크 핀을 탭했을 때 장소에 대한 정보를 반환합니다.")
   public ResponseEntity<ApiResponse<PlaceDetailResponse>> getBookmarkPinDetail(
       @AuthenticationPrincipal UUID memberKey, @PathVariable Long placeId) {
     return ResponseEntity.ok(
