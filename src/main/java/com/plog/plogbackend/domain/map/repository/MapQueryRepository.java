@@ -33,7 +33,12 @@ public class MapQueryRepository {
   public List<Tuple> findRecordPinsByMemberId(Long memberId, Viewport viewport) {
 
     return queryFactory
-        .select(place.id, place.latitude, place.longitude, post.id.count(),latestThumbnailByPlace(memberId))
+        .select(
+            place.id,
+            place.latitude,
+            place.longitude,
+            post.id.count(),
+            latestThumbnailByPlace(memberId))
         .from(post)
         .join(post.place, place)
         .where(
@@ -44,11 +49,15 @@ public class MapQueryRepository {
         .fetch();
   }
 
-  public List<Tuple> findBookmarkPinsByMemberId(
-      Long memberId, Viewport viewport) {
+  public List<Tuple> findBookmarkPinsByMemberId(Long memberId, Viewport viewport) {
 
     return queryFactory
-        .select(place.id, place.latitude, place.longitude, bookMark.id.count(),latestThumbnailByBookmark(memberId))
+        .select(
+            place.id,
+            place.latitude,
+            place.longitude,
+            bookMark.id.count(),
+            latestThumbnailByBookmark(memberId))
         .from(bookMark)
         .join(bookMark.post, post)
         .join(post.place, place)
@@ -240,7 +249,7 @@ public class MapQueryRepository {
   }
 
   private BooleanExpression cursorConditionByPost(SortType sortType, String cursor) {
-    if(cursor == null || cursor.isBlank()) return null;
+    if (cursor == null || cursor.isBlank()) return null;
     return switch (sortType) {
       case STUDY_TIME -> {
         String[] parts = cursor.split(":");
@@ -277,17 +286,18 @@ public class MapQueryRepository {
                     .join(postImage.post, post)
                     .where(post.place.id.eq(place.id).and(post.member.id.eq(memberId)))));
   }
+
   private Expression<String> latestThumbnailByBookmark(Long memberId) {
     return JPAExpressions.select(postImage.imageUrl)
-            .from(postImage)
-            .where(
-                    postImage.id.eq(
-                            JPAExpressions.select(postImage.id.max())
-                                    .from(postImage)
-                                    .join(postImage.post, post)
-                                    .join(bookMark).on(bookMark.post.id.eq(post.id)
-                                            .and(bookMark.member.id.eq(memberId)))
-                                    .where(post.place.id.eq(place.id))));
+        .from(postImage)
+        .where(
+            postImage.id.eq(
+                JPAExpressions.select(postImage.id.max())
+                    .from(postImage)
+                    .join(postImage.post, post)
+                    .join(bookMark)
+                    .on(bookMark.post.id.eq(post.id).and(bookMark.member.id.eq(memberId)))
+                    .where(post.place.id.eq(place.id))));
   }
 
   private <T> boolean hasNext(Cursorable<?> cursorable, List<T> content) {

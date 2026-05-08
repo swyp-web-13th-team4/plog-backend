@@ -4,7 +4,8 @@ import com.plog.plogbackend.domain.map.model.MapPin;
 import lombok.Builder;
 
 @Builder
-public record MapPinResponse(Long placeId, Double latitude, Double longitude, Long count, String thumbnailUrl) {
+public record MapPinResponse(
+    Long placeId, Double latitude, Double longitude, Long count, String thumbnailUrl) {
 
   public static MapPinResponse from(MapPin mapPin) {
     return MapPinResponse.builder()
@@ -12,7 +13,7 @@ public record MapPinResponse(Long placeId, Double latitude, Double longitude, Lo
         .latitude(mapPin.getLatitude())
         .longitude(mapPin.getLongitude())
         .count(mapPin.getCount())
-            .thumbnailUrl(mapPin.getThumbnailUrl())
+        .thumbnailUrl(mapPin.getThumbnailUrl())
         .build();
   }
 }

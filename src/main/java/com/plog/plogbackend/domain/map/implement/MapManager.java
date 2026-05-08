@@ -50,25 +50,23 @@ public class MapManager {
                     t.get(place.latitude),
                     t.get(place.longitude),
                     t.get(post.id.count()),
-                        t.get(4, String.class)))
+                    t.get(4, String.class)))
         .toList();
   }
 
-  public List<MapPin> getBookmarkPins(
-      UUID memberKey, Viewport viewport) {
+  public List<MapPin> getBookmarkPins(UUID memberKey, Viewport viewport) {
     Long memberId = getMemberId(memberKey);
     List<Tuple> pins = mapQueryRepository.findBookmarkPinsByMemberId(memberId, viewport);
     return pins.stream()
-            .map(
-                    t->
-                            MapPin.of(
-                            t.get(place.id),
-                            t.get(place.latitude),
-                            t.get(place.longitude),
-                            t.get(bookMark.id.count()),
-                            t.get(4, String.class)))
-            .toList();
-
+        .map(
+            t ->
+                MapPin.of(
+                    t.get(place.id),
+                    t.get(place.latitude),
+                    t.get(place.longitude),
+                    t.get(bookMark.id.count()),
+                    t.get(4, String.class)))
+        .toList();
   }
 
   public Slice<PlaceRecord> getPlaceRecords(
@@ -101,8 +99,7 @@ public class MapManager {
     Slice<Tuple> tupleSlice =
         mapQueryRepository.findAllRecordPlaces(memberId, sortType, cursorable);
 
-    List<Long> placeIds =
-        tupleSlice.getContent().stream().map(t -> t.get(place.id)).toList();
+    List<Long> placeIds = tupleSlice.getContent().stream().map(t -> t.get(place.id)).toList();
     Map<Long, PlaceCategoryCode> categoryMap =
         toCategoryModeMap(
             mapQueryRepository.findRecordCategoryCountsByPlaceIds(memberId, placeIds));
@@ -116,8 +113,7 @@ public class MapManager {
     Slice<Tuple> tupleSlice =
         mapQueryRepository.findAllBookmarkPlaces(memberId, sortType, cursorable);
 
-    List<Long> placeIds =
-        tupleSlice.getContent().stream().map(t -> t.get(place.id)).toList();
+    List<Long> placeIds = tupleSlice.getContent().stream().map(t -> t.get(place.id)).toList();
     Map<Long, PlaceCategoryCode> categoryMap =
         toCategoryModeMap(
             mapQueryRepository.findBookmarkCategoryCountsByPlaceIds(memberId, placeIds));

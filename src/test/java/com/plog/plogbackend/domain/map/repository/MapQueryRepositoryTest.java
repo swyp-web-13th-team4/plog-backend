@@ -760,8 +760,7 @@ class MapQueryRepositoryTest {
         mapQueryRepository.findAllRecordPlaces(
             member.getId(), SortType.RECORD_COUNT, cursor(null, 10));
 
-    List<Long> counts =
-        result.getContent().stream().map(t -> t.get(post.id.count())).toList();
+    List<Long> counts = result.getContent().stream().map(t -> t.get(post.id.count())).toList();
     assertThat(counts).isSortedAccordingTo(Comparator.reverseOrder());
   }
 

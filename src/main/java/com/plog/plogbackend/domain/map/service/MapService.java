@@ -29,8 +29,7 @@ public class MapService {
   }
 
   @Transactional(readOnly = true)
-  public List<MapPin> findMyBookmarkPins(
-      UUID memberKey, Viewport viewport) {
+  public List<MapPin> findMyBookmarkPins(UUID memberKey, Viewport viewport) {
     return mapManager.getBookmarkPins(memberKey, viewport);
   }
 

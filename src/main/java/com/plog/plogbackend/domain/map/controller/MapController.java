@@ -82,11 +82,9 @@ public class MapController {
   }
 
   @GetMapping("/pins/records")
-  @Operation(summary = "지도 홈 화면 내 기록 목록 조회",
-          description = "지도 홈 화면에서 뷰포트 내의 핀에 대한 내 기록 목록을 조회합니다.")
+  @Operation(summary = "지도 홈 화면 내 기록 목록 조회", description = "지도 홈 화면에서 뷰포트 내의 핀에 대한 내 기록 목록을 조회합니다.")
   public ResponseEntity<ApiResponse<List<MapPinResponse>>> getRecords(
-      @AuthenticationPrincipal UUID memberKey,
-      @Valid MapRequest request) {
+      @AuthenticationPrincipal UUID memberKey, @Valid MapRequest request) {
     List<MapPinResponse> pins =
         mapService.findMyRecordPins(memberKey, request.toViewport()).stream()
             .map(MapPinResponse::from)
@@ -99,13 +97,11 @@ public class MapController {
       summary = "지도 홈 화면 북마크 목록 조회",
       description = "지도 홈 화면에서 뷰포트 내의 핀에 대한 자신의 북마크 목록을 조회합니다.")
   public ResponseEntity<ApiResponse<List<MapPinResponse>>> getBookmarks(
-      @AuthenticationPrincipal UUID memberKey,
-      @Valid MapRequest request) {
+      @AuthenticationPrincipal UUID memberKey, @Valid MapRequest request) {
     List<MapPinResponse> pins =
-        mapService
-            .findMyBookmarkPins(memberKey, request.toViewport()).stream()
-                .map(MapPinResponse::from)
-                .toList();
+        mapService.findMyBookmarkPins(memberKey, request.toViewport()).stream()
+            .map(MapPinResponse::from)
+            .toList();
 
     return ResponseEntity.ok(ApiResponse.success(pins));
   }

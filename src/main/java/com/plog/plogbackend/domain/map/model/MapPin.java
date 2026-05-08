@@ -15,13 +15,14 @@ public class MapPin {
   private Long count;
   private String thumbnailUrl;
 
-  public static MapPin of(Long placeId, Double latitude, Double longitude, Long count, String thumbnailUrl) {
+  public static MapPin of(
+      Long placeId, Double latitude, Double longitude, Long count, String thumbnailUrl) {
     return MapPin.builder()
         .placeId(placeId)
         .latitude(latitude)
         .longitude(longitude)
         .count(count)
-            .thumbnailUrl(thumbnailUrl)
+        .thumbnailUrl(thumbnailUrl)
         .build();
   }
 }
