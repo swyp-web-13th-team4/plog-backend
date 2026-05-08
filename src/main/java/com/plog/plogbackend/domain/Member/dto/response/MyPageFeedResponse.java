@@ -25,7 +25,7 @@ public record MyPageFeedResponse(
     @Schema(description = "좋아요 여부") boolean like,
     @Schema(description = "북마크 여부") boolean bookMark,
     @Schema(description = "장소 카테고리(value)") String placeCategory,
-    @Schema(description = "공개 범위") PublicScope scope) {
+    @Schema(description = "공개 여부 (true: PUBLIC, false: PRIVATE)") boolean isPublic) {
 
   public static MyPageFeedResponse from(Post post, boolean isLiked, boolean isBookMarked) {
     return new MyPageFeedResponse(
@@ -46,6 +46,6 @@ public record MyPageFeedResponse(
         post.getPlaceCategory() != null && post.getPlaceCategory().getCategoryName() != null
             ? post.getPlaceCategory().getCategoryName().getValue()
             : null,
-        post.getScope());
+        post.getScope() == PublicScope.PUBLIC);
   }
 }
