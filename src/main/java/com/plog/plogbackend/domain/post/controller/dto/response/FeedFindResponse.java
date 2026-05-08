@@ -5,8 +5,10 @@ import com.plog.plogbackend.domain.post.entity.PostImage;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public record FeedFindResponse(
+    Long postId,
     String name,
     String profileImage,
     LocalDateTime createAt,
@@ -19,11 +21,13 @@ public record FeedFindResponse(
     Integer focus,
     List<PlaceTag> tags,
     boolean like,
-    boolean bookMark) {
+    boolean bookMark,
+    UUID memberKey) {
 
   public static FeedFindResponse from(Post post, boolean isLiked, boolean isBookMarked) {
 
     return new FeedFindResponse(
+        post.getId(),
         post.getMember().getNickname(),
         post.getMember().getProfileImage(),
         post.getCreatedAt(),
@@ -36,24 +40,7 @@ public record FeedFindResponse(
         post.getFocus(),
         post.getTags().stream().map(postTag -> postTag.getTag().getPlaceTag()).toList(),
         isLiked,
-        isBookMarked);
-  }
-
-  public static FeedFindResponse from(Post post) {
-
-    return new FeedFindResponse(
-        post.getMember().getNickname(),
-        post.getMember().getProfileImage(),
-        post.getCreatedAt(),
-        post.getImages().stream().map(PostImage::getImageUrl).toList(),
-        post.getLikes(),
-        post.getTitle(),
-        post.getContents(),
-        post.getPlace().getName(),
-        post.getStudyTime(),
-        post.getFocus(),
-        post.getTags().stream().map(postTag -> postTag.getTag().getPlaceTag()).toList(),
-        true,
-        true);
+        isBookMarked,
+        post.getMember().getMemberKey());
   }
 }
