@@ -13,7 +13,8 @@ public record PlaceSummaryResponse(
     Long count,
     String thumbnailUrl,
     PlaceCategoryCode placeCategory,
-    LocalDate lastStudyDate) {
+    LocalDate lastStudyDate,
+    Long totalStudyTime) {
 
   public static PlaceSummaryResponse from(PlaceSummary summary) {
     return new PlaceSummaryResponse(
@@ -25,6 +26,7 @@ public record PlaceSummaryResponse(
         summary.getCount(),
         summary.getThumbnailUrl(),
         summary.getPlaceCategory(),
-        summary.getLastStudyDate());
+        summary.getLastStudyDate(),
+        summary.getTotalStudyTime());
   }
 }

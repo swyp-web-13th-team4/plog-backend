@@ -3,6 +3,7 @@ package com.plog.plogbackend.domain.map.service;
 import com.plog.plogbackend.domain.map.implement.MapManager;
 import com.plog.plogbackend.domain.map.model.MapCount;
 import com.plog.plogbackend.domain.map.model.MapPin;
+import com.plog.plogbackend.domain.map.model.PlaceDetail;
 import com.plog.plogbackend.domain.map.model.PlaceRecord;
 import com.plog.plogbackend.domain.map.model.PlaceSearchResult;
 import com.plog.plogbackend.domain.map.model.PlaceSummary;
@@ -73,5 +74,15 @@ public class MapService {
   @Transactional(readOnly = true)
   public MapCount getMapCount(UUID memberKey) {
     return mapManager.getMapCount(memberKey);
+  }
+
+  @Transactional(readOnly = true)
+  public PlaceDetail findRecordPinDetail(UUID memberKey, Long placeId) {
+    return mapManager.getRecordPinDetail(memberKey, placeId);
+  }
+
+  @Transactional(readOnly = true)
+  public PlaceDetail findBookmarkPinDetail(UUID memberKey, Long placeId) {
+    return mapManager.getBookmarkPinDetail(memberKey, placeId);
   }
 }

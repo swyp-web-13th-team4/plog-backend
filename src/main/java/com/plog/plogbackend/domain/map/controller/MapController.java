@@ -4,6 +4,7 @@ import com.plog.plogbackend.domain.map.controller.dto.request.MapRequest;
 import com.plog.plogbackend.domain.map.controller.dto.response.MapCountResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.MapPinResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.PageResponse;
+import com.plog.plogbackend.domain.map.controller.dto.response.PlaceDetailResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.PlaceRecordResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.PlaceSearchResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.PlaceSummaryResponse;
@@ -104,6 +105,28 @@ public class MapController {
             .toList();
 
     return ResponseEntity.ok(ApiResponse.success(pins));
+  }
+
+  @GetMapping("/pins/records/{placeId}")
+  @Operation(
+      summary = "기록 핀 상세 조회",
+      description = "기록 핀을 탭했을 때 장소명, 주소, 기록 수, 평균 집중도, 평균 공부시간, 장소 카테고리를 반환합니다.")
+  public ResponseEntity<ApiResponse<PlaceDetailResponse>> getRecordPinDetail(
+      @AuthenticationPrincipal UUID memberKey, @PathVariable Long placeId) {
+    return ResponseEntity.ok(
+        ApiResponse.success(
+            PlaceDetailResponse.from(mapService.findRecordPinDetail(memberKey, placeId))));
+  }
+
+  @GetMapping("/pins/bookmarks/{placeId}")
+  @Operation(
+      summary = "북마크 핀 상세 조회",
+      description = "북마크 핀을 탭했을 때 장소명, 주소, 북마크 수, 평균 집중도, 평균 공부시간, 장소 카테고리를 반환합니다.")
+  public ResponseEntity<ApiResponse<PlaceDetailResponse>> getBookmarkPinDetail(
+      @AuthenticationPrincipal UUID memberKey, @PathVariable Long placeId) {
+    return ResponseEntity.ok(
+        ApiResponse.success(
+            PlaceDetailResponse.from(mapService.findBookmarkPinDetail(memberKey, placeId))));
   }
 
   @GetMapping("/{placeId}/records")

@@ -21,6 +21,7 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -133,7 +134,8 @@ public class MapQueryRepository {
                 place.longitude,
                 countExpr,
                 latestThumbnailByPlace(memberId),
-                post.studyDate.max())
+                post.studyDate.max(),
+                post.studyTime.sum())
             .from(post)
             .join(post.place, place)
             .where(post.member.id.eq(memberId))
@@ -160,7 +162,8 @@ public class MapQueryRepository {
                 place.longitude,
                 countExpr,
                 latestThumbnailByBookmark(memberId),
-                post.studyDate.max())
+                post.studyDate.max(),
+                post.studyTime.sum())
             .from(bookMark)
             .join(bookMark.post, post)
             .join(post.place, place)
@@ -221,6 +224,43 @@ public class MapQueryRepository {
         .where(bookMark.member.id.eq(memberId), post.place.id.in(placeIds))
         .groupBy(post.place.id, post.placeCategory.categoryName)
         .fetch();
+  }
+
+  public Optional<Tuple> findRecordPinDetailByPlaceId(Long memberId, Long placeId) {
+    return Optional.ofNullable(
+        queryFactory
+            .select(
+                place.id,
+                place.name,
+                place.address,
+                post.id.count(),
+                post.focus.avg(),
+                post.studyTime.sum(),
+                latestThumbnailByPlace(memberId))
+            .from(post)
+            .join(post.place, place)
+            .where(post.member.id.eq(memberId), place.id.eq(placeId))
+            .groupBy(place.id)
+            .fetchOne());
+  }
+
+  public Optional<Tuple> findBookmarkPinDetailByPlaceId(Long memberId, Long placeId) {
+    return Optional.ofNullable(
+        queryFactory
+            .select(
+                place.id,
+                place.name,
+                place.address,
+                bookMark.id.count(),
+                post.focus.avg(),
+                post.studyTime.sum(),
+                latestThumbnailByBookmark(memberId))
+            .from(bookMark)
+            .join(bookMark.post, post)
+            .join(post.place, place)
+            .where(bookMark.member.id.eq(memberId), place.id.eq(placeId))
+            .groupBy(place.id)
+            .fetchOne());
   }
 
   private OrderSpecifier<?>[] orderByPlace(SortType sortType, NumberExpression<Long> countExpr) {
