@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 public record FeedFindResponse(
+    Long postId,
     String name,
     String profileImage,
     LocalDateTime createAt,
@@ -26,6 +27,7 @@ public record FeedFindResponse(
   public static FeedFindResponse from(Post post, boolean isLiked, boolean isBookMarked) {
 
     return new FeedFindResponse(
+        post.getId(),
         post.getMember().getNickname(),
         post.getMember().getProfileImage(),
         post.getCreatedAt(),
