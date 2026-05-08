@@ -14,6 +14,7 @@ import com.plog.plogbackend.domain.post.service.dto.FeedMyPageCommand;
 import com.plog.plogbackend.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,7 @@ public class FeedController {
   private final FeedService feedService;
 
   // 전체 조회
+  @Tag(name = "피드")
   @Operation(summary = "피드 전체 조회")
   @GetMapping("/feed/list")
   public ResponseEntity<ApiResponse<FeedResponse>> feedList(
@@ -43,6 +45,7 @@ public class FeedController {
   }
 
   // 상세 조회
+  @Tag(name = "피드")
   @Operation(summary = "피드 상세 조회")
   @GetMapping("/feed/{postId}")
   public ResponseEntity<ApiResponse<FeedDetailResponse>> feedDetail(
@@ -56,6 +59,7 @@ public class FeedController {
     return ResponseEntity.ok().body(success);
   }
 
+  @Tag(name = "피드")
   @Operation(summary = "다른 유저 피드 및 프로필 조회")
   @GetMapping("/feed/profileView/{memberKey}")
   public ResponseEntity<ApiResponse<FeedUserResponse>> mypage(
@@ -68,6 +72,7 @@ public class FeedController {
     return ResponseEntity.ok().body(ApiResponse.success(response));
   }
 
+  @Tag(name = "피드")
   @Operation(
       summary = "다른 유저 작성 게시글 목록 조회 (정렬)",
       description = "정렬 조건(latest, focus, studyTime)에 따라 조회합니다. 태그 필터링은 지원하지 않습니다.")
@@ -87,6 +92,7 @@ public class FeedController {
     return ResponseEntity.ok().body(ApiResponse.success(response));
   }
 
+  @Tag(name = "피드")
   @Operation(summary = "북마크 추가/삭제", description = "true 반환 시 추가, false 반환 시 삭제  ")
   @PostMapping("/feed/bookmark/{postId}")
   public ResponseEntity<ApiResponse<UpdateBookMarked>> bookMark(
@@ -99,6 +105,7 @@ public class FeedController {
     return ResponseEntity.ok().body(result);
   }
 
+  @Tag(name = "피드")
   @Operation(summary = "좋아요 추가/삭제", description = "true 반환 시 추가, false 반환 시 삭제  ")
   @PostMapping("/feed/like/{postId}")
   public ResponseEntity<ApiResponse<UpdateLiked>> like(
