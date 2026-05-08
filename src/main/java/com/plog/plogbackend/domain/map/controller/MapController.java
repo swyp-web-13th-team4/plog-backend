@@ -1,6 +1,7 @@
 package com.plog.plogbackend.domain.map.controller;
 
 import com.plog.plogbackend.domain.map.controller.dto.request.MapRequest;
+import com.plog.plogbackend.domain.map.controller.dto.response.MapCountResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.MapPinResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.PageResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.PlaceRecordResponse;
@@ -33,6 +34,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class MapController {
 
   private final MapService mapService;
+
+  @GetMapping("/count")
+  @Operation(summary = "지도 기록/북마크 개수 조회", description = "본인의 전체 기록 수와 북마크 수를 반환합니다.")
+  public ResponseEntity<ApiResponse<MapCountResponse>> getMapCount(
+      @AuthenticationPrincipal UUID memberKey) {
+    return ResponseEntity.ok(
+        ApiResponse.success(MapCountResponse.of(mapService.getMapCount(memberKey))));
+  }
 
   @GetMapping("/places")
   @Operation(summary = "기록한 장소 검색", description = "키워드에 해당하는 내 기록이 있는 장소 목록을 최신 공부 날짜순으로 반환합니다.")

@@ -809,6 +809,41 @@ class MapQueryRepositoryTest {
   }
 
   // =====================
+  //   기록/북마크 개수 조회
+  // =====================
+
+  @Test
+  @DisplayName("기록 개수 - 내 게시글 수만 반환된다")
+  void recordCount_멤버_격리() {
+    Member me = saveMember("me");
+    Member other = saveMember("other");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    savePost(me, cafe, 60, 80);
+    savePost(me, cafe, 60, 80);
+    savePost(other, cafe, 60, 80);
+    flushAndClear();
+
+    assertThat(postRepository.countByMemberId(me.getId())).isEqualTo(2L);
+  }
+
+  @Test
+  @DisplayName("북마크 개수 - 내 북마크 수만 반환된다")
+  void bookmarkCount_멤버_격리() {
+    Member me = saveMember("me");
+    Member other = saveMember("other");
+    Place cafe = savePlace("카페", 37.5, 127.0);
+    Post p1 = savePost(me, cafe, 60, 80);
+    Post p2 = savePost(me, cafe, 60, 80);
+    Post p3 = savePost(other, cafe, 60, 80);
+    bookMarkRepository.save(new BookMark(me, p1));
+    bookMarkRepository.save(new BookMark(me, p2));
+    bookMarkRepository.save(new BookMark(other, p3));
+    flushAndClear();
+
+    assertThat(bookMarkRepository.countByMemberId(me.getId())).isEqualTo(2L);
+  }
+
+  // =====================
   //       helpers
   // =====================
 
