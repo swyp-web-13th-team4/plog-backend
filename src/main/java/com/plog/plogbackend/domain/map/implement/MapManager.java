@@ -5,6 +5,8 @@ import static com.plog.plogbackend.domain.place.entity.QPlace.place;
 import static com.plog.plogbackend.domain.post.entity.QPost.post;
 
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
+import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
+import com.plog.plogbackend.domain.map.model.MapCount;
 import com.plog.plogbackend.domain.map.model.MapPin;
 import com.plog.plogbackend.domain.map.model.PlaceRecord;
 import com.plog.plogbackend.domain.map.model.PlaceSearchResult;
@@ -12,6 +14,7 @@ import com.plog.plogbackend.domain.map.model.SortType;
 import com.plog.plogbackend.domain.map.model.Viewport;
 import com.plog.plogbackend.domain.map.repository.MapQueryRepository;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
+import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
@@ -30,6 +33,8 @@ import org.springframework.stereotype.Component;
 public class MapManager {
   private final MapQueryRepository mapQueryRepository;
   private final MemberRepository memberRepository;
+  private final PostRepository postRepository;
+  private final BookMarkRepository bookMarkRepository;
 
   public Slice<MapPin> getRecordsPins(
       UUID memberKey, Viewport viewport, SortType sortType, Cursorable<String> cursorable) {
@@ -139,7 +144,6 @@ public class MapManager {
         tuple.get(post.placeCategory.categoryName));
   }
 
-  // placeId → 최빈 카테고리 맵
   private Map<Long, PlaceCategoryCode> toCategoryModeMap(List<Tuple> tuples) {
     Map<Long, Long> maxCounts = new HashMap<>();
     Map<Long, PlaceCategoryCode> result = new HashMap<>();
@@ -153,6 +157,14 @@ public class MapManager {
       }
     }
     return result;
+  }
+
+  public MapCount getMapCount(UUID memberKey) {
+    Long memberId = getMemberId(memberKey);
+    long recordCnt = postRepository.countByMemberId(memberId);
+    long bookmarkCnt = bookMarkRepository.countByMemberId(memberId);
+
+    return MapCount.of(recordCnt, bookmarkCnt);
   }
 
   private Long getMemberId(UUID memberKey) {
