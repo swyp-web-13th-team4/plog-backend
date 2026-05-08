@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plog — 피드(Feed) 테스트</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #070b14;
+      --surface: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #e8eaf6;
+      --muted: #7986ab;
+      --accent: #818cf8;
+      --success: #4ade80;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 32px 16px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      animation: float 8s ease-in-out infinite;
+    }
+
+    .bg-orb-1 {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(74, 222, 128, 0.12), transparent 70%);
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .bg-orb-2 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.15), transparent 70%);
+      bottom: -100px;
+      right: -100px;
+      animation-delay: -4s;
+    }
+
+    @keyframes float {
+      0%,
+      100% {
+        transform: translateX(-50%) translateY(0);
+      }
+      50% {
+        transform: translateX(-50%) translateY(-20px);
+      }
+    }
+
+    .page-wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px 28px;
+      backdrop-filter: blur(16px);
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .row {
+      display: flex;
+      gap: 16px;
+    }
+    .row > .form-group {
+      flex: 1;
+    }
+
+    .api-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+    }
+
+    .method-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    .get {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+    }
+
+    .post {
+      background: rgba(74, 222, 128, 0.15);
+      color: #86efac;
+      border: 1px solid rgba(74, 222, 128, 0.25);
+    }
+
+    .api-path {
+      font-family: monospace;
+      font-size: 0.82rem;
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .api-run-btn {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .api-run-btn:hover {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    .api-result {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 10px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: #a5b4fc;
+      display: none;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .footer-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-outline {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(129, 140, 248, 0.06);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+
+  <div class="page-wrap">
+    
+    <div style="text-align: center; margin-bottom: 10px;">
+      <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 8px;">피드(Feed) API 테스트</h2>
+      <p style="color: var(--muted); font-size: 0.9rem;">게시글 목록 조회 및 북마크, 좋아요 기능 등을 테스트합니다.</p>
+    </div>
+
+    <!-- 피드 전체 조회 -->
+    <div class="card">
+      <div class="card-title">📖 피드 전체 조회</div>
+      <p style="font-size:0.85rem; color:var(--muted); margin-bottom: 12px;">최신 게시글 목록을 불러옵니다.</p>
+      
+      <div class="row">
+        <div class="form-group">
+          <label>마지막 Post ID (Cursor, 처음엔 비워둠)</label>
+          <input type="number" id="f-lastId" class="form-control" placeholder="예: 15">
+        </div>
+        <div class="form-group">
+          <label>가져올 개수 (Size)</label>
+          <input type="number" id="f-size" class="form-control" value="10">
+        </div>
+      </div>
+      
+      <div class="api-row">
+        <span class="method-badge get">GET</span>
+        <span class="api-path">/api/feed/list</span>
+        <button class="api-run-btn" onclick="testFeedList()">전체 조회</button>
+      </div>
+      <div class="api-result" id="result-feed-list"></div>
+    </div>
+
+    <!-- 피드 상세 조회 -->
+    <div class="card">
+      <div class="card-title">🔍 피드 상세 조회</div>
+      <div class="row" style="align-items: flex-end;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label>게시글 ID (Post ID)</label>
+          <input type="number" id="detail-post-id" class="form-control" placeholder="예: 1">
+        </div>
+      </div>
+      
+      <div class="api-row" style="margin-top: 12px;">
+        <span class="method-badge get">GET</span>
+        <span class="api-path">/api/feed/{postId}</span>
+        <button class="api-run-btn" onclick="testFeedDetail()">상세 조회</button>
+      </div>
+      <div class="api-result" id="result-feed-detail"></div>
+    </div>
+
+    <!-- 다른 유저 피드 및 프로필 조회 -->
+    <div class="card">
+      <div class="card-title">👤 다른 유저 프로필 조회</div>
+      <p style="font-size:0.85rem; color:var(--muted); margin-bottom: 12px;">특정 유저의 프로필 정보 및 기본 데이터를 조회합니다.</p>
+      
+      <div class="form-group">
+        <label>대상 유저의 Member Key (UUID)</label>
+        <input type="text" id="target-member-key" class="form-control" placeholder="예: 123e4567-e89b-12d3-a456-426614174000">
+      </div>
+      
+      <div class="api-row">
+        <span class="method-badge get">GET</span>
+        <span class="api-path">/api/feed/profileView/{memberKey}</span>
+        <button class="api-run-btn" onclick="testProfileView()">프로필 조회</button>
+      </div>
+      <div class="api-result" id="result-profile-view"></div>
+    </div>
+
+    <!-- 다른 유저 작성 게시글 목록 조회 (정렬) -->
+    <div class="card">
+      <div class="card-title">🗂️ 다른 유저 게시글 목록 조회</div>
+      <p style="font-size:0.85rem; color:var(--muted); margin-bottom: 12px;">대상 유저의 게시글들을 정렬하여 불러옵니다.</p>
+      
+      <div class="row">
+        <div class="form-group">
+          <label>대상 유저 Member Key (UUID)</label>
+          <input type="text" id="target-member-key-posts" class="form-control" placeholder="UUID 입력">
+        </div>
+        <div class="form-group">
+          <label>정렬 조건</label>
+          <select id="target-sort" class="form-control">
+            <option value="latest">최신순 (latest)</option>
+            <option value="focus">집중도순 (focus)</option>
+            <option value="studyTime">작업시간순 (studyTime)</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="api-row">
+        <span class="method-badge get">GET</span>
+        <span class="api-path">/api/feed/profileView/{memberKey}/posts</span>
+        <button class="api-run-btn" onclick="testOtherUserPosts()">게시글 조회</button>
+      </div>
+      <div class="api-result" id="result-other-posts"></div>
+    </div>
+
+    <!-- 북마크 추가/삭제 -->
+    <div class="card">
+      <div class="card-title">⭐ 북마크 토글</div>
+      <div class="row" style="align-items: flex-end;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label>게시글 ID (Post ID)</label>
+          <input type="number" id="bookmark-post-id" class="form-control" placeholder="예: 1">
+        </div>
+      </div>
+      
+      <div class="api-row" style="margin-top: 12px;">
+        <span class="method-badge post">POST</span>
+        <span class="api-path">/api/feed/bookmark/{postId}</span>
+        <button class="api-run-btn" onclick="testBookmark()">북마크 토글</button>
+      </div>
+      <div class="api-result" id="result-bookmark"></div>
+    </div>
+
+    <!-- 좋아요 추가/삭제 -->
+    <div class="card">
+      <div class="card-title">❤️ 좋아요 토글</div>
+      <div class="row" style="align-items: flex-end;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label>게시글 ID (Post ID)</label>
+          <input type="number" id="like-post-id" class="form-control" placeholder="예: 1">
+        </div>
+      </div>
+      
+      <div class="api-row" style="margin-top: 12px;">
+        <span class="method-badge post">POST</span>
+        <span class="api-path">/api/feed/like/{postId}</span>
+        <button class="api-run-btn" onclick="testLike()">좋아요 토글</button>
+      </div>
+      <div class="api-result" id="result-like"></div>
+    </div>
+
+    <div class="footer-btns">
+      <a class="btn-outline" href="success.html">← 로그인 성공 페이지</a>
+      <a class="btn-outline" href="post.html">📝 게시글 작성(새창)</a>
+    </div>
+
+  </div>
+
+  <script>
+    // const API_BASE = 'https://plog-dev.duckdns.org';
+    const API_BASE = 'http://localhost:8080'; // 로컬 테스트 시
+
+    async function doApiCall(method, path, resultId) {
+      const resultEl = document.getElementById(resultId);
+      resultEl.style.display = 'block';
+      resultEl.style.color = '#a5b4fc';
+      resultEl.textContent = '요청 중...';
+
+      try {
+        const res = await fetch(`${API_BASE}${path}`, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include' // 세션/쿠키 전달을 위해 필수
+        });
+        const data = await res.json();
+        
+        resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
+        resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(data, null, 2)}`;
+      } catch (err) {
+        resultEl.style.color = '#fca5a5';
+        resultEl.textContent = `연결 실패: ${err.message}`;
+      }
+    }
+
+    function testFeedList() {
+      const lastId = document.getElementById('f-lastId').value;
+      const size = document.getElementById('f-size').value || 10;
+      let query = `?size=${size}`;
+      if (lastId) {
+        query += `&lastPostId=${lastId}`;
+      }
+      doApiCall('GET', `/api/feed/list${query}`, 'result-feed-list');
+    }
+
+    function testFeedDetail() {
+      const postId = document.getElementById('detail-post-id').value;
+      if (!postId) return alert('게시글 ID를 입력해주세요.');
+      doApiCall('GET', `/api/feed/${postId}`, 'result-feed-detail');
+    }
+
+    function testProfileView() {
+      const memberKey = document.getElementById('target-member-key').value.trim();
+      if (!memberKey) return alert('Member Key(UUID)를 입력해주세요.');
+      doApiCall('GET', `/api/feed/profileView/${memberKey}`, 'result-profile-view');
+    }
+
+    function testOtherUserPosts() {
+      const memberKey = document.getElementById('target-member-key-posts').value.trim();
+      const sort = document.getElementById('target-sort').value;
+      if (!memberKey) return alert('Member Key(UUID)를 입력해주세요.');
+      doApiCall('GET', `/api/feed/profileView/${memberKey}/posts?sort=${sort}`, 'result-other-posts');
+    }
+
+    function testBookmark() {
+      const postId = document.getElementById('bookmark-post-id').value;
+      if (!postId) return alert('게시글 ID를 입력해주세요.');
+      doApiCall('POST', `/api/feed/bookmark/${postId}`, 'result-bookmark');
+    }
+
+    function testLike() {
+      const postId = document.getElementById('like-post-id').value;
+      if (!postId) return alert('게시글 ID를 입력해주세요.');
+      doApiCall('POST', `/api/feed/like/${postId}`, 'result-like');
+    }
+  </script>
+</body>
+</html>
