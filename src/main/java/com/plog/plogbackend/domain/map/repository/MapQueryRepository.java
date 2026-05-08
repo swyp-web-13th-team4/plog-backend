@@ -30,71 +30,43 @@ public class MapQueryRepository {
 
   private final JPAQueryFactory queryFactory;
 
-  public Slice<Tuple> findRecordPinsByMemberId(
-      Long memberId, Viewport viewport, SortType sortType, Cursorable<String> cursorable) {
-    NumberExpression<Long> countExpr = post.id.count();
+  public List<Tuple> findRecordPinsByMemberId(Long memberId, Viewport viewport) {
 
-    List<Tuple> tuples =
-        queryFactory
-            .select(
-                place.id,
-                place.name,
-                place.address,
-                place.latitude,
-                place.longitude,
-                countExpr,
-                post.studyTime.sum(),
-                post.focus.avg(),
-                latestThumbnailByPlace(memberId),
-                post.studyDate.max())
-            .from(post)
-            .join(post.place, place)
-            .where(
-                post.member.id.eq(memberId),
-                place.latitude.between(viewport.getSwLat(), viewport.getNeLat()),
-                place.longitude.between(viewport.getSwLng(), viewport.getNeLng()))
-            .groupBy(place.id)
-            .having(
-                latestCursorHaving(sortType, cursorable.getCursor()),
-                countCursorHaving(sortType, cursorable.getCursor(), countExpr))
-            .orderBy(orderByPlace(sortType, countExpr))
-            .limit(cursorable.getLimit() + 1)
-            .fetch();
-    return new Slice<>(tuples, cursorable, hasNext(cursorable, tuples));
+    return queryFactory
+        .select(
+            place.id,
+            place.latitude,
+            place.longitude,
+            post.id.count(),
+            latestThumbnailByPlace(memberId))
+        .from(post)
+        .join(post.place, place)
+        .where(
+            post.member.id.eq(memberId),
+            place.latitude.between(viewport.getSwLat(), viewport.getNeLat()),
+            place.longitude.between(viewport.getSwLng(), viewport.getNeLng()))
+        .groupBy(place.id)
+        .fetch();
   }
 
-  public Slice<Tuple> findBookmarkPinsByMemberId(
-      Long memberId, Viewport viewport, SortType sortType, Cursorable<String> cursorable) {
-    NumberExpression<Long> countExpr = bookMark.id.count();
+  public List<Tuple> findBookmarkPinsByMemberId(Long memberId, Viewport viewport) {
 
-    List<Tuple> tuples =
-        queryFactory
-            .select(
-                place.id,
-                place.name,
-                place.address,
-                place.latitude,
-                place.longitude,
-                countExpr,
-                post.studyTime.sum(),
-                post.focus.avg(),
-                latestThumbnailByPlace(memberId),
-                post.studyDate.max())
-            .from(bookMark)
-            .join(bookMark.post, post)
-            .join(post.place, place)
-            .where(
-                bookMark.member.id.eq(memberId),
-                place.latitude.between(viewport.getSwLat(), viewport.getNeLat()),
-                place.longitude.between(viewport.getSwLng(), viewport.getNeLng()))
-            .groupBy(place.id)
-            .having(
-                latestCursorHaving(sortType, cursorable.getCursor()),
-                countCursorHaving(sortType, cursorable.getCursor(), countExpr))
-            .orderBy(orderByPlace(sortType, countExpr))
-            .limit(cursorable.getLimit() + 1)
-            .fetch();
-    return new Slice<>(tuples, cursorable, hasNext(cursorable, tuples));
+    return queryFactory
+        .select(
+            place.id,
+            place.latitude,
+            place.longitude,
+            bookMark.id.count(),
+            latestThumbnailByBookmark(memberId))
+        .from(bookMark)
+        .join(bookMark.post, post)
+        .join(post.place, place)
+        .where(
+            bookMark.member.id.eq(memberId),
+            place.latitude.between(viewport.getSwLat(), viewport.getNeLat()),
+            place.longitude.between(viewport.getSwLng(), viewport.getNeLng()))
+        .groupBy(place.id)
+        .fetch();
   }
 
   public Slice<Tuple> findRecordsByPlaceId(
@@ -143,6 +115,61 @@ public class MapQueryRepository {
                 cursorConditionByPost(sortType, cursorable.getCursor()))
             .groupBy(post.id)
             .orderBy(orderByPost(sortType))
+            .limit(cursorable.getLimit() + 1)
+            .fetch();
+    return new Slice<>(tuples, cursorable, hasNext(cursorable, tuples));
+  }
+
+  public Slice<Tuple> findAllRecordPlaces(
+      Long memberId, SortType sortType, Cursorable<String> cursorable) {
+    NumberExpression<Long> countExpr = post.id.count();
+    List<Tuple> tuples =
+        queryFactory
+            .select(
+                place.id,
+                place.name,
+                place.address,
+                place.latitude,
+                place.longitude,
+                countExpr,
+                latestThumbnailByPlace(memberId),
+                post.studyDate.max())
+            .from(post)
+            .join(post.place, place)
+            .where(post.member.id.eq(memberId))
+            .groupBy(place.id)
+            .having(
+                latestCursorHaving(sortType, cursorable.getCursor()),
+                countCursorHaving(sortType, cursorable.getCursor(), countExpr))
+            .orderBy(orderByPlace(sortType, countExpr))
+            .limit(cursorable.getLimit() + 1)
+            .fetch();
+    return new Slice<>(tuples, cursorable, hasNext(cursorable, tuples));
+  }
+
+  public Slice<Tuple> findAllBookmarkPlaces(
+      Long memberId, SortType sortType, Cursorable<String> cursorable) {
+    NumberExpression<Long> countExpr = bookMark.id.count();
+    List<Tuple> tuples =
+        queryFactory
+            .select(
+                place.id,
+                place.name,
+                place.address,
+                place.latitude,
+                place.longitude,
+                countExpr,
+                latestThumbnailByBookmark(memberId),
+                post.studyDate.max())
+            .from(bookMark)
+            .join(bookMark.post, post)
+            .join(post.place, place)
+            .where(bookMark.member.id.eq(memberId))
+            .groupBy(place.id)
+            .having(
+                latestCursorHaving(sortType, cursorable.getCursor()),
+                countCursorHaving(sortType, cursorable.getCursor(), countExpr))
+            .orderBy(orderByPlace(sortType, countExpr))
             .limit(cursorable.getLimit() + 1)
             .fetch();
     return new Slice<>(tuples, cursorable, hasNext(cursorable, tuples));
@@ -258,6 +285,19 @@ public class MapQueryRepository {
                     .from(postImage)
                     .join(postImage.post, post)
                     .where(post.place.id.eq(place.id).and(post.member.id.eq(memberId)))));
+  }
+
+  private Expression<String> latestThumbnailByBookmark(Long memberId) {
+    return JPAExpressions.select(postImage.imageUrl)
+        .from(postImage)
+        .where(
+            postImage.id.eq(
+                JPAExpressions.select(postImage.id.max())
+                    .from(postImage)
+                    .join(postImage.post, post)
+                    .join(bookMark)
+                    .on(bookMark.post.id.eq(post.id).and(bookMark.member.id.eq(memberId)))
+                    .where(post.place.id.eq(place.id))));
   }
 
   private <T> boolean hasNext(Cursorable<?> cursorable, List<T> content) {
