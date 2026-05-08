@@ -119,6 +119,28 @@ public class Post extends BaseTimeStatusEntity {
         .build();
   }
 
+  public void update(
+      String title,
+      String contents,
+      LocalDateTime startedAt,
+      LocalDateTime endedAt,
+      LocalDate studyDate,
+      Integer focus,
+      PublicScope scope,
+      Place place,
+      PlaceCategory placeCategory) {
+    this.title = title;
+    this.contents = contents;
+    this.startedAt = startedAt;
+    this.endedAt = endedAt;
+    this.studyTime = Math.toIntExact(Duration.between(startedAt, endedAt).toMinutes());
+    this.studyDate = studyDate;
+    this.focus = focus;
+    this.scope = scope;
+    this.place = place;
+    this.placeCategory = placeCategory;
+  }
+
   // 게시글 수정 시 편의 메소드
   public void updateTime(LocalDateTime newStartedAt, LocalDateTime newEndedAt) {
     this.startedAt = newStartedAt;

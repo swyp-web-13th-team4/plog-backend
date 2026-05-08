@@ -8,7 +8,10 @@ import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.global.util.GcsService;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -134,5 +137,60 @@ public class PostImageService {
     return files.stream()
         .map(file -> new ImageUrlResponse(gcsService.upload(file, "test")))
         .toList();
+  }
+
+  /**
+   * 게시글 이미지를 keep + new 조합으로 일괄 교체합니다.
+   *
+   * @param postId 게시글 ID
+   * @param keepImageIds 유지할 기존 이미지 ID
+   * @param newFiles 새로 업로드할 파일 (없으면 빈 리스트/null 허용)
+   */
+  @Transactional
+  public void replacePostImages(
+      Long postId, List<Long> keepImageIds, List<MultipartFile> newFiles) {
+
+    Post post =
+        postRepository
+            .findById(postId)
+            .orElseThrow(() -> new AppException(ErrorType.POST_NOT_FOUND));
+
+    List<Long> safeKeepIds = keepImageIds == null ? List.of() : keepImageIds;
+    List<MultipartFile> safeNew =
+        newFiles == null
+            ? List.of()
+            : newFiles.stream().filter(f -> f != null && !f.isEmpty()).toList();
+
+    if (safeKeepIds.size() + safeNew.size() > POST_IMAGE_MAX) {
+      throw new AppException(ErrorType.POST_IMAGE_LIMIT_EXCEEDED);
+    }
+
+    List<PostImage> current = postImageRepository.findAllByPostId(postId);
+    Set<Long> currentIds = current.stream().map(PostImage::getId).collect(Collectors.toSet());
+
+    // keepImageIds 위변조 방지: 본 게시글의 이미지가 아닌 ID가 섞이면 거부
+    if (!currentIds.containsAll(safeKeepIds)) {
+      throw new AppException(ErrorType.INVALID_ACCESS_PATH);
+    }
+
+    Set<Long> keepSet = new HashSet<>(safeKeepIds);
+    List<PostImage> toDelete =
+        current.stream().filter(img -> !keepSet.contains(img.getId())).toList();
+
+    toDelete.forEach(img -> gcsService.delete(img.getImageUrl()));
+    postImageRepository.deleteAll(toDelete);
+
+    safeNew.forEach(
+        file -> {
+          String url = gcsService.upload(file, POST_DIR);
+          postImageRepository.save(PostImage.of(url, post));
+        });
+
+    log.debug(
+        "게시글 이미지 교체 완료 - postId: {}, kept: {}, deleted: {}, added: {}",
+        postId,
+        safeKeepIds.size(),
+        toDelete.size(),
+        safeNew.size());
   }
 }
