@@ -3,8 +3,10 @@ package com.plog.plogbackend.domain.map.service;
 import com.plog.plogbackend.domain.map.implement.MapManager;
 import com.plog.plogbackend.domain.map.model.MapCount;
 import com.plog.plogbackend.domain.map.model.MapPin;
+import com.plog.plogbackend.domain.map.model.PlaceDetail;
 import com.plog.plogbackend.domain.map.model.PlaceRecord;
 import com.plog.plogbackend.domain.map.model.PlaceSearchResult;
+import com.plog.plogbackend.domain.map.model.PlaceSummary;
 import com.plog.plogbackend.domain.map.model.SortType;
 import com.plog.plogbackend.domain.map.model.Viewport;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
@@ -23,15 +25,13 @@ public class MapService {
   private final MapManager mapManager;
 
   @Transactional(readOnly = true)
-  public Slice<MapPin> findMyRecordPins(
-      UUID memberKey, Viewport viewport, SortType sortType, Cursorable<String> cursorable) {
-    return mapManager.getRecordsPins(memberKey, viewport, sortType, cursorable);
+  public List<MapPin> findMyRecordPins(UUID memberKey, Viewport viewport) {
+    return mapManager.getRecordsPins(memberKey, viewport);
   }
 
   @Transactional(readOnly = true)
-  public Slice<MapPin> findMyBookmarkPins(
-      UUID memberKey, Viewport viewport, SortType sortType, Cursorable<String> cursorable) {
-    return mapManager.getBookmarkPins(memberKey, viewport, sortType, cursorable);
+  public List<MapPin> findMyBookmarkPins(UUID memberKey, Viewport viewport) {
+    return mapManager.getBookmarkPins(memberKey, viewport);
   }
 
   @Transactional(readOnly = true)
@@ -42,6 +42,18 @@ public class MapService {
       List<PlaceTag> tags,
       Cursorable<String> cursorable) {
     return mapManager.getPlaceRecords(memberKey, placeId, sortType, tags, cursorable);
+  }
+
+  @Transactional(readOnly = true)
+  public Slice<PlaceSummary> findAllRecordPlaces(
+      UUID memberKey, SortType sortType, Cursorable<String> cursorable) {
+    return mapManager.getAllRecordPlaces(memberKey, sortType, cursorable);
+  }
+
+  @Transactional(readOnly = true)
+  public Slice<PlaceSummary> findAllBookmarkPlaces(
+      UUID memberKey, SortType sortType, Cursorable<String> cursorable) {
+    return mapManager.getAllBookmarkPlaces(memberKey, sortType, cursorable);
   }
 
   @Transactional(readOnly = true)
@@ -62,5 +74,15 @@ public class MapService {
   @Transactional(readOnly = true)
   public MapCount getMapCount(UUID memberKey) {
     return mapManager.getMapCount(memberKey);
+  }
+
+  @Transactional(readOnly = true)
+  public PlaceDetail findRecordPinDetail(UUID memberKey, Long placeId) {
+    return mapManager.getRecordPinDetail(memberKey, placeId);
+  }
+
+  @Transactional(readOnly = true)
+  public PlaceDetail findBookmarkPinDetail(UUID memberKey, Long placeId) {
+    return mapManager.getBookmarkPinDetail(memberKey, placeId);
   }
 }

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 public record FeedDetailResponse(
+    Long postId,
     UUID memerKey,
     String name,
     String profileImage,
@@ -28,6 +29,7 @@ public record FeedDetailResponse(
       Post post, boolean isAuthor, Boolean isLiked, Boolean isBookMarked) {
 
     return new FeedDetailResponse(
+        post.getId(),
         post.getMember().getMemberKey(),
         post.getMember().getNickname(),
         post.getMember().getProfileImage(),

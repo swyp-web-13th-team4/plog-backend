@@ -11,12 +11,26 @@ import com.plog.plogbackend.domain.Member.repository.MemberAgreementRepository;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.Member.repository.TermsRepository;
 import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
+import com.plog.plogbackend.domain.badge.repository.MemberBadgeRepository;
+import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
+import com.plog.plogbackend.domain.post.entity.Post;
+import com.plog.plogbackend.domain.post.entity.PostImage;
+import com.plog.plogbackend.domain.post.repository.LikeRepository;
+import com.plog.plogbackend.domain.post.repository.PostImageRepository;
+import com.plog.plogbackend.domain.post.repository.PostRepository;
+import com.plog.plogbackend.domain.post.repository.PostTagRepository;
+import com.plog.plogbackend.domain.post.repository.RecentPlaceSearchRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
+import com.plog.plogbackend.global.util.GcsService;
 import com.plog.plogbackend.security.jwt.JwtProvider;
+import com.plog.plogbackend.security.jwt.RefreshTokenRepository;
+import jakarta.persistence.EntityManager;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -48,6 +62,18 @@ public class MemberService {
   private final TermsRepository termsRepository;
   private final MemberAgreementRepository memberAgreementRepository;
   private final BadWordFilterService badWordFilterService;
+
+  // Withdrawal required repositories
+  private final RecentPlaceSearchRepository recentPlaceSearchRepository;
+  private final LikeRepository likeRepository;
+  private final BookMarkRepository bookMarkRepository;
+  private final MemberBadgeRepository memberBadgeRepository;
+  private final PostImageRepository postImageRepository;
+  private final PostTagRepository postTagRepository;
+  private final PostRepository postRepository;
+  private final GcsService gcsService;
+  private final RefreshTokenRepository refreshTokenRepository;
+  private final EntityManager entityManager;
 
   // 이벤트 처리 객체
   private final ApplicationEventPublisher eventPublisher;
@@ -243,5 +269,89 @@ public class MemberService {
 
     // 금칙어 검사
     badWordFilterService.validate(introduction);
+  }
+
+  /**
+   * 회원 탈퇴 - 하드 딜리트
+   *
+   * <p>삭제 순서: 1) 리프레시 토큰 DB 삭제 2) 최근 장소 검색 기록 삭제 3) 회원이 누른 좋아요/북마크 삭제 4) 획득 배지·약관 동의 내역 삭제 5) 작성
+   * 게시글 하위 데이터 + GCS 파일 + 게시글 삭제 6) GCS 프로필 이미지 삭제 7) flush & clear → Member DB 삭제 (영속성 충돌 해소)
+   *
+   * <p>쿠키 초기화는 호출 측 컨트롤러에서 HttpServletResponse로 처리한다.
+   *
+   * @param memberKey 탈퇴할 회원 UUID
+   */
+  @Transactional
+  public void withdraw(UUID memberKey) {
+    Member member =
+        memberRepository
+            .findByMemberKey(memberKey)
+            .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
+
+    Long memberId = member.getId();
+    String profileImageUrl = member.getProfileImage(); // 프로필 삭제하기 전에 프로필 사진 수집
+
+    // 1. 리프레시 토큰 DB 삭제
+    refreshTokenRepository.deleteByMemberKey(memberKey);
+
+    // 2. 최근 장소 검색 기록 삭제
+    recentPlaceSearchRepository.deleteAllByMemberId(memberId);
+
+    // 3. 회원이 다른 게시글에 남긴 좋아요·북마크 삭제
+    likeRepository.deleteAllByMemberId(memberId);
+    bookMarkRepository.deleteAllByMemberId(memberId);
+
+    // 4. 획득 배지·약관 동의 내역 삭제
+    memberBadgeRepository.deleteAllByMemberId(memberId);
+    memberAgreementRepository.deleteAllByMemberId(memberId);
+
+    // 5. 작성 게시글 하위 데이터 + 게시글 DB 삭제
+    List<Post> myPosts = postRepository.findAllByMemberId(memberId);
+    List<String> postImageUrls = List.of(); // GCS 삭제용 URL 목록 (DB 삭제 전에 수집)
+    if (!myPosts.isEmpty()) {
+      List<Long> postIds = myPosts.stream().map(Post::getId).collect(Collectors.toList());
+
+      // GCS 삭제를 위해 URL만 미리 수집
+      postImageUrls =
+          postImageRepository.findAllByPostIdIn(postIds).stream()
+              .map(PostImage::getImageUrl)
+              .collect(Collectors.toList());
+
+      // 하위 레코드 bulk JPQL delete
+      postImageRepository.deleteAllByPostIdIn(postIds);
+      postTagRepository.deleteAllByPostIdIn(postIds);
+      likeRepository.deleteAllByPostIdIn(postIds); // 어떤 타 회원의 좋아요도 있을 수 있음
+      bookMarkRepository.deleteAllByPostIdIn(postIds); // 같은 이유
+
+      // 게시글 bulk delete
+      postRepository.deleteAllByIdIn(postIds);
+    }
+
+    // 6. @Modifying JPQL로 삭제한 내용을 flush로 DB에 확정하고,
+    //    clear로 1차 캐시(영속성 컨텍스트)를 비워 충돌을 제거
+    entityManager.flush();
+    entityManager.clear();
+
+    // clear 후 detached 상태이면 재조회한 뒤 삭제
+    memberRepository.findByMemberKey(memberKey).ifPresent(memberRepository::delete);
+
+    // 7. DB 삭제가 완전히 완료된 후 GCS 파일 삭제
+    final List<String> finalPostImageUrls = postImageUrls;
+    finalPostImageUrls.forEach(
+        url -> {
+          try {
+            gcsService.delete(url);
+          } catch (Exception e) {
+            log.warn("게시글 이미지 GCS 삭제 실패 - url: {}, error: {}", url, e.getMessage());
+          }
+        });
+
+    try {
+      gcsService.delete(profileImageUrl);
+    } catch (Exception e) {
+      log.warn("프로필 이미지 GCS 삭제 실패 - url: {}, error: {}", profileImageUrl, e.getMessage());
+    }
+
+    log.info("회원 탈퇴 완료 (하드 딜리트) - memberKey: {}", memberKey);
   }
 }

@@ -631,6 +631,20 @@
       </div>
     </div>
 
+    <!-- 회원 탈퇴 테스트 -->
+    <div class="card">
+      <div class="card-title">⚠️ 회원 탈퇴 테스트</div>
+      <div>
+        <p style="font-size: 0.85rem; color: #fca5a5; margin-bottom: 12px; line-height: 1.6;">
+          <strong>주의:</strong> 회원 탈퇴 시 작성한 게시글, 뱃지, 북마크 및 GCS 이미지 등 모든 데이터가 즉시 삭제(하드 딜리트)됩니다.
+        </p>
+        <button class="api-run-btn" onclick="withdrawMember()" style="width: 100%; padding: 12px; font-weight: 600; background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-color: rgba(239, 68, 68, 0.3);">
+          회원 탈퇴 실행 (DELETE)
+        </button>
+        <div class="api-result" id="result-withdraw"></div>
+      </div>
+    </div>
+
     <!-- 하단 버튼 -->
     <div class="footer-btns" style="flex-wrap: wrap;">
       <a class="btn-outline" href="index.html">← 처음으로</a>
@@ -933,6 +947,35 @@
       const form = new FormData();
       Array.from(fileInput.files).forEach(file => form.append('images', file));
       doImageFetch('/api/test/images/upload', 'POST', form, 'result-post-img');
+    }
+
+    // ── 회원 탈퇴 로직 ──
+    async function withdrawMember() {
+      if(!confirm('정말 회원 탈퇴를 진행하시겠습니까?\n이 작업은 되돌릴 수 없으며 등록한 모든 데이터 및 사진이 영구히 삭제됩니다.')) return;
+      
+      const resultEl = document.getElementById('result-withdraw');
+      resultEl.style.display = 'block';
+      resultEl.style.color = '#fca5a5';
+      resultEl.textContent = '탈퇴 처리 중... (사진 등 데이터가 많을 경우 시간이 소요될 수 있습니다)';
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/members/me`, { 
+          method: 'DELETE',
+          credentials: 'include' 
+        });
+        const json = await res.json();
+        
+        resultEl.style.color = res.ok ? '#86efac' : '#fca5a5';
+        resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(json, null, 2)}`;
+        
+        if (res.ok) {
+          alert('회원 탈퇴가 성공적으로 완료되었습니다. 로그인 화면으로 이동합니다.');
+          window.location.href = 'index.html';
+        }
+      } catch (err) {
+        resultEl.style.color = '#fca5a5';
+        resultEl.textContent = `연결 실패: ${err.message}`;
+      }
     }
 
   </script>

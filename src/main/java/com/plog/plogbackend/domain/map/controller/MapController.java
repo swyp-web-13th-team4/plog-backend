@@ -4,8 +4,10 @@ import com.plog.plogbackend.domain.map.controller.dto.request.MapRequest;
 import com.plog.plogbackend.domain.map.controller.dto.response.MapCountResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.MapPinResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.PageResponse;
+import com.plog.plogbackend.domain.map.controller.dto.response.PlaceDetailResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.PlaceRecordResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.PlaceSearchResponse;
+import com.plog.plogbackend.domain.map.controller.dto.response.PlaceSummaryResponse;
 import com.plog.plogbackend.domain.map.model.SortType;
 import com.plog.plogbackend.domain.map.service.MapService;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
@@ -54,32 +56,73 @@ public class MapController {
     return ResponseEntity.ok(ApiResponse.success(result));
   }
 
-  @GetMapping("/records")
-  @Operation(summary = "지도 홈 화면 내 기록 목록 조회", description = "지도 홈 화면에서 뷰포트 내의 핀에 대한 내 기록 목록을 조회합니다.")
-  public ResponseEntity<ApiResponse<PageResponse<MapPinResponse>>> getRecords(
+  @GetMapping("/sheet/records")
+  @Operation(summary = "하단 시트 내 기록 장소 목록 조회", description = "내 기록이 있는 전체 장소 목록을 커서 페이징으로 반환합니다.")
+  public ResponseEntity<ApiResponse<PageResponse<PlaceSummaryResponse>>> getSheetRecords(
       @AuthenticationPrincipal UUID memberKey,
-      @Valid MapRequest request,
+      @RequestParam(defaultValue = "LATEST") SortType sortType,
       @CursorDefault Cursorable<String> cursorable) {
-    Slice<MapPinResponse> slice =
+    Slice<PlaceSummaryResponse> slice =
         mapService
-            .findMyRecordPins(memberKey, request.toViewport(), request.sortType(), cursorable)
-            .map(MapPinResponse::from);
+            .findAllRecordPlaces(memberKey, sortType, cursorable)
+            .map(PlaceSummaryResponse::from);
     return ResponseEntity.ok(ApiResponse.success(PageResponse.of(slice)));
   }
 
-  @GetMapping("/bookmarks")
+  @GetMapping("/sheet/bookmarks")
+  @Operation(summary = "하단 시트 북마크 장소 목록 조회", description = "내 북마크가 있는 전체 장소 목록을 커서 페이징으로 반환합니다.")
+  public ResponseEntity<ApiResponse<PageResponse<PlaceSummaryResponse>>> getSheetBookmarks(
+      @AuthenticationPrincipal UUID memberKey,
+      @RequestParam(defaultValue = "LATEST") SortType sortType,
+      @CursorDefault Cursorable<String> cursorable) {
+    Slice<PlaceSummaryResponse> slice =
+        mapService
+            .findAllBookmarkPlaces(memberKey, sortType, cursorable)
+            .map(PlaceSummaryResponse::from);
+    return ResponseEntity.ok(ApiResponse.success(PageResponse.of(slice)));
+  }
+
+  @GetMapping("/pins/records")
+  @Operation(summary = "지도 홈 화면 내 기록 목록 조회", description = "지도 홈 화면에서 뷰포트 내의 핀에 대한 내 기록 목록을 조회합니다.")
+  public ResponseEntity<ApiResponse<List<MapPinResponse>>> getRecords(
+      @AuthenticationPrincipal UUID memberKey, @Valid MapRequest request) {
+    List<MapPinResponse> pins =
+        mapService.findMyRecordPins(memberKey, request.toViewport()).stream()
+            .map(MapPinResponse::from)
+            .toList();
+    return ResponseEntity.ok(ApiResponse.success(pins));
+  }
+
+  @GetMapping("/pins/bookmarks")
   @Operation(
       summary = "지도 홈 화면 북마크 목록 조회",
       description = "지도 홈 화면에서 뷰포트 내의 핀에 대한 자신의 북마크 목록을 조회합니다.")
-  public ResponseEntity<ApiResponse<PageResponse<MapPinResponse>>> getBookmarks(
-      @AuthenticationPrincipal UUID memberKey,
-      @Valid MapRequest request,
-      @CursorDefault Cursorable<String> cursorable) {
-    Slice<MapPinResponse> slice =
-        mapService
-            .findMyBookmarkPins(memberKey, request.toViewport(), request.sortType(), cursorable)
-            .map(MapPinResponse::from);
-    return ResponseEntity.ok(ApiResponse.success(PageResponse.of(slice)));
+  public ResponseEntity<ApiResponse<List<MapPinResponse>>> getBookmarks(
+      @AuthenticationPrincipal UUID memberKey, @Valid MapRequest request) {
+    List<MapPinResponse> pins =
+        mapService.findMyBookmarkPins(memberKey, request.toViewport()).stream()
+            .map(MapPinResponse::from)
+            .toList();
+
+    return ResponseEntity.ok(ApiResponse.success(pins));
+  }
+
+  @GetMapping("/pins/records/{placeId}")
+  @Operation(summary = "기록 핀 상세 조회", description = "기록 핀을 탭했을 때 장소에 대한 정보를 반환합니다.")
+  public ResponseEntity<ApiResponse<PlaceDetailResponse>> getRecordPinDetail(
+      @AuthenticationPrincipal UUID memberKey, @PathVariable Long placeId) {
+    return ResponseEntity.ok(
+        ApiResponse.success(
+            PlaceDetailResponse.from(mapService.findRecordPinDetail(memberKey, placeId))));
+  }
+
+  @GetMapping("/pins/bookmarks/{placeId}")
+  @Operation(summary = "북마크 핀 상세 조회", description = "북마크 핀을 탭했을 때 장소에 대한 정보를 반환합니다.")
+  public ResponseEntity<ApiResponse<PlaceDetailResponse>> getBookmarkPinDetail(
+      @AuthenticationPrincipal UUID memberKey, @PathVariable Long placeId) {
+    return ResponseEntity.ok(
+        ApiResponse.success(
+            PlaceDetailResponse.from(mapService.findBookmarkPinDetail(memberKey, placeId))));
   }
 
   @GetMapping("/{placeId}/records")
