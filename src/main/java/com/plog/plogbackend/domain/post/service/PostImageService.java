@@ -174,21 +174,24 @@ public class PostImageService {
     }
 
     Set<Long> keepSet = new HashSet<>(safeKeepIds);
-    
+
     // 1. 삭제 대상 GCS 삭제 및 컬렉션에서 제거
-    post.getImages().removeIf(img -> {
-        if (!keepSet.contains(img.getId())) {
-            gcsService.delete(img.getImageUrl());
-            return true;
-        }
-        return false;
-    });
+    post.getImages()
+        .removeIf(
+            img -> {
+              if (!keepSet.contains(img.getId())) {
+                gcsService.delete(img.getImageUrl());
+                return true;
+              }
+              return false;
+            });
 
     // 2. 신규 이미지 추가 (CascadeType.ALL 에 의해 자동 영속화)
-    safeNew.forEach(file -> {
-        String url = gcsService.upload(file, POST_DIR);
-        post.addImage(PostImage.of(url, post));
-    });
+    safeNew.forEach(
+        file -> {
+          String url = gcsService.upload(file, POST_DIR);
+          post.addImage(PostImage.of(url, post));
+        });
 
     log.debug(
         "게시글 이미지 교체 완료 - postId: {}, kept: {}, added: {}",

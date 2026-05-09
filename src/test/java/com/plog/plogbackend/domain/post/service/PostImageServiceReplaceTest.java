@@ -37,8 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * Post.images 의 orphanRemoval=true 동기화 회귀 테스트. 이전에는 PostImageService.replacePostImages 가 컬렉션을 거치지
  * 않고 PostImageRepository.deleteAll/save 로 직접 자식을 조작해 영속성 컨텍스트와 DB 상태가 어긋났고, 트랜잭션 커밋 시
- * StaleStateException 으로 500 이 발생했다. 이 테스트는 동일 트랜잭션 경계에서 호출이 정상 종료되고 결과 컬렉션 상태가 의도대로
- * 동기화되는지를 확인한다.
+ * StaleStateException 으로 500 이 발생했다. 이 테스트는 동일 트랜잭션 경계에서 호출이 정상 종료되고 결과 컬렉션 상태가 의도대로 동기화되는지를 확인한다.
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -99,20 +98,24 @@ class PostImageServiceReplaceTest {
   private Post seedPost(String providerSuffix) {
     Member member =
         memberRepository.save(
-            Member.createNewMember("nick-" + providerSuffix, "kakao-" + providerSuffix, null, null));
+            Member.createNewMember(
+                "nick-" + providerSuffix, "kakao-" + providerSuffix, null, null));
     Place place =
         placeRepository.save(
             Place.of("place-" + providerSuffix, "addr-" + providerSuffix, 0.0, 0.0));
-/*
+    /*
+        PlaceCategory category =
+            placeCategoryRepository.save(
+                PlaceCategory.builder().categoryName(PlaceCategoryCode.CAFE).build());
+    */
+    // 수정된 코드
     PlaceCategory category =
-        placeCategoryRepository.save(
-            PlaceCategory.builder().categoryName(PlaceCategoryCode.CAFE).build());
-*/
-      // 수정된 코드
-      PlaceCategory category = placeCategoryRepository.findByCategoryName(PlaceCategoryCode.CAFE)
-              .orElseGet(() -> placeCategoryRepository.save(
-                      PlaceCategory.builder().categoryName(PlaceCategoryCode.CAFE).build()
-              ));
+        placeCategoryRepository
+            .findByCategoryName(PlaceCategoryCode.CAFE)
+            .orElseGet(
+                () ->
+                    placeCategoryRepository.save(
+                        PlaceCategory.builder().categoryName(PlaceCategoryCode.CAFE).build()));
     return postRepository.save(
         Post.of(
             "테스트 제목",
