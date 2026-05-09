@@ -93,7 +93,11 @@ public class DataInitializer {
         continue;
       }
 
-      if (c == '-' && i + 1 < chars.length && chars[i + 1] == '-' && !inSingleQuote && !inDoubleQuote) {
+      if (c == '-'
+          && i + 1 < chars.length
+          && chars[i + 1] == '-'
+          && !inSingleQuote
+          && !inDoubleQuote) {
         inComment = true;
         i++; // skip second '-'
         continue;
