@@ -55,7 +55,7 @@ public class Post extends BaseTimeStatusEntity {
 
   private Long likes;
 
-  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY,cascade = CascadeType.REMOVE,orphanRemoval = true)
   private List<PostImage> images = new ArrayList<>();
 
   @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
