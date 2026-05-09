@@ -80,10 +80,25 @@ public class DataInitializer {
     StringBuilder sb = new StringBuilder();
     boolean inSingleQuote = false;
     boolean inDoubleQuote = false;
+    boolean inComment = false;
     char[] chars = script.toCharArray();
 
     for (int i = 0; i < chars.length; i++) {
       char c = chars[i];
+
+      if (inComment) {
+        if (c == '\n') {
+          inComment = false;
+        }
+        continue;
+      }
+
+      if (c == '-' && i + 1 < chars.length && chars[i + 1] == '-' && !inSingleQuote && !inDoubleQuote) {
+        inComment = true;
+        i++; // skip second '-'
+        continue;
+      }
+
       if (c == '\'' && !inDoubleQuote) {
         if (i > 0 && chars[i - 1] == '\\') {
           // Escaped quote
@@ -112,20 +127,21 @@ public class DataInitializer {
   }
 
   private String extractTableName(String sql) {
-    String upperSql = sql.toUpperCase();
+    String normalized = sql.replaceAll("\\s+", " ");
+    String upperSql = normalized.toUpperCase();
     if (upperSql.startsWith("INSERT INTO ")) {
       int start = "INSERT INTO ".length();
       int end = upperSql.indexOf(" ", start);
       if (end == -1) end = upperSql.indexOf("(", start);
       if (end != -1) {
-        return sql.substring(start, end).trim();
+        return normalized.substring(start, end).trim();
       }
     } else if (upperSql.startsWith("INSERT IGNORE INTO ")) {
       int start = "INSERT IGNORE INTO ".length();
       int end = upperSql.indexOf(" ", start);
       if (end == -1) end = upperSql.indexOf("(", start);
       if (end != -1) {
-        return sql.substring(start, end).trim();
+        return normalized.substring(start, end).trim();
       }
     }
     return null;
