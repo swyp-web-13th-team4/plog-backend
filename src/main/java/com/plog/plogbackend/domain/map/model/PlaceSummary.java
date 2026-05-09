@@ -21,6 +21,7 @@ public class PlaceSummary {
   private PlaceCategoryCode placeCategory;
   private LocalDate lastStudyDate;
   private Long totalStudyTime;
+  private Double avgFocus;
 
   public static PlaceSummary of(
       Long placeId,
@@ -32,7 +33,8 @@ public class PlaceSummary {
       String thumbnailUrl,
       PlaceCategoryCode placeCategory,
       LocalDate lastStudyDate,
-      Long totalStudyTime) {
+      Long totalStudyTime,
+      Double avgFocus) {
     return PlaceSummary.builder()
         .placeId(placeId)
         .placeName(placeName)
@@ -44,6 +46,7 @@ public class PlaceSummary {
         .placeCategory(placeCategory)
         .lastStudyDate(lastStudyDate)
         .totalStudyTime(totalStudyTime)
+        .avgFocus(avgFocus)
         .build();
   }
 }

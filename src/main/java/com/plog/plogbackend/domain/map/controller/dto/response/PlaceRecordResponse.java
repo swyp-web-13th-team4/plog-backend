@@ -10,6 +10,7 @@ import lombok.Builder;
 @Builder
 public record PlaceRecordResponse(
     Long postId,
+    String placeName,
     String title,
     LocalDate studyDate,
     Integer studyTime,
@@ -22,6 +23,7 @@ public record PlaceRecordResponse(
   public static PlaceRecordResponse from(PlaceRecord record) {
     return PlaceRecordResponse.builder()
         .postId(record.getPostId())
+        .placeName(record.getPlaceName())
         .title(record.getTitle())
         .studyDate(record.getStudyDate())
         .studyTime(record.getStudyTime())

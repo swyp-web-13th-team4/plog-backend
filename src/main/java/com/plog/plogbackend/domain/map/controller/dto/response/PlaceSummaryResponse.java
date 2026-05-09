@@ -14,7 +14,8 @@ public record PlaceSummaryResponse(
     String thumbnailUrl,
     PlaceCategoryCode placeCategory,
     LocalDate lastStudyDate,
-    Long totalStudyTime) {
+    Long totalStudyTime,
+    Double avgFocus) {
 
   public static PlaceSummaryResponse from(PlaceSummary summary) {
     return new PlaceSummaryResponse(
@@ -27,6 +28,7 @@ public record PlaceSummaryResponse(
         summary.getThumbnailUrl(),
         summary.getPlaceCategory(),
         summary.getLastStudyDate(),
-        summary.getTotalStudyTime());
+        summary.getTotalStudyTime(),
+        summary.getAvgFocus());
   }
 }
