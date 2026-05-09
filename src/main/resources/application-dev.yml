@@ -6,7 +6,7 @@ spring:
   security:
     front:
       cors:
-        allowed-origins: " https://plog-pi.vercel.app" # 프론트 CORS 허용 주소
+        allowed-origins: "https://plog-pi.vercel.app" # 프론트 CORS 허용 주소
       frontend-url:  https://plog-pi.vercel.app
 
   servlet:
