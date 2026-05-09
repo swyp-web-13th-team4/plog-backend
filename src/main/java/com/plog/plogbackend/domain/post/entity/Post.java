@@ -151,4 +151,12 @@ public class Post extends BaseTimeStatusEntity {
     this.endedAt = newEndedAt;
     this.studyTime = (int) Duration.between(newStartedAt, newEndedAt).toMinutes();
   }
+
+  public void addImage(PostImage image) {
+    this.images.add(image);
+  }
+
+  public void removeImage(PostImage image) {
+    this.images.remove(image);
+  }
 }

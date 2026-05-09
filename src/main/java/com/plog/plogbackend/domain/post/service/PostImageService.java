@@ -165,8 +165,8 @@ public class PostImageService {
       throw new AppException(ErrorType.POST_IMAGE_LIMIT_EXCEEDED);
     }
 
-    List<PostImage> current = postImageRepository.findAllByPostId(postId);
-    Set<Long> currentIds = current.stream().map(PostImage::getId).collect(Collectors.toSet());
+    Set<Long> currentIds =
+        post.getImages().stream().map(PostImage::getId).collect(Collectors.toSet());
 
     // keepImageIds 위변조 방지: 본 게시글의 이미지가 아닌 ID가 섞이면 거부
     if (!currentIds.containsAll(safeKeepIds)) {
@@ -175,15 +175,17 @@ public class PostImageService {
 
     Set<Long> keepSet = new HashSet<>(safeKeepIds);
     List<PostImage> toDelete =
-        current.stream().filter(img -> !keepSet.contains(img.getId())).toList();
+        post.getImages().stream().filter(img -> !keepSet.contains(img.getId())).toList();
 
     toDelete.forEach(img -> gcsService.delete(img.getImageUrl()));
-    postImageRepository.deleteAll(toDelete);
+    // orphanRemoval=true 가 컬렉션에서 제거된 자식의 DELETE 를 자동 발행
+    post.getImages().removeAll(toDelete);
 
     safeNew.forEach(
         file -> {
           String url = gcsService.upload(file, POST_DIR);
-          postImageRepository.save(PostImage.of(url, post));
+          PostImage saved = postImageRepository.save(PostImage.of(url, post));
+          post.addImage(saved);
         });
 
     log.debug(
