@@ -58,7 +58,7 @@ public class Post extends BaseTimeStatusEntity {
   @OneToMany(
       mappedBy = "post",
       fetch = FetchType.LAZY,
-      cascade = CascadeType.REMOVE,
+      cascade = CascadeType.ALL,
       orphanRemoval = true)
   private List<PostImage> images = new ArrayList<>();
 
