@@ -183,7 +183,8 @@ public class MapManager {
         t.get(6, String.class),
         categoryMap.get(placeId),
         t.get(post.studyDate.max()),
-        studyTimeSum != null ? studyTimeSum.longValue() : 0L);
+        studyTimeSum != null ? studyTimeSum.longValue() : 0L,
+        t.get(9, Double.class));
   }
 
   public List<PlaceSearchResult> searchRecordedPlaces(UUID memberKey, String keyword) {
@@ -205,6 +206,7 @@ public class MapManager {
     var p = tuple.get(post);
     return new PlaceRecord(
         p.getId(),
+        p.getPlace().getName(),
         p.getTitle(),
         p.getStudyDate(),
         p.getStudyTime(),

@@ -11,6 +11,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class PlaceRecord {
   private Long postId;
+  private String placeName;
   private String title;
   private LocalDate studyDate;
   private Integer studyTime;

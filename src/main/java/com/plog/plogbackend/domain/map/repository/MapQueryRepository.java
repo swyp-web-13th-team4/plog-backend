@@ -135,7 +135,8 @@ public class MapQueryRepository {
                 countExpr,
                 latestThumbnailByPlace(memberId),
                 post.studyDate.max(),
-                post.studyTime.sum())
+                post.studyTime.sum(),
+                post.focus.avg())
             .from(post)
             .join(post.place, place)
             .where(post.member.id.eq(memberId))
@@ -163,7 +164,8 @@ public class MapQueryRepository {
                 countExpr,
                 latestThumbnailByBookmark(memberId),
                 post.studyDate.max(),
-                post.studyTime.sum())
+                post.studyTime.sum(),
+                post.focus.avg())
             .from(bookMark)
             .join(bookMark.post, post)
             .join(post.place, place)
