@@ -13,8 +13,7 @@ public record FeedDetailResponse(
     UUID memerKey,
     String name,
     String profileImage,
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
-    LocalDateTime createAt,
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC") LocalDateTime createAt,
     List<String> postImages,
     Long likes,
     String title,
