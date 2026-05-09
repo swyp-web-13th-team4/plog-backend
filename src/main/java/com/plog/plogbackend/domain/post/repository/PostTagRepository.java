@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface PostTagRepository extends JpaRepository<PostTag, Long> {
 
+  void deleteAllByPostId(Long postId);
+
   @Modifying
   @Query("DELETE FROM PostTag pt WHERE pt.post.id IN :postIds")
   void deleteAllByPostIdIn(List<Long> postIds);
