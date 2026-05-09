@@ -111,7 +111,9 @@ public class FeedService {
     boolean isBookMarked =
         bookMarkRepository.existsByMemberIdAndPostId(member.getId(), post.getId());
 
-    return FeedDetailResponse.from(post, isAuthor, isLiked, isBookMarked);
+    String categoryName = post.getPlaceCategory().getCategoryName().getLabel();
+
+    return FeedDetailResponse.from(post, isAuthor, isLiked, isBookMarked, categoryName);
   }
 
   @Transactional
