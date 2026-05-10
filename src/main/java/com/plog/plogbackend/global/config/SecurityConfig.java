@@ -18,6 +18,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.NullSecurityContextRepository;
 import org.springframework.web.cors.CorsConfiguration;
 
 @Configuration
@@ -60,8 +61,10 @@ public class SecurityConfig {
 
         // 2. 세션 정책: OAuth2 로그인 흐름(state 검증)을 위해 IF_REQUIRED 사용
         // STATELESS 설정 시 OAuth2 콜백 시점에 state를 비교할 세션이 없어 인증 실패함
+        // 단, 인증 컨텍스트는 세션에 저장하지 않음 → JSESSIONID로 JWT 우회 방지
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+        .securityContext(ctx -> ctx.securityContextRepository(new NullSecurityContextRepository()))
 
         // 3. 권한 및 경로 설정
         .authorizeHttpRequests(
@@ -126,7 +129,7 @@ public class SecurityConfig {
 
                     // 그 외 모든 요청은 인증(JWT) 필요
                     .anyRequest()
-                    .permitAll())
+                    .authenticated())
 
         // 4. 소셜 로그인(OAuth2) 설정
         .oauth2Login(
