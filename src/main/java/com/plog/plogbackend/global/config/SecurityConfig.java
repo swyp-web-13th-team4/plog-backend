@@ -1,5 +1,7 @@
 package com.plog.plogbackend.global.config;
 
+import com.plog.plogbackend.security.error.CustomAccessDeniedHandler;
+import com.plog.plogbackend.security.error.CustomAuthenticationEntryPoint;
 import com.plog.plogbackend.security.error.OAuth2FailureHandler;
 import com.plog.plogbackend.security.jwt.JwtAuthenticationFilter;
 import com.plog.plogbackend.security.oauth2.CustomOAuth2UserService;
@@ -31,6 +33,8 @@ public class SecurityConfig {
   private final OAuth2SuccessHandler oAuth2SuccessHandler;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final OAuth2FailureHandler oAuth2FailureHandler;
+  private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+  private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -47,7 +51,8 @@ public class SecurityConfig {
                     request -> {
                       CorsConfiguration config = new CorsConfiguration();
                       config.setAllowedOrigins(List.of(allowedOrigins)); // 허용 주소
-                      config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
+                      config.setAllowedMethods(
+                          List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                       config.setAllowedHeaders(List.of("*"));
                       config.setAllowCredentials(true);
                       return config;
@@ -75,20 +80,50 @@ public class SecurityConfig {
                         "/login/**")
                     .permitAll()
 
+                    // 약관
+                    .requestMatchers("/api/terms")
+                    .permitAll()
+
                     // 테스트용 게시글 이미지 목록 조회 TODO: 게시글 API 구현 완료후 삭제
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/test/images/**")
                     .permitAll()
 
-                    // 내 프로필 이미지 관리, 테스트용 게시글 이미지 등록/삭제 TODO: 마이페이지 , 게시글 API 구현 완료후 삭제
-                    .requestMatchers("/api/members/me/profile-image", "/api/test/images/upload")
+                    // 인증이 필요한 모든 도메인 API 명시적 추가
+                    .requestMatchers(
+                        // 피드 관련
+                        "/api/feed/**",
+
+                        // 환경 기록(게시글) 관련
+                        "/api/post/**",
+
+                        // 최근 검색어 관련
+                        "/api/place/recent/**",
+
+                        // 지도 관련
+                        "/api/map/**",
+
+                        // 내 프로필 및 회원 정보 관련
+                        "/api/members/me",
+                        "/api/members/me/**",
+                        "/api/members/validate/**",
+                        "/api/members/default-images",
+
+                        // 마이페이지 관련
+                        "/api/members/mypage",
+                        "/api/members/mypage/**",
+                        "/api/members/bookmark",
+                        "/api/members/badge",
+                        "/api/members/badge/**",
+                        "/api/members/analytics")
                     .authenticated()
 
-                    // 그 외 모든 요청은 인증(JWT) 필요 (현재는 테스트를 위해 열어둠)
-                    // .anyRequest().authenticated()
+                    // 내 프로필 이미지 관리, 테스트용 게시글 이미지 등록/삭제 TODO: 마이페이지 , 게시글 API 구현 완료후 삭제
+                    .requestMatchers("/api/test/images/upload")
+                    .permitAll()
 
-                    // 테스트 전용
+                    // 그 외 모든 요청은 인증(JWT) 필요
                     .anyRequest()
-                    .permitAll())
+                    .authenticated())
 
         // 4. 소셜 로그인(OAuth2) 설정
         .oauth2Login(
@@ -101,7 +136,14 @@ public class SecurityConfig {
                     .failureHandler(oAuth2FailureHandler))
 
         // 5. JWT 필터를 시큐리티 기본 필터 앞에 추가
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
+        // 6. 예외 처리 설정 (401, 403)
+        .exceptionHandling(
+            exceptionHandling ->
+                exceptionHandling
+                    .authenticationEntryPoint(customAuthenticationEntryPoint)
+                    .accessDeniedHandler(customAccessDeniedHandler));
 
     return http.build();
   }
