@@ -83,6 +83,8 @@ public class SecurityConfig {
                     // 약관
                     .requestMatchers("/api/terms")
                     .permitAll()
+                        .requestMatchers("/actuator/**","api/members/default-images")
+                        .permitAll()
 
                     // 테스트용 게시글 이미지 목록 조회 TODO: 게시글 API 구현 완료후 삭제
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/test/images/**")
@@ -123,7 +125,7 @@ public class SecurityConfig {
 
                     // 그 외 모든 요청은 인증(JWT) 필요
                     .anyRequest()
-                    .authenticated())
+                    .permitAll())
 
         // 4. 소셜 로그인(OAuth2) 설정
         .oauth2Login(
