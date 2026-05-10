@@ -10,7 +10,10 @@ public class PostMapper {
 
   public static FeedFindCommand from(FeedFindRequest request) {
 
-    return new FeedFindCommand(request.lastPostId(), request.createAt());
+    return new FeedFindCommand(
+        request.lastPostId()
+        // , request.createAt()
+        );
   }
 
   public static FeedDetailCommand from(Long postId) {

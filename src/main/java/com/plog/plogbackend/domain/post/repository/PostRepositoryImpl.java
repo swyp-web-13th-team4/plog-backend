@@ -9,7 +9,6 @@ import com.plog.plogbackend.domain.post.entity.QPost;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -61,14 +60,18 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
   }
 
   @Override
-  public List<Post> findAllByFeed(LocalDateTime lastStudyDate, Long lastPostId, int size) {
+  public List<Post> findAllByFeed( // LocalDateTime lastStudyDate,
+      Long lastPostId, int size) {
     return queryFactory
         .selectFrom(post)
         .join(post.member)
         .fetchJoin()
         .join(post.place)
         .fetchJoin()
-        .where(post.scope.eq(PublicScope.PUBLIC), scroll(lastStudyDate, lastPostId))
+        .where(
+            post.scope.eq(PublicScope.PUBLIC),
+            scroll( // lastStudyDate,
+                lastPostId))
         .limit(size)
         .orderBy(post.createdAt.desc(), post.id.desc())
         .fetch();
@@ -92,13 +95,17 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     return post.createdAt.between(startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
   }
 
-  private BooleanExpression scroll(LocalDateTime lastStudyDate, Long lastPostId) {
+  private BooleanExpression scroll( // LocalDateTime lastStudyDate,
+      Long lastPostId) {
 
-    if (lastStudyDate == null || lastPostId == null || lastPostId == 0) return null;
+    if ( // lastStudyDate == null ||
+    lastPostId == null || lastPostId == 0) return null;
 
-    return post.createdAt
-        .lt(lastStudyDate)
-        .or(post.createdAt.eq(lastStudyDate).and(post.id.lt(lastPostId)));
+    return post.id.lt(lastPostId);
+
+    //    return post.createdAt
+    //        .lt(lastStudyDate)
+    //        .or(post.createdAt.eq(lastStudyDate).and(post.id.lt(lastPostId)));
   }
 
   private BooleanExpression memberIdEq(Long memberId) {
