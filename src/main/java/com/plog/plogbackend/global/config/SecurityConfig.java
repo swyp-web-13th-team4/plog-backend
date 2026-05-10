@@ -83,7 +83,8 @@ public class SecurityConfig {
                     // 약관
                     .requestMatchers("/api/terms")
                     .permitAll()
-                    .requestMatchers("/actuator/**", "/api/members/default-images")
+                    .requestMatchers(
+                        "/actuator/**", "/api/members/default-images", "/api/members/validate/**")
                     .permitAll()
 
                     // 테스트용 게시글 이미지 목록 조회 TODO: 게시글 API 구현 완료후 삭제
