@@ -22,9 +22,11 @@ public record FeedFindResponse(
     List<PlaceTag> tags,
     boolean like,
     boolean bookMark,
-    UUID memberKey) {
+    UUID memberKey,
+    boolean isAuthor) {
 
-  public static FeedFindResponse from(Post post, boolean isLiked, boolean isBookMarked) {
+  public static FeedFindResponse from(
+      Post post, boolean isLiked, boolean isBookMarked, boolean isAuthor) {
 
     return new FeedFindResponse(
         post.getId(),
@@ -41,6 +43,7 @@ public record FeedFindResponse(
         post.getTags().stream().map(postTag -> postTag.getTag().getPlaceTag()).toList(),
         isLiked,
         isBookMarked,
-        post.getMember().getMemberKey());
+        post.getMember().getMemberKey(),
+        isAuthor);
   }
 }
