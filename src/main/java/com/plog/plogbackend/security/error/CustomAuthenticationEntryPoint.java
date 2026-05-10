@@ -1,5 +1,7 @@
 package com.plog.plogbackend.security.error;
 
+import com.plog.plogbackend.global.error.ErrorType;
+import com.plog.plogbackend.global.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
