@@ -1,12 +1,11 @@
 package com.plog.plogbackend.security.error;
 
-import com.plog.plogbackend.global.error.ErrorType;
-import com.plog.plogbackend.global.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -18,6 +17,9 @@ import tools.jackson.databind.json.JsonMapper;
 @RequiredArgsConstructor
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
+  @Value("${spring.security.front.frontend-url}")
+  private String frontendUrl;
+
   private final JsonMapper jsonMapper;
 
   @Override
@@ -27,12 +29,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
       AuthenticationException authException)
       throws IOException {
 
-    log.warn("인증이 필요한 엔드포인트에 미인증 상태로 접근했습니다: {}", request.getRequestURI());
-
-    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    response.setContentType("application/json;charset=UTF-8");
-
-    ApiResponse<Void> apiResponse = ApiResponse.error(ErrorType.REQUIRED_AUTH);
-    response.getWriter().write(jsonMapper.writeValueAsString(apiResponse));
+    // 사용자의 요청(API 요청 포함)에 대해 무조건 프론트엔드 로그인 페이지로 리다이렉트
+    response.sendRedirect(frontendUrl + "/login");
   }
 }
