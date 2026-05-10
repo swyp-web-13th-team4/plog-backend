@@ -73,11 +73,10 @@ public class FeedService {
         feeds.stream()
             .map(
                 post -> {
-
-               boolean isAuthor = isAuthors.contains(post.getId());
+                  boolean isAuthor = isAuthors.contains(post.getId());
                   boolean isLiked = likedPosts.contains(post.getId());
                   boolean isBookMarked = bookMarks.contains(post.getId());
-                  return FeedFindResponse.from(post, isLiked, isBookMarked,isAuthor);
+                  return FeedFindResponse.from(post, isLiked, isBookMarked, isAuthor);
                 })
             .toList();
 

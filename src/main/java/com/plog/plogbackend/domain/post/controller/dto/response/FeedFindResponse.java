@@ -25,7 +25,8 @@ public record FeedFindResponse(
     UUID memberKey,
     boolean isAuthor) {
 
-  public static FeedFindResponse from(Post post, boolean isLiked, boolean isBookMarked, boolean isAuthor) {
+  public static FeedFindResponse from(
+      Post post, boolean isLiked, boolean isBookMarked, boolean isAuthor) {
 
     return new FeedFindResponse(
         post.getId(),
@@ -43,6 +44,6 @@ public record FeedFindResponse(
         isLiked,
         isBookMarked,
         post.getMember().getMemberKey(),
-            isAuthor);
+        isAuthor);
   }
 }

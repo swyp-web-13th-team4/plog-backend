@@ -124,14 +124,13 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         .fetch();
   }
 
-public   List<Long> checkMembers(Long memerId, List<Long> postId) {
+  public List<Long> checkMembers(Long memerId, List<Long> postId) {
 
-  return queryFactory
-          .select(post.id)
-          .from(post)
-          .join(post.member, member)
-          .where(member.id.eq(memerId),post.id.in(postId))
-          .fetch();
-}
+    return queryFactory
+        .select(post.id)
+        .from(post)
+        .join(post.member, member)
+        .where(member.id.eq(memerId), post.id.in(postId))
+        .fetch();
   }
-
+}
