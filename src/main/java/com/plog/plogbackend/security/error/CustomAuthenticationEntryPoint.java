@@ -34,7 +34,8 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     // 클라이언트의 요청이 API(JSON)를 기대하는지 확인
     String acceptHeader = request.getHeader("Accept");
     String requestedWithHeader = request.getHeader("X-Requested-With");
-    boolean isAjaxRequest = (acceptHeader != null && acceptHeader.contains("application/json"))
+    boolean isAjaxRequest =
+        (acceptHeader != null && acceptHeader.contains("application/json"))
             || "XMLHttpRequest".equals(requestedWithHeader)
             || request.getRequestURI().startsWith("/api/"); // API 경로는 무조건 AJAX로 간주
 
