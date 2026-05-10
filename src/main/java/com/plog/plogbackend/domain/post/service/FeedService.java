@@ -49,7 +49,8 @@ public class FeedService {
 
     List<Post> feeds =
         new ArrayList<>(
-            postRepository.findAllByFeed(command.createAt(), command.lastPostId(), pageSize + 1));
+            postRepository.findAllByFeed( // command.createAt(),
+                command.lastPostId(), pageSize + 1));
     List<Long> postIds = feeds.stream().map(Post::getId).toList();
 
     Set<Long> likedPosts;
