@@ -54,12 +54,15 @@ public class FeedService {
 
     Set<Long> likedPosts;
     Set<Long> bookMarks;
+    Set<Long> isAuthors;
     if (member != null) {
       likedPosts = new HashSet<>(postRepository.checkLikes(member.getId(), postIds));
       bookMarks = new HashSet<>(postRepository.checkBookmarks(member.getId(), postIds));
+      isAuthors = new HashSet<>(postRepository.checkMembers(member.getId(), postIds));
     } else {
       likedPosts = Collections.emptySet();
       bookMarks = Collections.emptySet();
+      isAuthors = Collections.emptySet();
     }
     boolean nextPage = feeds.size() > pageSize;
 
@@ -70,9 +73,11 @@ public class FeedService {
         feeds.stream()
             .map(
                 post -> {
+
+               boolean isAuthor = isAuthors.contains(post.getId());
                   boolean isLiked = likedPosts.contains(post.getId());
                   boolean isBookMarked = bookMarks.contains(post.getId());
-                  return FeedFindResponse.from(post, isLiked, isBookMarked);
+                  return FeedFindResponse.from(post, isLiked, isBookMarked,isAuthor);
                 })
             .toList();
 

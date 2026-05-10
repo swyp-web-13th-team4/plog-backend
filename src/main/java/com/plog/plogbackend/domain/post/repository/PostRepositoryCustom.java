@@ -24,4 +24,6 @@ public interface PostRepositoryCustom {
   List<Long> checkLikes(Long memerId, List<Long> postId);
 
   List<Long> checkBookmarks(Long memerId, List<Long> postId);
+
+  List<Long> checkMembers(Long memerId, List<Long> postId);
 }
