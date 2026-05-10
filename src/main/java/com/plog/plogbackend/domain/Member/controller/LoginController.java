@@ -32,17 +32,17 @@ public class LoginController {
   private final RefreshTokenService refreshTokenService;
   private final CookieUtil cookieUtil;
 
-  @Operation(
-      summary = "회원가입(카카오 인증 후)",
-      description = "닉네임, 약관동의, 프로필 이미지(직접 업로드 또는 기본 이미지 URL 선택)를 받아 가입 완료 (멀티파트 폼 데이터)")
+  @Operation(summary = "회원가입(카카오 인증 후)", description = "닉네임, 약관동의, 프로필 이미지(직접 업로드 또는 기본 이미지 URL 선택)를 받아 가입 완료 (멀티파트 폼 데이터)")
   @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<ApiResponse<Void>> signup(
-      @CookieValue(value = "registerToken", required = false) String registerToken,
+  public ResponseEntity<ApiResponse<java.util.Map<String, String>>> signup(
+      @CookieValue(value = "registerToken", required = false) String cookieToken,
+      @RequestParam(value = "registerToken", required = false) String paramToken,
       @Valid @RequestPart("request") MemberSignupRequest request,
       @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
       @RequestParam(value = "defaultImageId", required = false) Long defaultImageId,
       HttpServletResponse response) {
 
+    String registerToken = cookieToken != null ? cookieToken : paramToken;
     if (registerToken == null) {
       throw new AppException(ErrorType.INVALID_AUTH_HEADER); // token not found
     }
@@ -52,28 +52,28 @@ public class LoginController {
 
     // 2. 컨트롤러에서 accessToken 생성 후 쿠키에 담음
     String accessToken = jwtProvider.createAccessToken(memberKey);
-    ResponseCookie accessCookie =
-        cookieUtil.createCookie(
-            "accessToken", accessToken, jwtProvider.getAccessTokenValidityInMs());
+    ResponseCookie accessCookie = cookieUtil.createCookie(
+        "accessToken", accessToken, jwtProvider.getAccessTokenValidityInMs());
     response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
 
     // 3. Refresh Token 발급 및 DB 저장 후 쿠키에 담음
     String refreshToken = refreshTokenService.createRefreshToken(memberKey);
-    ResponseCookie refreshCookie =
-        cookieUtil.createCookie(
-            "refreshToken", refreshToken, jwtProvider.getRefreshTokenValidityInMs());
+    ResponseCookie refreshCookie = cookieUtil.createCookie(
+        "refreshToken", refreshToken, jwtProvider.getRefreshTokenValidityInMs());
     response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
     // 4. 사용이 끝난 registerToken 쿠키 삭제 (즉시 만료)
     ResponseCookie deleteRegisterCookie = cookieUtil.deleteCookie("registerToken");
     response.addHeader(HttpHeaders.SET_COOKIE, deleteRegisterCookie.toString());
 
-    return ResponseEntity.ok(ApiResponse.success());
+    java.util.Map<String, String> tokens = new java.util.HashMap<>();
+    tokens.put("accessToken", accessToken);
+    tokens.put("refreshToken", refreshToken);
+
+    return ResponseEntity.ok(ApiResponse.success(tokens));
   }
 
-  @Operation(
-      summary = "로그아웃",
-      description = "accessToken, refreshToken 쿠키를 만료시키고 DB에서 refreshToken을 삭제하여 로그아웃 처리")
+  @Operation(summary = "로그아웃", description = "accessToken, refreshToken 쿠키를 만료시키고 DB에서 refreshToken을 삭제하여 로그아웃 처리")
   @PostMapping("/logout")
   public ResponseEntity<ApiResponse<Void>> logout(
       org.springframework.security.core.Authentication authentication,
