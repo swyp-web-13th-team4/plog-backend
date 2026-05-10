@@ -94,7 +94,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
   private BooleanExpression scroll(LocalDateTime lastStudyDate, Long lastPostId) {
 
-    if (lastStudyDate == null || lastPostId == null) return null;
+    if (lastStudyDate == null || lastPostId == null || lastPostId == 0) return null;
 
     return post.createdAt
         .lt(lastStudyDate)
