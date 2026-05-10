@@ -33,7 +33,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
 
     String accessToken = CookieUtil.getCookieValue(request, "accessToken");
+    if (accessToken == null && request.getHeader("Authorization") != null) {
+      accessToken = request.getHeader("Authorization").replace("Bearer ", "");
+    }
     String refreshToken = CookieUtil.getCookieValue(request, "refreshToken");
+    if (refreshToken == null && request.getHeader("x-refresh-token") != null) {
+      refreshToken = request.getHeader("x-refresh-token");
+    }
 
     // Case 1: Access Token이 유효한 경우 → 정상 인증 처리
     if (accessToken != null

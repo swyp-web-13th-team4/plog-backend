@@ -8,6 +8,9 @@ import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,19 +44,36 @@ public class GcsService {
   public String upload(MultipartFile file, String directory) {
     validateFile(file);
 
-    String objectName = buildObjectName(directory, file.getOriginalFilename());
+    String originalFilename = file.getOriginalFilename();
+    String extension = extractSafeExtension(originalFilename);
+
+    boolean isHeic = extension.equalsIgnoreCase(".heic") || extension.equalsIgnoreCase(".heif");
+
+    // HEIC 파일인 경우 jpg로 변경
+    if (isHeic) {
+      extension = ".jpg";
+    }
+
+    String objectName = directory + "/" + UuidCreator.getTimeOrderedEpoch() + extension;
+    String contentType = isHeic ? "image/jpeg" : file.getContentType();
+
     BlobInfo blobInfo =
-        BlobInfo.newBuilder(BlobId.of(bucket, objectName))
-            .setContentType(file.getContentType())
-            .build();
+        BlobInfo.newBuilder(BlobId.of(bucket, objectName)).setContentType(contentType).build();
 
     try (InputStream inputStream = file.getInputStream()) {
-      storage.createFrom(blobInfo, inputStream);
+      if (isHeic) {
+        log.info("HEIC 이미지를 JPEG로 변환 시작: {}", originalFilename);
+        byte[] convertedBytes = convertHeicToJpeg(inputStream);
+        storage.create(blobInfo, convertedBytes);
+      } else {
+        storage.createFrom(blobInfo, inputStream);
+      }
+
       String finalUrl = GCS_BASE_URL + bucket + "/" + objectName;
       log.info("GCS 파일 업로드 완료. 생성된 URL: {}", finalUrl);
       return finalUrl;
     } catch (IOException e) {
-      log.error("GCS 파일 업로드 실패: {}", objectName, e);
+      log.error("GCS 파일 업로드/변환 실패: {}", objectName, e);
       throw new AppException(ErrorType.FILE_UPLOAD_FAILED);
     }
   }
@@ -86,6 +106,47 @@ public class GcsService {
   // Private helpers
   // ==========================================
 
+  /**
+   * HEIC/HEIF 이미지를 외부 프로세스(ImageMagick 또는 libheif)를 이용해 JPEG로 변환합니다. 자바 네이티브로는 특허 문제로 지원되지 않아 OS의
+   * 모듈을 호출합니다.
+   */
+  private byte[] convertHeicToJpeg(InputStream inputStream) throws IOException {
+    Path inputPath = Files.createTempFile("temp_heic_", ".heic");
+    Path outputPath = Files.createTempFile("temp_jpeg_", ".jpg");
+
+    try {
+      Files.copy(inputStream, inputPath, StandardCopyOption.REPLACE_EXISTING);
+
+      // 1순위: ImageMagick (magick)
+      if (!executeCommand("magick", inputPath.toString(), outputPath.toString())) {
+        // 2순위: ImageMagick legacy (convert)
+        if (!executeCommand("convert", inputPath.toString(), outputPath.toString())) {
+          // 3순위: libheif (heif-convert)
+          if (!executeCommand("heif-convert", inputPath.toString(), outputPath.toString())) {
+            log.error(
+                "HEIC 변환 실패: ImageMagick(magick, convert) 및 libheif(heif-convert) 명령어를 찾을 수 없거나 실행에 실패했습니다.");
+            throw new IOException("HEIC 변환 외부 모듈 호출 실패");
+          }
+        }
+      }
+
+      return Files.readAllBytes(outputPath);
+    } finally {
+      Files.deleteIfExists(inputPath);
+      Files.deleteIfExists(outputPath);
+    }
+  }
+
+  private boolean executeCommand(String... command) {
+    try {
+      ProcessBuilder pb = new ProcessBuilder(command);
+      Process process = pb.start();
+      return process.waitFor() == 0;
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
   private void validateFile(MultipartFile file) {
     if (file == null || file.isEmpty()) {
       throw new AppException(ErrorType.FILE_EMPTY);
@@ -98,16 +159,6 @@ public class GcsService {
     if (file.getSize() > 10 * 1024 * 1024) {
       throw new AppException(ErrorType.FILE_SIZE_EXCEEDED);
     }
-  }
-
-  /**
-   * 중복 없는 고유한 GCS 객체 이름을 생성합니다.
-   *
-   * <p>originalFilename에서 경로 구분자(/ \)를 제거한 뒤 확장자만 추출합니다.
-   */
-  private String buildObjectName(String directory, String originalFilename) {
-    String extension = extractSafeExtension(originalFilename);
-    return directory + "/" + UuidCreator.getTimeOrderedEpoch() + extension;
   }
 
   /**
