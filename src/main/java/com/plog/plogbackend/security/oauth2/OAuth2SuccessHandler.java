@@ -49,22 +49,26 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
       Member member = memberOpt.get();
       String accessToken = jwtProvider.createAccessToken(member.getMemberKey());
 
-      org.springframework.http.ResponseCookie accessCookie = cookieUtil.createCookie(
-          "accessToken", accessToken, jwtProvider.getAccessTokenValidityInMs());
+      org.springframework.http.ResponseCookie accessCookie =
+          cookieUtil.createCookie(
+              "accessToken", accessToken, jwtProvider.getAccessTokenValidityInMs());
       response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, accessCookie.toString());
 
       // Refresh Token 발급 및 DB 저장
       String refreshToken = refreshTokenService.createRefreshToken(member.getMemberKey());
-      org.springframework.http.ResponseCookie refreshCookie = cookieUtil.createCookie(
-          "refreshToken", refreshToken, jwtProvider.getRefreshTokenValidityInMs());
+      org.springframework.http.ResponseCookie refreshCookie =
+          cookieUtil.createCookie(
+              "refreshToken", refreshToken, jwtProvider.getRefreshTokenValidityInMs());
       response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
       // 프론트엔드 콜백 페이지로 토큰을 URL 파라미터로 전달
       String redirectUrl =
           frontendUrl
               + "/api/auth/callback"
-              + "?accessToken=" + accessToken
-              + "&refreshToken=" + refreshToken;
+              + "?accessToken="
+              + accessToken
+              + "&refreshToken="
+              + refreshToken;
       getRedirectStrategy().sendRedirect(request, response, redirectUrl);
 
     } else {
@@ -74,15 +78,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
       // 카카오 ID를 담은 유효기간 15분 임시 토큰 생성
       String registerToken = jwtProvider.createRegisterToken(providerId);
 
-      org.springframework.http.ResponseCookie cookie2 = cookieUtil.createCookie(
-          "registerToken", registerToken, jwtProvider.getRegisterTokenValidityInMs());
+      org.springframework.http.ResponseCookie cookie2 =
+          cookieUtil.createCookie(
+              "registerToken", registerToken, jwtProvider.getRegisterTokenValidityInMs());
       response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, cookie2.toString());
 
       // 프론트엔드 콜백 페이지로 registerToken을 URL 파라미터로 전달
-      String redirectUrl =
-          frontendUrl
-              + "/api/auth/callback"
-              + "?registerToken=" + registerToken;
+      String redirectUrl = frontendUrl + "/api/auth/callback" + "?registerToken=" + registerToken;
       getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
   }
