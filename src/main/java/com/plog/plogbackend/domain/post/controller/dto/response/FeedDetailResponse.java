@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public record FeedDetailResponse(
     Long postId,
-    UUID memerKey,
+    UUID memberKey,
     String name,
     String profileImage,
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC") LocalDateTime createAt,
