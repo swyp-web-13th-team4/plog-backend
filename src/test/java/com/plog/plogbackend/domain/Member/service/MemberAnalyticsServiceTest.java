@@ -49,7 +49,7 @@ class MemberAnalyticsServiceTest {
     List<Post> posts = new ArrayList<>();
     for (int i = 0; i < 5; i++) {
       LocalDateTime start =
-          LocalDateTime.of(2025, 1, 1 + i, 14, 0 + (i * 30)); // 14:00, 14:30, 15:00, 15:30, 16:00
+          LocalDateTime.of(2025, 1, 1 + i, 14, 0).plusMinutes(i * 30); // 14:00, 14:30, 15:00, 15:30, 16:00
       LocalDateTime end = start.plusMinutes(150);
 
       Post post =
