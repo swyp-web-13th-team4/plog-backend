@@ -81,7 +81,7 @@ public class MemberAnalyticsService {
 
     log.info("[MemberAnalytics] WorkType Scores: {}", scores);
 
-    // 조건 미충족(음수 등)인 유형 제거 후 최고 점수 선택
+    // 1단계: 조건 충족(양수 점수)인 유형 중 최고 점수 선택
     WorkType bestType =
         scores.entrySet().stream()
             .filter(e -> e.getValue() > 0)
@@ -89,7 +89,17 @@ public class MemberAnalyticsService {
             .map(Map.Entry::getKey)
             .orElse(null);
 
-    log.info("[MemberAnalytics] Selected WorkType: {}", bestType);
+    // 2단계: 조건 충족 유형이 없으면, 가장 점수가 높은(가장 근접한) 유형 선택
+    if (bestType == null) {
+      bestType =
+          scores.entrySet().stream()
+              .max(Map.Entry.comparingByValue())
+              .map(Map.Entry::getKey)
+              .orElse(WorkType.LOGI); // 최후의 보루
+      log.info("[MemberAnalytics] No strict match found. Selected closest WorkType: {}", bestType);
+    } else {
+      log.info("[MemberAnalytics] Selected WorkType: {}", bestType);
+    }
 
     return bestType;
   }
@@ -97,7 +107,7 @@ public class MemberAnalyticsService {
   /** 유형 1: 성실 루틴형 치치 (시간의 규칙성) - 최근 5회 시작 시간 오차 ±30분 이내 */
   private double calcType1Score(List<Post> postsWithStartedAt) {
     List<Post> recent5 = getRecent(postsWithStartedAt, 5);
-    if (recent5.size() < 5) return -1;
+    if (recent5.size() < 5) return -100;
 
     List<LocalTime> times = recent5.stream().map(p -> p.getStartedAt().toLocalTime()).toList();
 
@@ -126,14 +136,14 @@ public class MemberAnalyticsService {
             .max()
             .orElse(31);
 
-    if (maxDeviation > 30) return -1; // 단 하나의 기록이라도 ±30분을 초과하면 미충족
+    if (maxDeviation > 30) return -(maxDeviation - 30); // 단 하나의 기록이라도 ±30분을 초과하면 미충족 (음수 거리 반환)
     return Math.max(0, 100 - (maxDeviation * 1.66));
   }
 
   /** 유형 2: 부지런한 아침형 로기 (오전 집중형) - 오전(06:00~10:50) 시작 비중 60% 이상 */
   private double calcType2Score(List<Post> postsWithStartedAt) {
     long total = postsWithStartedAt.size();
-    if (total == 0) return -1;
+    if (total == 0) return -100;
 
     long morningCount =
         postsWithStartedAt.stream()
@@ -141,14 +151,14 @@ public class MemberAnalyticsService {
             .count();
 
     double ratio = (morningCount * 100.0) / total;
-    if (ratio < 60) return -1;
+    if (ratio < 60) return ratio - 60; // 부족한 비율만큼 음수 반환
     return Math.min(100, 50 + ((ratio - 60) * 1.25));
   }
 
   /** 유형 3: 자유로운 탐험형 하루 (장소 유목민형) - 최근 5회 중 PlaceCategory 3곳 이상 */
   private double calcType3Score(List<Post> posts) {
     List<Post> recent5 = getRecent(posts, 5);
-    if (recent5.size() < 5) return -1;
+    if (recent5.size() < 5) return -100;
 
     Set<Long> placeCategoryIds =
         recent5.stream()
@@ -158,20 +168,25 @@ public class MemberAnalyticsService {
             .collect(Collectors.toSet());
 
     int count = placeCategoryIds.size();
-    if (count < 3) return -1;
+    if (count < 3) return (count - 3) * 10.0; // 부족한 개수만큼 감점
     return Math.min(100, 50 + ((count - 3) * 25.0));
   }
 
   /** 유형 4: 빠른 스퍼트형 토리 (단기 몰입형) - 평균 작업 120분 미만 & 2시간 미만 빈도 60% 이상 */
   private double calcType4Score(List<Post> postsWithStudyTime) {
-    if (postsWithStudyTime.isEmpty()) return -1;
+    if (postsWithStudyTime.isEmpty()) return -100;
 
     double avg = postsWithStudyTime.stream().mapToInt(Post::getStudyTime).average().orElse(120);
-    if (avg >= 120) return -1;
-
     long shortCount = postsWithStudyTime.stream().filter(p -> p.getStudyTime() < 120).count();
     double shortRatio = (shortCount * 100.0) / postsWithStudyTime.size();
-    if (shortRatio < 60) return -1;
+
+    // 두 조건 중 더 많이 부족한 쪽을 기준으로 반환 (0 이하면 미충족)
+    double avgDiff = 120 - avg;
+    double ratioDiff = shortRatio - 60;
+
+    if (avgDiff <= 0 || ratioDiff < 0) {
+      return Math.min(avgDiff, ratioDiff);
+    }
 
     return Math.min(100, 100 - ((avg - 60) * 0.83));
   }
@@ -179,7 +194,7 @@ public class MemberAnalyticsService {
   /** 유형 5: 고요한 새벽형 포포 (올빼미형) - 밤(20:00~23:00) 시작 비중 70% 이상 */
   private double calcType5Score(List<Post> postsWithStartedAt) {
     long total = postsWithStartedAt.size();
-    if (total == 0) return -1;
+    if (total == 0) return -100;
 
     long nightCount =
         postsWithStartedAt.stream()
@@ -187,7 +202,7 @@ public class MemberAnalyticsService {
             .count();
 
     double ratio = (nightCount * 100.0) / total;
-    if (ratio < 70) return -1;
+    if (ratio < 70) return ratio - 70;
     return Math.min(100, 50 + ((ratio - 70) * 1.66));
   }
 
@@ -195,7 +210,7 @@ public class MemberAnalyticsService {
   private double calcType6Score(List<Post> posts) {
     List<Post> highFocus =
         posts.stream().filter(p -> p.getFocus() != null && p.getFocus() >= 4).toList();
-    if (highFocus.size() < 2) return -1;
+    if (highFocus.size() < 2) return -100;
 
     // 각 Post의 태그 ID 집합 추출
     List<Set<Long>> tagSets =
@@ -216,7 +231,7 @@ public class MemberAnalyticsService {
     }
 
     double avgSimilarity = pairCount > 0 ? (totalSimilarity / pairCount) * 100 : 0;
-    if (avgSimilarity < 80) return -1;
+    if (avgSimilarity < 80) return avgSimilarity - 80;
     return Math.min(100, 50 + ((avgSimilarity - 80) * 2.5));
   }
 
