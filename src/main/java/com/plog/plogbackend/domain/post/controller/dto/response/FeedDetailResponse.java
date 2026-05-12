@@ -1,5 +1,6 @@
 package com.plog.plogbackend.domain.post.controller.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
@@ -12,7 +13,7 @@ public record FeedDetailResponse(
     UUID memberKey,
     String name,
     String profileImage,
-    //    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
+    //    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     LocalDateTime createAt,
     List<String> postImages,
     Long likes,
