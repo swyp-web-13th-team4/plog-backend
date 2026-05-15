@@ -63,11 +63,22 @@ public class RefreshTokenService {
       throw new AppException(ErrorType.INVALID_REFRESH_TOKEN);
     }
 
-    // 2) DB에서 토큰 조회
+    // 2) DB에서 토큰 조회 (동시 갱신 요청 직렬화를 위해 Pessimistic Write Lock 사용)
+    // JWT에서 memberKey를 추출하여 Race Condition 시 fallback에 활용
+    UUID memberKeyFromJwt = jwtProvider.getMemberKeyFromToken(refreshTokenValue);
+
     RefreshToken storedToken =
         refreshTokenRepository
-            .findByToken(refreshTokenValue)
-            .orElseThrow(() -> new AppException(ErrorType.INVALID_REFRESH_TOKEN));
+            .findByTokenWithLock(refreshTokenValue)
+            .orElseGet(
+                () -> {
+                  // 이미 다른 요청이 Rotation을 완료한 경우:
+                  // 동일 memberKey의 현재 유효한 토큰으로 fallback
+                  return refreshTokenRepository
+                      .findByMemberKey(memberKeyFromJwt)
+                      .filter(t -> !t.isExpired())
+                      .orElseThrow(() -> new AppException(ErrorType.INVALID_REFRESH_TOKEN));
+                });
 
     // 3) 만료 여부 확인
     if (storedToken.isExpired()) {

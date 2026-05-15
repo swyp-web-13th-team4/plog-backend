@@ -1,7 +1,5 @@
 package com.plog.plogbackend.domain.post.controller.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.plog.plogbackend.domain.post.entity.PlaceCategory;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
@@ -11,10 +9,11 @@ import java.util.UUID;
 
 public record FeedDetailResponse(
     Long postId,
-    UUID memerKey,
+    UUID memberKey,
     String name,
     String profileImage,
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC") LocalDateTime createAt,
+    //    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
+    LocalDateTime createAt,
     List<String> postImages,
     Long likes,
     String title,
@@ -26,11 +25,11 @@ public record FeedDetailResponse(
     boolean isAuthor,
     boolean like,
     boolean bookMark,
-    PlaceCategory category,
+    String category,
     String address) {
 
   public static FeedDetailResponse from(
-      Post post, boolean isAuthor, Boolean isLiked, Boolean isBookMarked) {
+      Post post, boolean isAuthor, Boolean isLiked, Boolean isBookMarked, String category) {
 
     return new FeedDetailResponse(
         post.getId(),
@@ -49,7 +48,7 @@ public record FeedDetailResponse(
         isAuthor,
         isLiked,
         isBookMarked,
-        post.getPlaceCategory(),
+        category,
         post.getPlace().getAddress());
   }
 }

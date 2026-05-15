@@ -36,13 +36,15 @@ public class LoginController {
       summary = "회원가입(카카오 인증 후)",
       description = "닉네임, 약관동의, 프로필 이미지(직접 업로드 또는 기본 이미지 URL 선택)를 받아 가입 완료 (멀티파트 폼 데이터)")
   @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<ApiResponse<Void>> signup(
-      @CookieValue(value = "registerToken", required = false) String registerToken,
+  public ResponseEntity<ApiResponse<java.util.Map<String, String>>> signup(
+      @CookieValue(value = "registerToken", required = false) String cookieToken,
+      @RequestParam(value = "registerToken", required = false) String paramToken,
       @Valid @RequestPart("request") MemberSignupRequest request,
       @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
       @RequestParam(value = "defaultImageId", required = false) Long defaultImageId,
       HttpServletResponse response) {
 
+    String registerToken = cookieToken != null ? cookieToken : paramToken;
     if (registerToken == null) {
       throw new AppException(ErrorType.INVALID_AUTH_HEADER); // token not found
     }
@@ -68,7 +70,11 @@ public class LoginController {
     ResponseCookie deleteRegisterCookie = cookieUtil.deleteCookie("registerToken");
     response.addHeader(HttpHeaders.SET_COOKIE, deleteRegisterCookie.toString());
 
-    return ResponseEntity.ok(ApiResponse.success());
+    java.util.Map<String, String> tokens = new java.util.HashMap<>();
+    tokens.put("accessToken", accessToken);
+    tokens.put("refreshToken", refreshToken);
+
+    return ResponseEntity.ok(ApiResponse.success(tokens));
   }
 
   @Operation(

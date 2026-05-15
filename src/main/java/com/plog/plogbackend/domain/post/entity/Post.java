@@ -55,7 +55,11 @@ public class Post extends BaseTimeStatusEntity {
 
   private Long likes;
 
-  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
+  @OneToMany(
+      mappedBy = "post",
+      fetch = FetchType.LAZY,
+      cascade = CascadeType.ALL,
+      orphanRemoval = true)
   private List<PostImage> images = new ArrayList<>();
 
   @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
@@ -146,5 +150,13 @@ public class Post extends BaseTimeStatusEntity {
     this.startedAt = newStartedAt;
     this.endedAt = newEndedAt;
     this.studyTime = (int) Duration.between(newStartedAt, newEndedAt).toMinutes();
+  }
+
+  public void addImage(PostImage image) {
+    this.images.add(image);
+  }
+
+  public void removeImage(PostImage image) {
+    this.images.remove(image);
   }
 }

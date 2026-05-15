@@ -61,9 +61,14 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
               "refreshToken", refreshToken, jwtProvider.getRefreshTokenValidityInMs());
       response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
-      // 프론트엔드의 메인 페이지(또는 로그인 성공 처리 페이지)로 리다이렉트
-      //            String redirectUrl = frontendUrl + "/success.html"; // 로컬 HTML 테스트 전용 경로
-      String redirectUrl = frontendUrl + "/map";
+      // 프론트엔드 콜백 페이지로 토큰을 URL 파라미터로 전달
+      String redirectUrl =
+          frontendUrl
+              + "/api/auth/callback"
+              + "?accessToken="
+              + accessToken
+              + "&refreshToken="
+              + refreshToken;
       getRedirectStrategy().sendRedirect(request, response, redirectUrl);
 
     } else {
@@ -78,10 +83,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
               "registerToken", registerToken, jwtProvider.getRegisterTokenValidityInMs());
       response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, cookie2.toString());
 
-      // 프론트엔드 추가 정보 입력(회원가입) 페이지로 리다이렉트
-      //            String redirectUrl = frontendUrl + "/signup.html"; // 로컬 HTML 테스트 전용 경로
-      String redirectUrl = frontendUrl + "/signup";
-      getRedirectStrategy().sendRedirect(request, response, redirectUrl); // 리다이렉트
+      // 프론트엔드 콜백 페이지로 registerToken을 URL 파라미터로 전달
+      String redirectUrl = frontendUrl + "/api/auth/callback" + "?registerToken=" + registerToken;
+      getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
   }
 }

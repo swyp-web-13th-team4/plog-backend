@@ -49,17 +49,21 @@ public class FeedService {
 
     List<Post> feeds =
         new ArrayList<>(
-            postRepository.findAllByFeed(command.createAt(), command.lastPostId(), pageSize + 1));
+            postRepository.findAllByFeed( // command.createAt(),
+                command.lastPostId(), pageSize + 1));
     List<Long> postIds = feeds.stream().map(Post::getId).toList();
 
     Set<Long> likedPosts;
     Set<Long> bookMarks;
+    Set<Long> isAuthors;
     if (member != null) {
       likedPosts = new HashSet<>(postRepository.checkLikes(member.getId(), postIds));
       bookMarks = new HashSet<>(postRepository.checkBookmarks(member.getId(), postIds));
+      isAuthors = new HashSet<>(postRepository.checkMembers(member.getId(), postIds));
     } else {
       likedPosts = Collections.emptySet();
       bookMarks = Collections.emptySet();
+      isAuthors = Collections.emptySet();
     }
     boolean nextPage = feeds.size() > pageSize;
 
@@ -70,9 +74,10 @@ public class FeedService {
         feeds.stream()
             .map(
                 post -> {
+                  boolean isAuthor = isAuthors.contains(post.getId());
                   boolean isLiked = likedPosts.contains(post.getId());
                   boolean isBookMarked = bookMarks.contains(post.getId());
-                  return FeedFindResponse.from(post, isLiked, isBookMarked);
+                  return FeedFindResponse.from(post, isLiked, isBookMarked, isAuthor);
                 })
             .toList();
 
@@ -92,26 +97,30 @@ public class FeedService {
   public FeedDetailResponse feedDetail(FeedDetailCommand command, UUID memberKey) {
 
     boolean isAuthor = false;
-
+    boolean isLiked = false;
+    boolean isBookMarked = false;
     Post post =
         postRepository
             .findById(command.postId())
             .orElseThrow(() -> new AppException(ErrorType.POST_NOT_FOUND));
 
-    Member member =
-        memberRepository
-            .findByMemberKey(memberKey)
-            .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
+    if (memberKey != null) {
+      Member member =
+          memberRepository
+              .findByMemberKey(memberKey)
+              .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
 
-    if (member.getId().equals(post.getMember().getId())) {
+      if (member.getId().equals(post.getMember().getId())) {
 
-      isAuthor = true;
+        isAuthor = true;
+      }
+
+      isLiked = likeRepository.existsByMemberIdAndPostId(member.getId(), post.getId());
+      isBookMarked = bookMarkRepository.existsByMemberIdAndPostId(member.getId(), post.getId());
     }
-    boolean isLiked = likeRepository.existsByMemberIdAndPostId(member.getId(), post.getId());
-    boolean isBookMarked =
-        bookMarkRepository.existsByMemberIdAndPostId(member.getId(), post.getId());
+    String categoryName = post.getPlaceCategory().getCategoryName().getLabel();
 
-    return FeedDetailResponse.from(post, isAuthor, isLiked, isBookMarked);
+    return FeedDetailResponse.from(post, isAuthor, isLiked, isBookMarked, categoryName);
   }
 
   @Transactional

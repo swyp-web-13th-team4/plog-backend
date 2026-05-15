@@ -1,7 +1,6 @@
 package com.plog.plogbackend.domain.post.repository;
 
 import com.plog.plogbackend.domain.post.entity.Post;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PostRepositoryCustom {
@@ -16,7 +15,8 @@ public interface PostRepositoryCustom {
 
   // 피드 글 조회
 
-  List<Post> findAllByFeed(LocalDateTime lastStudyDate, Long lastPostId, int size);
+  List<Post> findAllByFeed( // LocalDateTime lastStudyDate,
+      Long lastPostId, int size);
 
   // 북마크
   List<Post> bookMarkPost(Long memberId);
@@ -24,4 +24,6 @@ public interface PostRepositoryCustom {
   List<Long> checkLikes(Long memerId, List<Long> postId);
 
   List<Long> checkBookmarks(Long memerId, List<Long> postId);
+
+  List<Long> checkMembers(Long memerId, List<Long> postId);
 }
