@@ -100,7 +100,7 @@ public class MyPageController {
       Authentication authentication, @RequestParam Long badgeId) {
     UUID memberKey = (UUID) authentication.getPrincipal();
     myPageService.updateMainBadge(memberKey, badgeId);
-    return ResponseEntity.ok(ApiResponse.success(null));
+    return ResponseEntity.ok(ApiResponse.success());
   }
 
   /** 회원 분석 정보 조회 GET /api/members/analytics */

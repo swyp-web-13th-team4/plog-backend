@@ -90,14 +90,23 @@ public class SecurityConfig {
                         "/actuator/**", "/api/members/default-images", "/api/members/validate/**")
                     .permitAll()
 
+                    // 피드 관련 조회 API 허용
+                    .requestMatchers(
+                        org.springframework.http.HttpMethod.GET,
+                        "/api/feed/list",
+                        "/api/feed/{postId}",
+                        "/api/feed/profileView/**")
+                    .permitAll()
+
                     // 테스트용 게시글 이미지 목록 조회 TODO: 게시글 API 구현 완료후 삭제
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/test/images/**")
                     .permitAll()
 
                     // 인증이 필요한 모든 도메인 API 명시적 추가
                     .requestMatchers(
-                        // 피드 관련
-                        "/api/feed/**",
+                        // 피드 관련 (수정/좋아요/북마크 등)
+                        "/api/feed/bookmark/**",
+                        "/api/feed/like/**",
 
                         // 환경 기록(게시글) 관련
                         "/api/post/**",
