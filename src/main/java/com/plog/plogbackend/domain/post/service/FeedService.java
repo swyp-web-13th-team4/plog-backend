@@ -97,25 +97,27 @@ public class FeedService {
   public FeedDetailResponse feedDetail(FeedDetailCommand command, UUID memberKey) {
 
     boolean isAuthor = false;
-
+    boolean isLiked = false;
+    boolean isBookMarked = false;
     Post post =
         postRepository
             .findById(command.postId())
             .orElseThrow(() -> new AppException(ErrorType.POST_NOT_FOUND));
 
-    Member member =
-        memberRepository
-            .findByMemberKey(memberKey)
-            .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
+    if (memberKey != null) {
+      Member member =
+          memberRepository
+              .findByMemberKey(memberKey)
+              .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
 
-    if (member.getId().equals(post.getMember().getId())) {
+      if (member.getId().equals(post.getMember().getId())) {
 
-      isAuthor = true;
+        isAuthor = true;
+      }
+
+      isLiked = likeRepository.existsByMemberIdAndPostId(member.getId(), post.getId());
+      isBookMarked = bookMarkRepository.existsByMemberIdAndPostId(member.getId(), post.getId());
     }
-    boolean isLiked = likeRepository.existsByMemberIdAndPostId(member.getId(), post.getId());
-    boolean isBookMarked =
-        bookMarkRepository.existsByMemberIdAndPostId(member.getId(), post.getId());
-
     String categoryName = post.getPlaceCategory().getCategoryName().getLabel();
 
     return FeedDetailResponse.from(post, isAuthor, isLiked, isBookMarked, categoryName);
