@@ -1,7 +1,7 @@
 package com.plog.plogbackend.domain.post.repository;
 
-import com.plog.plogbackend.domain.member.QMember;
 import com.plog.plogbackend.domain.bookmark.entity.QBookMark;
+import com.plog.plogbackend.domain.member.QMember;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PublicScope;
 import com.plog.plogbackend.domain.post.entity.QLike;

@@ -1,9 +1,9 @@
 package com.plog.plogbackend.domain.member.repository;
 
-import com.plog.plogbackend.domain.member.QMember;
 import com.plog.plogbackend.domain.badge.entity.Badge;
 import com.plog.plogbackend.domain.badge.entity.QMemberBadge;
 import com.plog.plogbackend.domain.bookmark.entity.QBookMark;
+import com.plog.plogbackend.domain.member.QMember;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.QPost;
 import com.plog.plogbackend.domain.post.entity.QPostTag;

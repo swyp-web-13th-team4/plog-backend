@@ -1,5 +1,8 @@
 package com.plog.plogbackend.domain.member.service;
 
+import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
+import com.plog.plogbackend.domain.badge.repository.MemberBadgeRepository;
+import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.MemberAgreement;
 import com.plog.plogbackend.domain.member.dto.request.MemberSignupRequest;
@@ -10,9 +13,6 @@ import com.plog.plogbackend.domain.member.entity.Terms;
 import com.plog.plogbackend.domain.member.repository.MemberAgreementRepository;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.member.repository.TermsRepository;
-import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
-import com.plog.plogbackend.domain.badge.repository.MemberBadgeRepository;
-import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
 import com.plog.plogbackend.domain.post.repository.LikeRepository;

@@ -1,5 +1,7 @@
 package com.plog.plogbackend.domain.member.service;
 
+import com.plog.plogbackend.domain.badge.entity.Badge;
+import com.plog.plogbackend.domain.badge.repository.BadgeRepository;
 import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.dto.response.*;
 import com.plog.plogbackend.domain.member.dto.response.MemberResponse;
@@ -8,8 +10,6 @@ import com.plog.plogbackend.domain.member.dto.response.MyPageBookmarkResponse;
 import com.plog.plogbackend.domain.member.dto.response.MyPageFeedResponse;
 import com.plog.plogbackend.domain.member.dto.response.MyPagePostsListResponse;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
-import com.plog.plogbackend.domain.badge.entity.Badge;
-import com.plog.plogbackend.domain.badge.repository.BadgeRepository;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;

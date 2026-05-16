@@ -1,9 +1,9 @@
 package com.plog.plogbackend.domain.member;
 
 import com.github.f4b6a3.uuid.UuidCreator;
-import com.plog.plogbackend.domain.member.enums.Role;
 import com.plog.plogbackend.domain.badge.entity.Badge;
 import com.plog.plogbackend.domain.bookmark.entity.BookMark;
+import com.plog.plogbackend.domain.member.enums.Role;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
 import java.util.ArrayList;
