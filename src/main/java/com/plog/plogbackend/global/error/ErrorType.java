@@ -49,6 +49,7 @@ public enum ErrorType {
   MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 회원을 찾을 수 없습니다.", LogLevel.WARN),
   POST_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 게시글을 찾을 수 없습니다.", LogLevel.WARN),
   POST_FORBIDDEN(HttpStatus.FORBIDDEN, ErrorCode.E403, "본인의 게시글만 조회/수정할 수 있습니다.", LogLevel.WARN),
+  POST_ACCESS_DENIED(HttpStatus.FORBIDDEN, ErrorCode.E403, "접근 권한이 없는 게시물 입니다.", LogLevel.WARN),
   TERMS_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 약관을 찾을 수 없습니다.", LogLevel.WARN),
   REQUIRED_TERMS_NOT_AGREED(
       HttpStatus.BAD_REQUEST, ErrorCode.E400, "필수 약관에 동의해야 합니다.", LogLevel.WARN),

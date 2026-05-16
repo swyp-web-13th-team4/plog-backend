@@ -9,6 +9,7 @@ import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.post.controller.dto.response.*;
 import com.plog.plogbackend.domain.post.entity.Like;
 import com.plog.plogbackend.domain.post.entity.Post;
+import com.plog.plogbackend.domain.post.entity.PublicScope;
 import com.plog.plogbackend.domain.post.repository.LikeRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.post.service.dto.FeedDetailCommand;
@@ -103,6 +104,12 @@ public class FeedService {
         postRepository
             .findById(command.postId())
             .orElseThrow(() -> new AppException(ErrorType.POST_NOT_FOUND));
+
+    if (post.getScope() == PublicScope.PRIVATE
+        && post.getMember().getMemberKey().equals(memberKey)) {
+
+      throw new AppException(ErrorType.POST_ACCESS_DENIED);
+    }
 
     if (memberKey != null) {
       Member member =
