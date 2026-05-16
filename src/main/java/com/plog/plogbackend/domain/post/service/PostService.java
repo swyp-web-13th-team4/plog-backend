@@ -1,5 +1,7 @@
 package com.plog.plogbackend.domain.post.service;
 
+import static com.plog.plogbackend.domain.post.entity.Post.*;
+
 import com.plog.plogbackend.domain.Member.Member;
 import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
@@ -67,7 +69,7 @@ public class PostService {
 
     Post savedPost =
         postRepository.save(
-            Post.of(
+            of(
                 command.title(),
                 command.contents(),
                 time.startedAt(),
@@ -185,12 +187,12 @@ public class PostService {
 
   private static void validateTitleAndContent(String title, String contents) {
     int titleLength = title.trim().length();
-    if (titleLength < 2 || titleLength > 20) {
+    if (titleLength < MIN_TITLE_LENGTH || titleLength > MAX_TITLE_LENGTH) {
       throw new AppException(ErrorType.INVALID_TITLE_LENGTH);
     }
     String trimmedContents = contents.trim();
     int contentsCount = trimmedContents.codePointCount(0, trimmedContents.length());
-    if (contentsCount < 20 || contentsCount > 200) {
+    if (contentsCount < MIN_CONTENTS_COUNT || contentsCount > MAX_CONTENTS_COUNT) {
       throw new AppException(ErrorType.INVALID_CONTENTS_LENGTH);
     }
   }
