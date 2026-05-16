@@ -6,12 +6,12 @@ import static com.plog.plogbackend.domain.post.entity.QPost.post;
 import static com.plog.plogbackend.domain.tag.QTag.tag;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.plog.plogbackend.domain.Member.Member;
-import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.map.model.SortType;
 import com.plog.plogbackend.domain.map.model.Viewport;
+import com.plog.plogbackend.domain.member.Member;
+import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.domain.place.repository.PlaceRepository;
 import com.plog.plogbackend.domain.post.entity.PlaceCategory;

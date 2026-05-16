@@ -1,6 +1,6 @@
 package com.plog.plogbackend.domain.post.entity;
 
-import com.plog.plogbackend.domain.Member.Member;
+import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;

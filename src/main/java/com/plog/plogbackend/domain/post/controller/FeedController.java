@@ -78,7 +78,7 @@ public class FeedController {
       description = "정렬 조건(latest, focus, studyTime)에 따라 조회합니다. 태그 필터링은 지원하지 않습니다.")
   @GetMapping("/feed/profileView/{memberKey}/posts")
   public ResponseEntity<
-          ApiResponse<com.plog.plogbackend.domain.Member.dto.response.MyPagePostsListResponse>>
+          ApiResponse<com.plog.plogbackend.domain.member.dto.response.MyPagePostsListResponse>>
       getOtherUserPostsSorted(
           @PathVariable("memberKey") UUID targetMemberKey,
           @Parameter(hidden = true) @AuthenticationPrincipal UUID loggedInMemberKey,
@@ -86,7 +86,7 @@ public class FeedController {
               @RequestParam(defaultValue = "latest")
               String sort) {
 
-    com.plog.plogbackend.domain.Member.dto.response.MyPagePostsListResponse response =
+    com.plog.plogbackend.domain.member.dto.response.MyPagePostsListResponse response =
         feedService.getOtherUserPostsSorted(targetMemberKey, loggedInMemberKey, sort);
 
     return ResponseEntity.ok().body(ApiResponse.success(response));
