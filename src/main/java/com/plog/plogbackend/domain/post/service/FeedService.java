@@ -106,7 +106,7 @@ public class FeedService {
             .orElseThrow(() -> new AppException(ErrorType.POST_NOT_FOUND));
 
     if (post.getScope() == PublicScope.PRIVATE
-        && post.getMember().getMemberKey().equals(memberKey)) {
+        && !post.getMember().getMemberKey().equals(memberKey)) {
 
       throw new AppException(ErrorType.POST_ACCESS_DENIED);
     }
