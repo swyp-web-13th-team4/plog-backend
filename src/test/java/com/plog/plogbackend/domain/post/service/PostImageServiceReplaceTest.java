@@ -5,8 +5,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 
-import com.plog.plogbackend.domain.Member.Member;
-import com.plog.plogbackend.domain.Member.repository.MemberRepository;
+import com.plog.plogbackend.domain.member.Member;
+import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.domain.place.repository.PlaceRepository;
 import com.plog.plogbackend.domain.post.entity.PlaceCategory;

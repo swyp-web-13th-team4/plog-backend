@@ -43,7 +43,7 @@ public enum ErrorCode {
   E1501
 
   /*
-      E1000~E1999 Member / File
+      E1000~E1999 member / File
       E1200~E1299 Badge
       E2000~E2999 POST
       이런 식으로 작성하면 좋을 거 같습니다

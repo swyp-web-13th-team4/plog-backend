@@ -1,7 +1,7 @@
 package com.plog.plogbackend.domain.badge.event;
 
-import com.plog.plogbackend.domain.Member.Member;
-import com.plog.plogbackend.domain.Member.repository.MemberRepository;
+import com.plog.plogbackend.domain.member.Member;
+import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.badge.entity.Badge;
 import com.plog.plogbackend.domain.badge.entity.MemberBadge;
 import com.plog.plogbackend.domain.badge.repository.BadgeRepository;
