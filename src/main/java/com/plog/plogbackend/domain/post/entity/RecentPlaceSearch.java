@@ -1,6 +1,6 @@
 package com.plog.plogbackend.domain.post.entity;
 
-import com.plog.plogbackend.domain.Member.Member;
+import com.plog.plogbackend.domain.member.Member;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;

@@ -1,7 +1,7 @@
 package com.plog.plogbackend.domain.post.controller.dto.response;
 
-import com.plog.plogbackend.domain.Member.dto.response.MemberResponse;
-import com.plog.plogbackend.domain.Member.dto.response.MyPageFeedResponse;
+import com.plog.plogbackend.domain.member.dto.response.MemberResponse;
+import com.plog.plogbackend.domain.member.dto.response.MyPageFeedResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 

@@ -6,7 +6,6 @@ import static com.plog.plogbackend.domain.post.entity.QPost.post;
 import static com.plog.plogbackend.domain.post.entity.QPostTag.postTag;
 import static com.plog.plogbackend.domain.tag.QTag.tag;
 
-import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.map.model.MapCount;
 import com.plog.plogbackend.domain.map.model.MapPin;
@@ -17,6 +16,7 @@ import com.plog.plogbackend.domain.map.model.PlaceSummary;
 import com.plog.plogbackend.domain.map.model.SortType;
 import com.plog.plogbackend.domain.map.model.Viewport;
 import com.plog.plogbackend.domain.map.repository.MapQueryRepository;
+import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;

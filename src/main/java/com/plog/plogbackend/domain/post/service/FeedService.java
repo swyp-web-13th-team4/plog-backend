@@ -1,11 +1,11 @@
 package com.plog.plogbackend.domain.post.service;
 
-import com.plog.plogbackend.domain.Member.Member;
-import com.plog.plogbackend.domain.Member.dto.response.*;
-import com.plog.plogbackend.domain.Member.repository.MemberRepository;
 import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
 import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
+import com.plog.plogbackend.domain.member.Member;
+import com.plog.plogbackend.domain.member.dto.response.*;
+import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.post.controller.dto.response.*;
 import com.plog.plogbackend.domain.post.entity.Like;
 import com.plog.plogbackend.domain.post.entity.Post;
