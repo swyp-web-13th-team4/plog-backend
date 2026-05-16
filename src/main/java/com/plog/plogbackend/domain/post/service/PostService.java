@@ -190,7 +190,7 @@ public class PostService {
     }
     String trimmedContents = contents.trim();
     int contentsCount = trimmedContents.codePointCount(0, trimmedContents.length());
-    if (contentsCount < 20 || contentsCount > 200) {
+    if (contentsCount < 20 || contentsCount > 300) {
       throw new AppException(ErrorType.INVALID_CONTENTS_LENGTH);
     }
   }
