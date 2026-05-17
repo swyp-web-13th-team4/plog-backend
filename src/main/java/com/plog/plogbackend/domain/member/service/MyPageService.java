@@ -1,6 +1,7 @@
 package com.plog.plogbackend.domain.member.service;
 
 import com.plog.plogbackend.domain.badge.entity.Badge;
+import com.plog.plogbackend.domain.badge.entity.MemberBadge;
 import com.plog.plogbackend.domain.badge.repository.BadgeRepository;
 import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.dto.response.*;
@@ -15,9 +16,11 @@ import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -92,14 +95,20 @@ public class MyPageService {
   @Transactional(readOnly = true)
   public MyPageBadgeResponse getMyBadges(UUID memberKey) {
     List<Badge> allBadges = badgeRepository.findAll();
-    Set<Long> myBadgeIds =
-        memberRepository.findMyBadges(memberKey).stream()
-            .map(Badge::getId)
-            .collect(Collectors.toSet());
+
+    // MemberBadge 리스트를 가져와서 Map으로 변환 (BadgeId -> acquiredAt)
+    Map<Long, LocalDateTime> myBadgesMap =
+        memberRepository.findMemberBadgesByMemberKey(memberKey).stream()
+            .collect(Collectors.toMap(mb -> mb.getBadge().getId(), MemberBadge::getAcquiredAt));
 
     List<MemberBadgeResponse> badges =
         allBadges.stream()
-            .map(badge -> MemberBadgeResponse.of(badge, myBadgeIds.contains(badge.getId())))
+            .map(
+                badge ->
+                    MemberBadgeResponse.of(
+                        badge,
+                        myBadgesMap.containsKey(badge.getId()),
+                        myBadgesMap.get(badge.getId())))
             .toList();
 
     return new MyPageBadgeResponse(badges);
@@ -130,6 +139,22 @@ public class MyPageService {
     // 3. 대표 뱃지 업데이트
     Member member = getMember(memberKey);
     member.updateMainBadge(badge);
+  }
+
+  /**
+   * DELETE /api/members/badge/main 대표 뱃지를 해제합니다.
+   *
+   * @param memberKey 회원 UUID
+   */
+  @Transactional
+  public void deleteMainBadge(UUID memberKey) {
+    Member member = getMember(memberKey);
+
+    if (member.getMainBadge() == null) {
+      throw new AppException(ErrorType.MAIN_BADGE_NOT_SET);
+    }
+
+    member.clearMainBadge();
   }
 
   private Member getMember(UUID memberKey) {

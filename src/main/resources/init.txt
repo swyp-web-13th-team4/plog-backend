@@ -6,9 +6,9 @@ INSERT INTO default_profile_image (image_url) VALUES
 ('https://storage.googleapis.com/plog-imgstorage-bucket/profiles/Default_profile_image/popo.png'),
 ('https://storage.googleapis.com/plog-imgstorage-bucket/profiles/Default_profile_image/nao.png');
 
-INSERT INTO badge (name, description, image_url) VALUES ('첫로그인','플로그 첫 로그인','https://storage.googleapis.com/plog-imgstorage-bucket/badge/First%20Login.svg');
-INSERT INTO badge (name, description, image_url) VALUES ('첫기록작성','플로그 첫 학습 기록','https://storage.googleapis.com/plog-imgstorage-bucket/badge/First%20Record.svg');
-INSERT INTO badge (name, description, image_url) VALUES ('첫북마크','첫 북마크 등록','https://storage.googleapis.com/plog-imgstorage-bucket/badge/First%20Bookmark.svg');
+INSERT INTO badge (name, description, image_url) VALUES ('첫 로그인','플로그 첫 로그인','https://storage.googleapis.com/plog-imgstorage-bucket/badge/First%20Login.svg');
+INSERT INTO badge (name, description, image_url) VALUES ('첫 작업 기록','첫 기록 작성 시 획득 가능','https://storage.googleapis.com/plog-imgstorage-bucket/badge/First%20Record.svg');
+INSERT INTO badge (name, description, image_url) VALUES ('첫 북마크','첫 북마크 등록 시 획득 가능','https://storage.googleapis.com/plog-imgstorage-bucket/badge/First%20Bookmark.svg');
 
 INSERT INTO place_category (category_name) VALUES
   ('CAFE'),

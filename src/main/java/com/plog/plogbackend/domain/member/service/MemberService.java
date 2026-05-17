@@ -1,5 +1,6 @@
 package com.plog.plogbackend.domain.member.service;
 
+import com.plog.plogbackend.domain.badge.entity.MemberBadge;
 import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
 import com.plog.plogbackend.domain.badge.repository.MemberBadgeRepository;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
@@ -162,7 +163,13 @@ public class MemberService {
 
     MemberBadgeResponse badgeResponse = null;
     if (member.getMainBadge() != null) {
-      badgeResponse = MemberBadgeResponse.of(member.getMainBadge(), true);
+      MemberBadge mb =
+          memberRepository
+              .findMemberBadgeByBadgeId(memberKey, member.getMainBadge().getId())
+              .orElse(null);
+      badgeResponse =
+          MemberBadgeResponse.of(
+              member.getMainBadge(), true, mb != null ? mb.getAcquiredAt() : null);
     }
 
     return MemberResponse.builder()

@@ -17,6 +17,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -100,6 +101,15 @@ public class MyPageController {
       Authentication authentication, @RequestParam Long badgeId) {
     UUID memberKey = (UUID) authentication.getPrincipal();
     myPageService.updateMainBadge(memberKey, badgeId);
+    return ResponseEntity.ok(ApiResponse.success());
+  }
+
+  /** 대표 배지 해제 DELETE /api/members/badge/main */
+  @Operation(summary = "대표 배지 해제", description = "로그인한 회원의 대표 배지를 해제합니다.")
+  @DeleteMapping("/badge/main")
+  public ResponseEntity<ApiResponse<Void>> deleteMainBadge(Authentication authentication) {
+    UUID memberKey = (UUID) authentication.getPrincipal();
+    myPageService.deleteMainBadge(memberKey);
     return ResponseEntity.ok(ApiResponse.success());
   }
 
