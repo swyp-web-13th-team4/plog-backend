@@ -68,11 +68,11 @@ public enum ErrorType {
 
   // 포스트 관련
   INVALID_TITLE_LENGTH(
-      HttpStatus.BAD_REQUEST, ErrorCode.E1400, "환경 기록 제목 글자 수는 2글자 이상 20글자 미만 입니다.", LogLevel.WARN),
+      HttpStatus.BAD_REQUEST, ErrorCode.E1400, "환경 기록 제목 글자 수는 2글자 이상 20글자 이하 입니다.", LogLevel.WARN),
   INVALID_CONTENTS_LENGTH(
       HttpStatus.BAD_REQUEST,
       ErrorCode.E1401,
-      "환경 기록 리뷰 글자수는 20글자 이상 200글자 미만 입니다.",
+      "환경 기록 리뷰 글자수는 20글자 이상 300글자 이하 입니다.",
       LogLevel.WARN),
 
   // 타임피커 공부시간 관련
