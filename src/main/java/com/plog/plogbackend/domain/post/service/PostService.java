@@ -1,6 +1,6 @@
 package com.plog.plogbackend.domain.post.service;
 
-import static com.plog.plogbackend.domain.post.entity.Post.*;
+import static com.plog.plogbackend.domain.post.PostValidator.*;
 
 import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
 import com.plog.plogbackend.domain.member.Member;
@@ -43,9 +43,6 @@ public class PostService {
   /** 첫 게시글 작성 뱃지 ID */
   private static final long BADGE_ID_FIRST_POST = 2L;
 
-  /** 타임피커 최대 범위 레인지 */
-  private static final int MAX_STUDY_MINUTES = 24 * 60;
-
   private static final int ACTIVITY_DAY_CUTOFF_HOURS = 6;
 
   private final MemberRepository memberRepository;
@@ -69,7 +66,7 @@ public class PostService {
 
     Post savedPost =
         postRepository.save(
-            of(
+            Post.of(
                 command.title(),
                 command.contents(),
                 time.startedAt(),
@@ -173,6 +170,7 @@ public class PostService {
                         placeCmd.longitude())));
   }
 
+  // TODO Tag 엔티티 제거 후 Enum 으로 리펙토링 그 후 PostValidator에 추가
   private List<Tag> validateAndFindTags(List<PlaceTag> placeTagList) {
     List<PlaceTag> placeTags = placeTagList.stream().distinct().toList();
     if (placeTags.size() > 5) {
@@ -183,18 +181,6 @@ public class PostService {
       throw new AppException(ErrorType.TAG_NOT_FOUND);
     }
     return findTags;
-  }
-
-  private static void validateTitleAndContent(String title, String contents) {
-    int titleLength = title.trim().length();
-    if (titleLength < MIN_TITLE_LENGTH || titleLength > MAX_TITLE_LENGTH) {
-      throw new AppException(ErrorType.INVALID_TITLE_LENGTH);
-    }
-    String trimmedContents = contents.trim();
-    int contentsCount = trimmedContents.codePointCount(0, trimmedContents.length());
-    if (contentsCount < MIN_CONTENTS_COUNT || contentsCount > MAX_CONTENTS_COUNT) {
-      throw new AppException(ErrorType.INVALID_CONTENTS_LENGTH);
-    }
   }
 
   private StudyTimeRange resolveStudyTime(
@@ -214,13 +200,6 @@ public class PostService {
       throw new AppException(ErrorType.INVALID_STUDY_TIME_RANGE);
     }
     return ended.plusDays(1);
-  }
-
-  private static void validateStudyDuration(LocalDateTime startedAt, LocalDateTime endedAt) {
-    long minutes = Duration.between(startedAt, endedAt).toMinutes();
-    if (minutes > MAX_STUDY_MINUTES) {
-      throw new AppException(ErrorType.STUDY_TIME_TOO_LONG);
-    }
   }
 
   private record StudyTimeRange(LocalDateTime startedAt, LocalDateTime endedAt) {}

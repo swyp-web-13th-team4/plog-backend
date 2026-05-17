@@ -19,11 +19,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post extends BaseTimeStatusEntity {
 
-  public static final int MIN_TITLE_LENGTH = 2;
-  public static final int MAX_TITLE_LENGTH = 20;
-  public static final int MIN_CONTENTS_COUNT = 20;
-  public static final int MAX_CONTENTS_COUNT = 300;
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -149,6 +144,12 @@ public class Post extends BaseTimeStatusEntity {
     this.place = place;
     this.placeCategory = placeCategory;
   }
+
+  // 게시글 도메인 상수
+  public static final int MIN_TITLE_LENGTH = 2;
+  public static final int MAX_TITLE_LENGTH = 20;
+  public static final int MIN_CONTENTS_COUNT = 20;
+  public static final int MAX_CONTENTS_COUNT = 300;
 
   // 게시글 수정 시 편의 메소드
   public void updateTime(LocalDateTime newStartedAt, LocalDateTime newEndedAt) {
