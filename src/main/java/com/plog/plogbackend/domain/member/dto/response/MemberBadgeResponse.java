@@ -2,7 +2,6 @@ package com.plog.plogbackend.domain.member.dto.response;
 
 import com.plog.plogbackend.domain.badge.entity.Badge;
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.time.LocalDateTime;
 
 public record MemberBadgeResponse(

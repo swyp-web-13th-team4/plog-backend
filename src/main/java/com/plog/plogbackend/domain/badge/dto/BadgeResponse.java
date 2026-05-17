@@ -1,7 +1,6 @@
 package com.plog.plogbackend.domain.badge.dto;
 
 import com.plog.plogbackend.domain.badge.entity.Badge;
-
 import java.time.LocalDateTime;
 
 public record BadgeResponse(
