@@ -1,5 +1,6 @@
 package com.plog.plogbackend.domain.post.service;
 
+import com.plog.plogbackend.domain.badge.entity.MemberBadge;
 import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
 import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
@@ -212,7 +213,13 @@ public class FeedService {
     // 메인 뱃지 불러오기
     MemberBadgeResponse badgeResponse = null;
     if (targetMember.getMainBadge() != null) {
-      badgeResponse = MemberBadgeResponse.of(targetMember.getMainBadge(), true);
+      MemberBadge mb =
+          memberRepository
+              .findMemberBadgeByBadgeId(command.memberKey(), targetMember.getMainBadge().getId())
+              .orElse(null);
+      badgeResponse =
+          MemberBadgeResponse.of(
+              targetMember.getMainBadge(), true, mb != null ? mb.getAcquiredAt() : null);
     }
 
     MemberResponse memberInfo =

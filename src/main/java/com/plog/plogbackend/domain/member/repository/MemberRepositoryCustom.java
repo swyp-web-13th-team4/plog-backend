@@ -1,9 +1,11 @@
 package com.plog.plogbackend.domain.member.repository;
 
 import com.plog.plogbackend.domain.badge.entity.Badge;
+import com.plog.plogbackend.domain.badge.entity.MemberBadge;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface MemberRepositoryCustom {
@@ -13,6 +15,10 @@ public interface MemberRepositoryCustom {
   List<Post> findMyBookmarksSorted(UUID memberKey, String sort, List<PlaceTag> tags);
 
   List<Badge> findMyBadges(UUID memberKey);
+
+  List<MemberBadge> findMemberBadgesByMemberKey(UUID memberKey);
+
+  Optional<MemberBadge> findMemberBadgeByBadgeId(UUID memberKey, Long badgeId);
 
   boolean existsMemberBadge(UUID memberKey, Long badgeId);
 

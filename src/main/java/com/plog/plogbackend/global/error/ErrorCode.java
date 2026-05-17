@@ -28,6 +28,7 @@ public enum ErrorCode {
   // 뱃지 관련
   E1200,
   E1201,
+  E1202,
 
   // 테그 관련
   E1300,
