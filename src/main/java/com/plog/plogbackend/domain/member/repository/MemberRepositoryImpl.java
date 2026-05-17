@@ -1,6 +1,7 @@
 package com.plog.plogbackend.domain.member.repository;
 
 import com.plog.plogbackend.domain.badge.entity.Badge;
+import com.plog.plogbackend.domain.badge.entity.MemberBadge;
 import com.plog.plogbackend.domain.badge.entity.QMemberBadge;
 import com.plog.plogbackend.domain.bookmark.entity.QBookMark;
 import com.plog.plogbackend.domain.member.QMember;
@@ -12,6 +13,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 
@@ -93,6 +95,31 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         .where(member.memberKey.eq(memberKey))
         .orderBy(memberBadge.acquiredAt.desc())
         .fetch();
+  }
+
+  @Override
+  public List<MemberBadge> findMemberBadgesByMemberKey(UUID memberKey) {
+    return queryFactory
+        .selectFrom(memberBadge)
+        .join(memberBadge.member, member)
+        .fetchJoin()
+        .join(memberBadge.badge)
+        .fetchJoin()
+        .where(member.memberKey.eq(memberKey))
+        .fetch();
+  }
+
+  @Override
+  public Optional<MemberBadge> findMemberBadgeByBadgeId(UUID memberKey, Long badgeId) {
+    return Optional.ofNullable(
+        queryFactory
+            .selectFrom(memberBadge)
+            .join(memberBadge.member, member)
+            .fetchJoin()
+            .join(memberBadge.badge)
+            .fetchJoin()
+            .where(member.memberKey.eq(memberKey).and(memberBadge.badge.id.eq(badgeId)))
+            .fetchOne());
   }
 
   @Override

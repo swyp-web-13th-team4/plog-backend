@@ -103,6 +103,11 @@ public class Member extends BaseTimeStatusEntity {
     this.mainBadge = badge;
   }
 
+  /** 대표 뱃지 해제 */
+  public void clearMainBadge() {
+    this.mainBadge = null;
+  }
+
   /** 프로필(닉네임 + 이미지 + 소개글)을 한 번에 업데이트합니다. null인 값은 변경하지 않습니다. */
   public void updateProfile(String nickname, String imageUrl, String introduction) {
     if (nickname != null && !nickname.isBlank()) {

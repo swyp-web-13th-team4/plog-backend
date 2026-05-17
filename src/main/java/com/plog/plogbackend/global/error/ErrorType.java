@@ -60,6 +60,7 @@ public enum ErrorType {
   BADGE_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E1200, "해당 뱃지를 찾을 수 없습니다.", LogLevel.WARN),
   BADGE_NOT_OWNED(
       HttpStatus.FORBIDDEN, ErrorCode.E1201, "보유하지 않은 뱃지는 대표 뱃지로 설정할 수 없습니다.", LogLevel.WARN),
+  MAIN_BADGE_NOT_SET(HttpStatus.BAD_REQUEST, ErrorCode.E1202, "설정된 대표 뱃지가 없습니다.", LogLevel.WARN),
 
   // 테그 관련
   TAG_LIMIT_EXCEEDED(
