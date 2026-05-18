@@ -213,7 +213,7 @@ public class MapManager {
         p.getFocus(),
         p.getContents(),
         tuple.get(1, String.class),
-        tuple.get(post.placeCategory.categoryName),
+        tuple.get(post.placeCategory),
         tagsMap.getOrDefault(p.getId(), List.of()));
   }
 

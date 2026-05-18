@@ -2,6 +2,8 @@ package com.plog.plogbackend.domain.post.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import java.util.Arrays;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -33,11 +35,13 @@ public enum PlaceCategoryCode {
    */
   @JsonCreator
   public static PlaceCategoryCode fromValue(String value) {
-    for (PlaceCategoryCode category : PlaceCategoryCode.values()) {
-      if (category.getValue().equals(value)) {
-        return category;
-      }
-    }
-    throw new IllegalArgumentException("지원하지 않는 장소 카테고리입니다: " + value);
+    return findByValue(value)
+        .orElseThrow(() -> new IllegalArgumentException("지원하지 않는 장소 카테고리입니다: " + value));
+  }
+
+  public static Optional<PlaceCategoryCode> findByValue(String value) {
+    return Arrays.stream(values())
+        .filter(category -> category.getValue().equals(value))
+        .findFirst();
   }
 }

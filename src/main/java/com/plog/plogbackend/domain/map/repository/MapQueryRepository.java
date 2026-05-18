@@ -78,9 +78,8 @@ public class MapQueryRepository {
       Cursorable<String> cursorable) {
     List<Tuple> tuples =
         queryFactory
-            .select(post, postImage.imageUrl.min(), post.placeCategory.categoryName)
+            .select(post, postImage.imageUrl.min(), post.placeCategory)
             .from(post)
-            .leftJoin(post.placeCategory)
             .leftJoin(postImage)
             .on(postImage.post.id.eq(post.id))
             .where(
@@ -103,10 +102,9 @@ public class MapQueryRepository {
       Cursorable<String> cursorable) {
     List<Tuple> tuples =
         queryFactory
-            .select(post, postImage.imageUrl.min(), post.placeCategory.categoryName)
+            .select(post, postImage.imageUrl.min(), post.placeCategory)
             .from(bookMark)
             .join(bookMark.post, post)
-            .leftJoin(post.placeCategory)
             .leftJoin(postImage)
             .on(postImage.post.id.eq(post.id))
             .where(
@@ -209,22 +207,20 @@ public class MapQueryRepository {
 
   public List<Tuple> findRecordCategoryCountsByPlaceIds(Long memberId, List<Long> placeIds) {
     return queryFactory
-        .select(post.place.id, post.placeCategory.categoryName, post.id.count())
+        .select(post.place.id, post.placeCategory, post.id.count())
         .from(post)
-        .join(post.placeCategory)
         .where(post.member.id.eq(memberId), post.place.id.in(placeIds))
-        .groupBy(post.place.id, post.placeCategory.categoryName)
+        .groupBy(post.place.id, post.placeCategory)
         .fetch();
   }
 
   public List<Tuple> findBookmarkCategoryCountsByPlaceIds(Long memberId, List<Long> placeIds) {
     return queryFactory
-        .select(post.place.id, post.placeCategory.categoryName, bookMark.id.count())
+        .select(post.place.id, post.placeCategory, bookMark.id.count())
         .from(bookMark)
         .join(bookMark.post, post)
-        .join(post.placeCategory)
         .where(bookMark.member.id.eq(memberId), post.place.id.in(placeIds))
-        .groupBy(post.place.id, post.placeCategory.categoryName)
+        .groupBy(post.place.id, post.placeCategory)
         .fetch();
   }
 

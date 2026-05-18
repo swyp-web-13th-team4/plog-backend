@@ -38,6 +38,6 @@ public record PostRequestPartResponse(
             post.getPlace().getAddress(),
             post.getPlace().getLatitude(),
             post.getPlace().getLongitude()),
-        post.getPlaceCategory().getCategoryName());
+        post.getPlaceCategory());
   }
 }

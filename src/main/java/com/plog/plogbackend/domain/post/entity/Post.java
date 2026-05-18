@@ -2,6 +2,7 @@ package com.plog.plogbackend.domain.post.entity;
 
 import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.place.entity.Place;
+import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
 import java.time.Duration;
@@ -56,9 +57,9 @@ public class Post extends BaseTimeStatusEntity {
   @JoinColumn(name = "place_id")
   private Place place;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "place_category_id")
-  private PlaceCategory placeCategory;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "place_category")
+  private PlaceCategoryCode placeCategory;
 
   private Long likes;
 
@@ -84,7 +85,7 @@ public class Post extends BaseTimeStatusEntity {
       PublicScope scope,
       Member member,
       Place place,
-      PlaceCategory placeCategory) {
+      PlaceCategoryCode placeCategory) {
 
     this.title = title;
     this.contents = contents;
@@ -110,7 +111,7 @@ public class Post extends BaseTimeStatusEntity {
       PublicScope scope,
       Member member,
       Place place,
-      PlaceCategory placeCategory) {
+      PlaceCategoryCode placeCategory) {
     // toIntExact은 캐스팅 실패시 예외를 던져준다
     Integer calculatedStudyTime = Math.toIntExact(Duration.between(startedAt, endedAt).toMinutes());
 
@@ -139,7 +140,7 @@ public class Post extends BaseTimeStatusEntity {
       Integer focus,
       PublicScope scope,
       Place place,
-      PlaceCategory placeCategory) {
+      PlaceCategoryCode placeCategory) {
     this.title = title;
     this.contents = contents;
     this.startedAt = startedAt;

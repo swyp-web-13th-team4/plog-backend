@@ -10,14 +10,6 @@ INSERT INTO badge (name, description, image_url) VALUES ('첫 로그인','플로
 INSERT INTO badge (name, description, image_url) VALUES ('첫 작업 기록','첫 기록 작성 시 획득 가능','https://storage.googleapis.com/plog-imgstorage-bucket/badge/First%20Record.svg');
 INSERT INTO badge (name, description, image_url) VALUES ('첫 북마크','첫 북마크 등록 시 획득 가능','https://storage.googleapis.com/plog-imgstorage-bucket/badge/First%20Bookmark.svg');
 
-INSERT INTO place_category (category_name) VALUES
-  ('CAFE'),
-  ('STUDY_CAFE'),
-  ('LIBRARY'),
-  ('OFFICE'),
-  ('SHARED_OFFICE'),
-  ('ETC');
-
 INSERT INTO tag (place_tag) VALUES 
 ('GOOD_VIBE'),('NOISY'),('QUIET'),('WHITE_NOISE'),('CALM'),('IMMERSIVE'),('DISTRACTING'),('CROWDED'),
 ('GOOD_FOR_FOCUS'),('BAD_FOR_FOCUS'),('PEACEFUL'),('TRANQUIL'),('SCENIC'),('COZY'),('MODERATE_NOISE'),('FAST_WIFI'),
