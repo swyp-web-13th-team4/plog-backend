@@ -140,8 +140,8 @@ public class SecurityConfig {
 
                     // 그 외 모든 요청은 인증(JWT) 필요
                     .anyRequest()
-                    //                    .authenticated()
-                    .permitAll())
+                    .authenticated())
+        //                    .permitAll())
 
         // 4. 소셜 로그인(OAuth2) 설정
         .oauth2Login(
