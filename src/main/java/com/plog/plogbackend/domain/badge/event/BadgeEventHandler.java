@@ -1,12 +1,12 @@
 package com.plog.plogbackend.domain.badge.event;
 
+import com.plog.plogbackend.domain.badge.dto.BadgeResponse;
 import com.plog.plogbackend.domain.badge.entity.Badge;
 import com.plog.plogbackend.domain.badge.entity.MemberBadge;
 import com.plog.plogbackend.domain.badge.repository.BadgeRepository;
 import com.plog.plogbackend.domain.badge.repository.MemberBadgeRepository;
 import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
-import com.plog.plogbackend.domain.notification.dto.BadgeNotificationResponse;
 import com.plog.plogbackend.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,12 +72,9 @@ public class BadgeEventHandler {
           badge.getId(),
           badge.getName());
 
-      // SSE 알림 전송
+      // SSE 알림 전송 (BadgeResponse로 통일)
       notificationService.notify(
-          member.getId(),
-          BadgeNotificationResponse.of(
-              badge.getId(), badge.getName(), badge.getImageUrl(), memberBadge.getAcquiredAt()),
-          "badge_grant");
+          member.getId(), BadgeResponse.from(badge, memberBadge.getAcquiredAt()), "badge_grant");
 
     } catch (Exception e) {
       // 뱃지 오류는 메인 로직에 영향을 주지 않도록 로그만 남기고 삼킵니다.
