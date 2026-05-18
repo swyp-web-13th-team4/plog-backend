@@ -491,6 +491,93 @@
       color: var(--accent);
       border-color: var(--accent);
     }
+
+    /* ── 플로팅 토스트 알림 ── */
+    .toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      pointer-events: none;
+    }
+
+    .badge-toast {
+      pointer-events: auto;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--accent);
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      padding: 16px 20px;
+      width: 340px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      animation: toastIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      cursor: pointer;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(40px) scale(0.9); }
+      to { opacity: 1; transform: translateX(0) scale(1); }
+    }
+
+    .badge-toast.hide {
+      animation: toastOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes toastOut {
+      to { opacity: 0; transform: translateX(40px) scale(0.9); }
+    }
+
+    .toast-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .toast-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .toast-body {
+      flex: 1;
+    }
+
+    .toast-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+    }
+
+    .toast-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .toast-msg {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
   </style>
 </head>
 
@@ -498,6 +585,9 @@
   <div class="stars" id="stars"></div>
   <div class="bg-orb bg-orb-1"></div>
   <div class="bg-orb bg-orb-2"></div>
+
+  <!-- 토스트 컨테이너 -->
+  <div id="toast-container" class="toast-container"></div>
 
   <div class="page-wrap">
     <!-- 성공 배너 -->
@@ -574,6 +664,26 @@
         <div id="badge-list" style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px;">
           <!-- JS에서 뱃지 목록 렌더링 -->
         </div>
+      </div>
+    </div>
+
+    <!-- 🔔 SSE 알림 테스트 -->
+    <div class="card" id="sse-card">
+      <div class="card-title">🔔 실시간 알림 테스트 (SSE)</div>
+      <p style="font-size:0.85rem; color:var(--muted); line-height: 1.6; margin-bottom: 12px;">
+        서버로부터 실시간 알림(SSE)을 수신합니다. 뱃지 획득 시 여기에 실시간으로 표시됩니다.
+      </p>
+      
+      <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 16px;">
+        <div id="sse-status-dot" style="width: 10px; height: 10px; border-radius: 50%; background: #f87171; transition: transform 0.2s;"></div>
+        <span id="sse-status-text" style="font-size: 0.85rem; color: var(--muted);">SSE 연결 대기 중...</span>
+        <span id="last-heartbeat" style="font-size: 0.75rem; color: rgba(255,255,255,0.2); margin-left: 8px;"></span>
+        <button class="api-run-btn" onclick="initSSE()" style="margin-left: auto;">SSE 연결하기</button>
+      </div>
+
+      <div id="sse-notifications" style="display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto;">
+        <!-- 알림이 여기에 쌓입니다 -->
+        <div style="text-align: center; color: var(--muted); font-size: 0.8rem; padding: 20px;">수신된 알림이 없습니다.</div>
       </div>
     </div>
 
@@ -790,7 +900,178 @@
     window.addEventListener('DOMContentLoaded', () => {
       fetchDefaultProfiles();
       fetchMyBadges(); // 페이지 로드 시 뱃지도 불러오기
+      initSSE(); // SSE 자동 연결 시도
     });
+
+    // ── SSE 알림 로직 ──
+    let eventSource = null;
+
+    function initSSE() {
+      const statusDot = document.getElementById('sse-status-dot');
+      const statusText = document.getElementById('sse-status-text');
+      const notificationList = document.getElementById('sse-notifications');
+
+      if (eventSource) {
+        eventSource.close();
+      }
+
+      statusDot.style.background = '#fbbf24';
+      statusText.textContent = 'SSE 연결 중...';
+
+      // withCredentials: true를 설정하여 쿠키(인증 정보)를 함께 전송
+      eventSource = new EventSource(`${API_BASE}/api/notification/subscribe`, { withCredentials: true });
+
+      eventSource.onopen = () => {
+        statusDot.style.background = '#4ade80';
+        statusText.textContent = 'SSE 연결됨 (실시간 알림 수신 중)';
+
+        // 신규 가입 후 첫 진입 시 (welcome=true), 첫 로그인 뱃지 알림을 수동으로 트리거 (타이밍 이슈 해결)
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('welcome') === 'true') {
+          setTimeout(() => {
+            addNotificationUI({
+              badgeId: 1,
+              badgeName: '첫 로그인',
+              badgeImage: 'https://storage.googleapis.com/plog-imgstorage-bucket/badge/First%20Login.svg',
+              message: '새로운 뱃지를 획득했습니다: 첫 로그인',
+              acquiredAt: new Date().toISOString()
+            });
+            // URL 파라미터 제거 (새로고침 시 재발생 방지)
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }, 1000);
+        }
+      };
+
+      eventSource.onerror = (err) => {
+        console.error('SSE Error:', err);
+        statusDot.style.background = '#f87171';
+        statusText.textContent = 'SSE 연결 끊김 (로그인 필요 혹은 서버 확인)';
+        // eventSource.close();
+      };
+
+      // 커스텀 이벤트 수신 (badge_grant)
+      eventSource.addEventListener('badge_grant', (event) => {
+        console.log('Badge Event Received:', event.data);
+        try {
+          const data = JSON.parse(event.data);
+          addNotificationUI(data);
+          
+          // 뱃지 리스트 새로고침
+          fetchMyBadges();
+        } catch (e) {
+          console.error('Data parsing error:', e);
+        }
+      });
+
+      // 하트비트 수신 (30초 주기)
+      eventSource.addEventListener('heartbeat', (event) => {
+        console.log('Heartbeat Received:', event.data);
+        updateHeartbeatUI(event.data);
+      });
+
+      // 기본 메시지 수신 (connect 등)
+      eventSource.onmessage = (event) => {
+        console.log('SSE Message:', event.data);
+      };
+    }
+
+    function updateHeartbeatUI(data) {
+      const dot = document.getElementById('sse-status-dot');
+      const timeEl = document.getElementById('last-heartbeat');
+      const now = new Date();
+      
+      // 시간 표시 업데이트
+      timeEl.textContent = `최근 신호: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+      
+      // 심장박동 애니메이션 효과 (심장 박동처럼 커졌다 작아짐)
+      dot.style.transform = 'scale(1.5)';
+      setTimeout(() => {
+        dot.style.transform = 'scale(1)';
+      }, 200);
+    }
+
+    function addNotificationUI(data) {
+      const list = document.getElementById('sse-notifications');
+      
+      // '수신된 알림이 없습니다' 메시지 삭제
+      if (list.innerHTML.includes('수신된 알림이 없습니다')) {
+        list.innerHTML = '';
+      }
+
+      const item = document.createElement('div');
+      item.style.cssText = `
+        background: rgba(129, 140, 248, 0.1);
+        border: 1px solid rgba(129, 140, 248, 0.3);
+        border-radius: 12px;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideIn 0.3s ease-out;
+      `;
+
+      const imgHtml = data.badgeImage 
+        ? `<img src="${data.badgeImage}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;">`
+        : `<span style="font-size:2rem;">🏅</span>`;
+
+      item.innerHTML = `
+        ${imgHtml}
+        <div style="flex:1;">
+          <div style="font-weight:700; font-size:0.9rem; color:var(--accent);">${data.badgeName} 획득!</div>
+          <div style="font-size:0.8rem; color:var(--text); margin-top:2px;">${data.message}</div>
+          <div style="font-size:0.7rem; color:var(--muted); margin-top:4px;">${new Date(data.acquiredAt).toLocaleString()}</div>
+        </div>
+      `;
+
+      list.prepend(item);
+      
+      // 플로팅 토스트 표시
+      showBadgeToast(data);
+
+      // 브라우저 기본 알림 (선택 사항)
+      if (Notification.permission === 'granted') {
+        new Notification('Plog 뱃지 획득!', { body: data.message });
+      }
+    }
+
+    function showBadgeToast(data) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'badge-toast';
+      
+      const imgHtml = data.badgeImage 
+        ? `<img src="${data.badgeImage}" alt="Badge">`
+        : '🏅';
+
+      toast.innerHTML = `
+        <div class="toast-icon">${imgHtml}</div>
+        <div class="toast-body">
+          <div class="toast-header">New Achievement!</div>
+          <div class="toast-title">${data.badgeName}</div>
+          <div class="toast-msg">${data.message}</div>
+        </div>
+      `;
+
+      toast.onclick = () => {
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 400);
+      };
+
+      container.appendChild(toast);
+
+      // 5초 후 자동 삭제
+      setTimeout(() => {
+        if (toast.parentElement) {
+          toast.classList.add('hide');
+          setTimeout(() => toast.remove(), 400);
+        }
+      }, 5000);
+    }
+
+    // 브라우저 알림 권한 요청
+    if (window.Notification && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
 
     // ── 뱃지 관리 로직 ──
     async function fetchMyBadges() {
