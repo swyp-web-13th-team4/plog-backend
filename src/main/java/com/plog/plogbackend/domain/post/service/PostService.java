@@ -3,6 +3,7 @@ package com.plog.plogbackend.domain.post.service;
 import static com.plog.plogbackend.domain.post.PostValidator.*;
 
 import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
+import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.place.entity.Place;
@@ -11,6 +12,7 @@ import com.plog.plogbackend.domain.post.controller.dto.response.PostTextResponse
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostTag;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
+import com.plog.plogbackend.domain.post.repository.LikeRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.post.repository.PostTagRepository;
 import com.plog.plogbackend.domain.post.service.dto.PlaceCommand;
@@ -48,6 +50,8 @@ public class PostService {
   private final PlaceRepository placeRepository;
   private final PostRepository postRepository;
   private final PostTagRepository postTagRepository;
+  private final BookMarkRepository bookMarkRepository;
+  private final LikeRepository likeRepository;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
@@ -137,7 +141,10 @@ public class PostService {
       throw new AppException(ErrorType.POST_FORBIDDEN);
     }
 
-    postTagRepository.deleteAllByPostId(post.getId());
+    // 연관 데이터 수동 삭제 (FK 제약 조건 해결)
+    bookMarkRepository.deleteAllByPostIdIn(List.of(postId));
+    likeRepository.deleteAllByPostIdIn(List.of(postId));
+    postTagRepository.deleteAllByPostId(postId);
 
     postRepository.delete(post);
   }
