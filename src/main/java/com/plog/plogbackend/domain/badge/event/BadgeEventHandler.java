@@ -68,14 +68,15 @@ public class BadgeEventHandler {
       log.info(
           "뱃지 획득 - memberId: {}, Nickname: {}, badgeId: {}, badgeName: {}",
           member.getId(),
-              member.getNickname(),
+          member.getNickname(),
           badge.getId(),
           badge.getName());
 
       // SSE 알림 전송
       notificationService.notify(
           member.getId(),
-          BadgeNotificationResponse.of(badge.getId(), badge.getName(), badge.getImageUrl(), memberBadge.getAcquiredAt()),
+          BadgeNotificationResponse.of(
+              badge.getId(), badge.getName(), badge.getImageUrl(), memberBadge.getAcquiredAt()),
           "badge_grant");
 
     } catch (Exception e) {
