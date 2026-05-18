@@ -14,13 +14,11 @@ import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.domain.place.repository.PlaceRepository;
-import com.plog.plogbackend.domain.post.entity.PlaceCategory;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
 import com.plog.plogbackend.domain.post.entity.PostTag;
 import com.plog.plogbackend.domain.post.entity.PublicScope;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
-import com.plog.plogbackend.domain.post.repository.PlaceCategoryRepository;
 import com.plog.plogbackend.domain.post.repository.PostImageRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.post.repository.PostTagRepository;
@@ -56,7 +54,6 @@ class MapQueryRepositoryTest {
   @Autowired private PostRepository postRepository;
   @Autowired private PostImageRepository postImageRepository;
   @Autowired private BookMarkRepository bookMarkRepository;
-  @Autowired private PlaceCategoryRepository placeCategoryRepository;
   @Autowired private TagRepository tagRepository;
   @Autowired private PostTagRepository postTagRepository;
   @PersistenceContext private EntityManager em;
@@ -363,8 +360,8 @@ class MapQueryRepositoryTest {
   void recordCategoryCounts_카운트_정확성() {
     Member member = saveMember("user");
     Place cafe = savePlace("카페", 37.5, 127.0);
-    PlaceCategory cafeCat = saveCategory(PlaceCategoryCode.CAFE);
-    PlaceCategory studyCat = saveCategory(PlaceCategoryCode.STUDY_CAFE);
+    PlaceCategoryCode cafeCat = PlaceCategoryCode.CAFE;
+    PlaceCategoryCode studyCat = PlaceCategoryCode.STUDY_CAFE;
 
     savePostWithCategory(member, cafe, 60, 80, cafeCat);
     savePostWithCategory(member, cafe, 60, 80, cafeCat);
@@ -391,8 +388,8 @@ class MapQueryRepositoryTest {
     Member me = saveMember("me");
     Member other = saveMember("other");
     Place cafe = savePlace("카페", 37.5, 127.0);
-    PlaceCategory cafeCat = saveCategory(PlaceCategoryCode.CAFE);
-    PlaceCategory libCat = saveCategory(PlaceCategoryCode.LIBRARY);
+    PlaceCategoryCode cafeCat = PlaceCategoryCode.CAFE;
+    PlaceCategoryCode libCat = PlaceCategoryCode.LIBRARY;
 
     savePostWithCategory(me, cafe, 60, 80, cafeCat);
     savePostWithCategory(other, cafe, 60, 80, libCat);
@@ -411,8 +408,8 @@ class MapQueryRepositoryTest {
     Member member = saveMember("user");
     Place cafe1 = savePlace("카페1", 37.5, 127.0);
     Place cafe2 = savePlace("카페2", 37.5, 127.0);
-    PlaceCategory cafeCat = saveCategory(PlaceCategoryCode.CAFE);
-    PlaceCategory libCat = saveCategory(PlaceCategoryCode.LIBRARY);
+    PlaceCategoryCode cafeCat = PlaceCategoryCode.CAFE;
+    PlaceCategoryCode libCat = PlaceCategoryCode.LIBRARY;
 
     savePostWithCategory(member, cafe1, 60, 80, cafeCat);
     savePostWithCategory(member, cafe2, 60, 80, libCat);
@@ -441,8 +438,8 @@ class MapQueryRepositoryTest {
     Member me = saveMember("me");
     Member other = saveMember("other");
     Place cafe = savePlace("카페", 37.5, 127.0);
-    PlaceCategory cafeCat = saveCategory(PlaceCategoryCode.CAFE);
-    PlaceCategory studyCat = saveCategory(PlaceCategoryCode.STUDY_CAFE);
+    PlaceCategoryCode cafeCat = PlaceCategoryCode.CAFE;
+    PlaceCategoryCode studyCat = PlaceCategoryCode.STUDY_CAFE;
 
     Post p1 = savePostWithCategory(other, cafe, 60, 80, cafeCat);
     Post p2 = savePostWithCategory(other, cafe, 60, 80, cafeCat);
@@ -471,8 +468,8 @@ class MapQueryRepositoryTest {
     Member me = saveMember("me");
     Member other = saveMember("other");
     Place cafe = savePlace("카페", 37.5, 127.0);
-    PlaceCategory cafeCat = saveCategory(PlaceCategoryCode.CAFE);
-    PlaceCategory libCat = saveCategory(PlaceCategoryCode.LIBRARY);
+    PlaceCategoryCode cafeCat = PlaceCategoryCode.CAFE;
+    PlaceCategoryCode libCat = PlaceCategoryCode.LIBRARY;
 
     Post myPost = savePostWithCategory(other, cafe, 60, 80, cafeCat);
     Post otherPost = savePostWithCategory(other, cafe, 60, 80, libCat);
@@ -496,8 +493,8 @@ class MapQueryRepositoryTest {
   void placeRecords_카테고리_저장값_일치() {
     Member member = saveMember("user");
     Place cafe = savePlace("카페", 37.5, 127.0);
-    PlaceCategory cafeCat = saveCategory(PlaceCategoryCode.CAFE);
-    PlaceCategory studyCat = saveCategory(PlaceCategoryCode.STUDY_CAFE);
+    PlaceCategoryCode cafeCat = PlaceCategoryCode.CAFE;
+    PlaceCategoryCode studyCat = PlaceCategoryCode.STUDY_CAFE;
 
     Post p1 = savePostWithCategory(member, cafe, 60, 80, cafeCat);
     Post p2 = savePostWithCategory(member, cafe, 90, 70, studyCat);
@@ -509,9 +506,7 @@ class MapQueryRepositoryTest {
 
     Map<Long, PlaceCategoryCode> returned =
         result.getContent().stream()
-            .collect(
-                Collectors.toMap(
-                    t -> t.get(post).getId(), t -> t.get(post.placeCategory.categoryName)));
+            .collect(Collectors.toMap(t -> t.get(post).getId(), t -> t.get(post.placeCategory)));
 
     assertThat(returned.get(p1.getId())).isEqualTo(PlaceCategoryCode.CAFE);
     assertThat(returned.get(p2.getId())).isEqualTo(PlaceCategoryCode.STUDY_CAFE);
@@ -529,7 +524,7 @@ class MapQueryRepositoryTest {
         mapQueryRepository.findRecordsByPlaceId(
             member.getId(), cafe.getId(), SortType.LATEST, null, cursor(null, 10));
 
-    assertThat(result.getContent().get(0).get(post.placeCategory.categoryName)).isNull();
+    assertThat(result.getContent().get(0).get(post.placeCategory)).isNull();
   }
 
   @Test
@@ -538,8 +533,8 @@ class MapQueryRepositoryTest {
     Member me = saveMember("me");
     Member other = saveMember("other");
     Place cafe = savePlace("카페", 37.5, 127.0);
-    PlaceCategory cafeCat = saveCategory(PlaceCategoryCode.CAFE);
-    PlaceCategory libCat = saveCategory(PlaceCategoryCode.LIBRARY);
+    PlaceCategoryCode cafeCat = PlaceCategoryCode.CAFE;
+    PlaceCategoryCode libCat = PlaceCategoryCode.LIBRARY;
 
     Post p1 = savePostWithCategory(other, cafe, 60, 80, cafeCat);
     Post p2 = savePostWithCategory(other, cafe, 90, 70, libCat);
@@ -553,9 +548,7 @@ class MapQueryRepositoryTest {
 
     Map<Long, PlaceCategoryCode> returned =
         result.getContent().stream()
-            .collect(
-                Collectors.toMap(
-                    t -> t.get(post).getId(), t -> t.get(post.placeCategory.categoryName)));
+            .collect(Collectors.toMap(t -> t.get(post).getId(), t -> t.get(post.placeCategory)));
 
     assertThat(returned.get(p1.getId())).isEqualTo(PlaceCategoryCode.CAFE);
     assertThat(returned.get(p2.getId())).isEqualTo(PlaceCategoryCode.LIBRARY);
@@ -1259,21 +1252,6 @@ class MapQueryRepositoryTest {
 
   private Post savePost(Member member, Place place, int studyMinutes, int focus) {
     LocalDateTime start = LocalDateTime.of(2024, 1, 1, 9, 0);
-
-    List<PlaceCategory> categories =
-        em.createQuery(
-                "select p from PlaceCategory p where p.categoryName = :name", PlaceCategory.class)
-            .setParameter("name", PlaceCategoryCode.CAFE)
-            .getResultList();
-
-    PlaceCategory placeCategory;
-    if (categories.isEmpty()) {
-      placeCategory = PlaceCategory.builder().categoryName(PlaceCategoryCode.CAFE).build();
-      em.persist(placeCategory);
-    } else {
-      placeCategory = categories.get(0);
-    }
-
     return postRepository.save(
         Post.of(
             "title",
@@ -1285,7 +1263,7 @@ class MapQueryRepositoryTest {
             PublicScope.PRIVATE,
             member,
             place,
-            placeCategory));
+            PlaceCategoryCode.CAFE));
   }
 
   private Tag getTag(PlaceTag placeTag) {
@@ -1294,12 +1272,6 @@ class MapQueryRepositoryTest {
       throw new IllegalStateException("Tag not initialized for PlaceTag: " + placeTag);
     }
     return tags.get(0);
-  }
-
-  private PlaceCategory saveCategory(PlaceCategoryCode code) {
-    return placeCategoryRepository
-        .findByCategoryName(code)
-        .orElseThrow(() -> new IllegalStateException("PlaceCategory not initialized: " + code));
   }
 
   private Post savePostWithDate(Member member, Place place, LocalDate studyDate) {
@@ -1316,11 +1288,12 @@ class MapQueryRepositoryTest {
             .scope(PublicScope.PRIVATE)
             .member(member)
             .place(place)
+            .placeCategory(PlaceCategoryCode.CAFE)
             .build());
   }
 
   private Post savePostWithCategory(
-      Member member, Place place, int studyMinutes, int focus, PlaceCategory category) {
+      Member member, Place place, int studyMinutes, int focus, PlaceCategoryCode category) {
     LocalDateTime start = LocalDateTime.of(2024, 1, 1, 9, 0);
     return postRepository.save(
         Post.builder()

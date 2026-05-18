@@ -126,7 +126,7 @@ public class FeedService {
       isLiked = likeRepository.existsByMemberIdAndPostId(member.getId(), post.getId());
       isBookMarked = bookMarkRepository.existsByMemberIdAndPostId(member.getId(), post.getId());
     }
-    String categoryName = post.getPlaceCategory().getCategoryName().getLabel();
+    String categoryName = post.getPlaceCategory().getLabel();
 
     return FeedDetailResponse.from(post, isAuthor, isLiked, isBookMarked, categoryName);
   }

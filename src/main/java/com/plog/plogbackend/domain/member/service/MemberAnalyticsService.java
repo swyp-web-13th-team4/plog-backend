@@ -5,7 +5,6 @@ import com.plog.plogbackend.domain.member.dto.response.MemberAnalyticsResponse;
 import com.plog.plogbackend.domain.member.dto.response.SpaceRankingResponse;
 import com.plog.plogbackend.domain.member.enums.WorkType;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
-import com.plog.plogbackend.domain.post.entity.PlaceCategory;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostTag;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
@@ -160,14 +159,13 @@ public class MemberAnalyticsService {
     List<Post> recent5 = getRecent(posts, 5);
     if (recent5.size() < 5) return -100;
 
-    Set<Long> placeCategoryIds =
+    Set<PlaceCategoryCode> placeCategories =
         recent5.stream()
             .map(Post::getPlaceCategory)
             .filter(Objects::nonNull)
-            .map(PlaceCategory::getId)
             .collect(Collectors.toSet());
 
-    int count = placeCategoryIds.size();
+    int count = placeCategories.size();
     if (count < 3) return (count - 3) * 10.0; // 부족한 개수만큼 감점
     return Math.min(100, 50 + ((count - 3) * 25.0));
   }
@@ -383,20 +381,19 @@ public class MemberAnalyticsService {
 
   private List<SpaceRankingResponse> analyzeSpaceRanking(List<Post> posts) {
     // PlaceCategory별 Post 그룹화
-    Map<Long, PlaceCategoryCode> categoryNames = new HashMap<>();
-    Map<Long, List<Integer>> categoryFocusMap = new HashMap<>();
-    Map<Long, Integer> categoryCountMap = new HashMap<>();
+    Map<PlaceCategoryCode, List<Integer>> categoryFocusMap = new HashMap<>();
+    Map<PlaceCategoryCode, Integer> categoryCountMap = new HashMap<>();
 
     for (Post p : posts) {
-      PlaceCategory placeCategory = p.getPlaceCategory();
-      if (placeCategory == null) continue;
+      PlaceCategoryCode placeCategory = p.getPlaceCategory();
+      if (placeCategory == null) {
+        continue;
+      }
 
-      Long catId = placeCategory.getId();
-      categoryNames.put(catId, placeCategory.getCategoryName());
-      categoryCountMap.merge(catId, 1, Integer::sum);
+      categoryCountMap.merge(placeCategory, 1, Integer::sum);
 
       if (p.getFocus() != null) {
-        categoryFocusMap.computeIfAbsent(catId, k -> new ArrayList<>()).add(p.getFocus());
+        categoryFocusMap.computeIfAbsent(placeCategory, k -> new ArrayList<>()).add(p.getFocus());
       }
     }
 
@@ -407,7 +404,8 @@ public class MemberAnalyticsService {
     // 빈도순 정렬, 동점 시 평균 집중도 높은 순
     return categoryCountMap.entrySet().stream()
         .sorted(
-            Comparator.<Map.Entry<Long, Integer>, Integer>comparing(Map.Entry::getValue)
+            Comparator.<Map.Entry<PlaceCategoryCode, Integer>, Integer>comparing(
+                    Map.Entry::getValue)
                 .reversed()
                 .thenComparing(
                     e -> {
@@ -427,7 +425,7 @@ public class MemberAnalyticsService {
                       : focuses.stream().mapToInt(Integer::intValue).average().orElse(0);
               avg = Math.round(avg * 10) / 10.0;
               int postCount = e.getValue();
-              return new SpaceRankingResponse(categoryNames.get(e.getKey()), postCount, avg);
+              return new SpaceRankingResponse(e.getKey(), postCount, avg);
             })
         .toList();
   }

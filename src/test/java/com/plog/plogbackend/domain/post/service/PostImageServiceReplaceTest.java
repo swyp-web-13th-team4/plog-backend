@@ -9,12 +9,10 @@ import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.domain.place.repository.PlaceRepository;
-import com.plog.plogbackend.domain.post.entity.PlaceCategory;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
 import com.plog.plogbackend.domain.post.entity.PublicScope;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
-import com.plog.plogbackend.domain.post.repository.PlaceCategoryRepository;
 import com.plog.plogbackend.domain.post.repository.PostImageRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.global.util.GcsService;
@@ -48,7 +46,6 @@ class PostImageServiceReplaceTest {
   @Autowired private PostImageRepository postImageRepository;
   @Autowired private MemberRepository memberRepository;
   @Autowired private PlaceRepository placeRepository;
-  @Autowired private PlaceCategoryRepository placeCategoryRepository;
 
   @MockitoBean private GcsService gcsService;
 
@@ -103,19 +100,6 @@ class PostImageServiceReplaceTest {
     Place place =
         placeRepository.save(
             Place.of("place-" + providerSuffix, "addr-" + providerSuffix, 0.0, 0.0));
-    /*
-        PlaceCategory category =
-            placeCategoryRepository.save(
-                PlaceCategory.builder().categoryName(PlaceCategoryCode.CAFE).build());
-    */
-    // 수정된 코드
-    PlaceCategory category =
-        placeCategoryRepository
-            .findByCategoryName(PlaceCategoryCode.CAFE)
-            .orElseGet(
-                () ->
-                    placeCategoryRepository.save(
-                        PlaceCategory.builder().categoryName(PlaceCategoryCode.CAFE).build()));
     return postRepository.save(
         Post.of(
             "테스트 제목",
@@ -127,7 +111,7 @@ class PostImageServiceReplaceTest {
             PublicScope.PUBLIC,
             member,
             place,
-            category));
+            PlaceCategoryCode.CAFE));
   }
 
   private List<PostImage> seedImages(Post post, int count) {
