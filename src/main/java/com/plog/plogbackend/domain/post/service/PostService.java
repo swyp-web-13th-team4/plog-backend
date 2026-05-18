@@ -3,16 +3,16 @@ package com.plog.plogbackend.domain.post.service;
 import static com.plog.plogbackend.domain.post.PostValidator.*;
 
 import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
+import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.domain.place.repository.PlaceRepository;
 import com.plog.plogbackend.domain.post.controller.dto.response.PostTextResponse;
-import com.plog.plogbackend.domain.post.entity.PlaceCategory;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostTag;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
-import com.plog.plogbackend.domain.post.repository.PlaceCategoryRepository;
+import com.plog.plogbackend.domain.post.repository.LikeRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.post.repository.PostTagRepository;
 import com.plog.plogbackend.domain.post.service.dto.PlaceCommand;
@@ -48,9 +48,10 @@ public class PostService {
   private final MemberRepository memberRepository;
   private final TagRepository tagRepository;
   private final PlaceRepository placeRepository;
-  private final PlaceCategoryRepository placeCategoryRepository;
   private final PostRepository postRepository;
   private final PostTagRepository postTagRepository;
+  private final BookMarkRepository bookMarkRepository;
+  private final LikeRepository likeRepository;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
@@ -60,7 +61,7 @@ public class PostService {
         resolveStudyTime(command.startedAt(), command.endedAt(), command.studyDate());
 
     Member member = findMember(command.memberKey());
-    PlaceCategory placeCategory = findPlaceCategory(command.categoryCode());
+    PlaceCategoryCode placeCategory = findPlaceCategory(command.categoryCode());
     List<Tag> findTags = validateAndFindTags(command.placeTags());
     Place place = findOrCreatePlace(command.place());
 
@@ -103,7 +104,7 @@ public class PostService {
     StudyTimeRange time =
         resolveStudyTime(command.startedAt(), command.endedAt(), command.studyDate());
 
-    PlaceCategory placeCategory = findPlaceCategory(command.categoryCode());
+    PlaceCategoryCode placeCategory = findPlaceCategory(command.categoryCode());
     Place place = findOrCreatePlace(command.place());
     List<Tag> newTagEntities = validateAndFindTags(command.placeTags());
 
@@ -140,7 +141,10 @@ public class PostService {
       throw new AppException(ErrorType.POST_FORBIDDEN);
     }
 
-    postTagRepository.deleteAllByPostId(post.getId());
+    // 연관 데이터 수동 삭제 (FK 제약 조건 해결)
+    bookMarkRepository.deleteAllByPostIdIn(List.of(postId));
+    likeRepository.deleteAllByPostIdIn(List.of(postId));
+    postTagRepository.deleteAllByPostId(postId);
 
     postRepository.delete(post);
   }
@@ -151,9 +155,11 @@ public class PostService {
         .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
   }
 
-  private PlaceCategory findPlaceCategory(PlaceCategoryCode code) {
-    return placeCategoryRepository
-        .findByCategoryName(code)
+  private PlaceCategoryCode findPlaceCategory(PlaceCategoryCode code) {
+    if (code == null) {
+      throw new AppException(ErrorType.CATEGORY_NOT_FOUND);
+    }
+    return PlaceCategoryCode.findByValue(code.getValue())
         .orElseThrow(() -> new AppException(ErrorType.CATEGORY_NOT_FOUND));
   }
 

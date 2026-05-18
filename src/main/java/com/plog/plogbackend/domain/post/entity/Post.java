@@ -2,6 +2,7 @@ package com.plog.plogbackend.domain.post.entity;
 
 import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.place.entity.Place;
+import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.global.common.entity.BaseTimeStatusEntity;
 import jakarta.persistence.*;
 import java.time.Duration;
@@ -19,12 +20,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post extends BaseTimeStatusEntity {
 
+  // 게시글 도메인 상수
+  public static final int MIN_TITLE_LENGTH = 2;
+  public static final int MAX_TITLE_LENGTH = 20;
+  public static final int MIN_CONTENTS_COUNT = 20;
+  public static final int MAX_CONTENTS_COUNT = 300;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   private String title;
 
+  @Column(length = MAX_CONTENTS_COUNT)
   private String contents;
 
   private LocalDateTime startedAt;
@@ -49,9 +57,9 @@ public class Post extends BaseTimeStatusEntity {
   @JoinColumn(name = "place_id")
   private Place place;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "place_category_id")
-  private PlaceCategory placeCategory;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "place_category")
+  private PlaceCategoryCode placeCategory;
 
   private Long likes;
 
@@ -77,7 +85,7 @@ public class Post extends BaseTimeStatusEntity {
       PublicScope scope,
       Member member,
       Place place,
-      PlaceCategory placeCategory) {
+      PlaceCategoryCode placeCategory) {
 
     this.title = title;
     this.contents = contents;
@@ -103,7 +111,7 @@ public class Post extends BaseTimeStatusEntity {
       PublicScope scope,
       Member member,
       Place place,
-      PlaceCategory placeCategory) {
+      PlaceCategoryCode placeCategory) {
     // toIntExact은 캐스팅 실패시 예외를 던져준다
     Integer calculatedStudyTime = Math.toIntExact(Duration.between(startedAt, endedAt).toMinutes());
 
@@ -132,7 +140,7 @@ public class Post extends BaseTimeStatusEntity {
       Integer focus,
       PublicScope scope,
       Place place,
-      PlaceCategory placeCategory) {
+      PlaceCategoryCode placeCategory) {
     this.title = title;
     this.contents = contents;
     this.startedAt = startedAt;
@@ -144,12 +152,6 @@ public class Post extends BaseTimeStatusEntity {
     this.place = place;
     this.placeCategory = placeCategory;
   }
-
-  // 게시글 도메인 상수
-  public static final int MIN_TITLE_LENGTH = 2;
-  public static final int MAX_TITLE_LENGTH = 20;
-  public static final int MIN_CONTENTS_COUNT = 20;
-  public static final int MAX_CONTENTS_COUNT = 300;
 
   // 게시글 수정 시 편의 메소드
   public void updateTime(LocalDateTime newStartedAt, LocalDateTime newEndedAt) {

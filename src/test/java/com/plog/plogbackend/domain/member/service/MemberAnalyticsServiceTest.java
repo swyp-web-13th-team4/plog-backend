@@ -2,14 +2,13 @@ package com.plog.plogbackend.domain.member.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 
 import com.plog.plogbackend.domain.member.dto.response.MemberAnalyticsResponse;
 import com.plog.plogbackend.domain.member.enums.WorkType;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
-import com.plog.plogbackend.domain.post.entity.PlaceCategory;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PublicScope;
+import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,9 +42,6 @@ class MemberAnalyticsServiceTest {
     // 4. 평균 작업 시간 150분 (토리 탈락)
     // 5. 집중도 보통 (나오 탈락)
 
-    PlaceCategory category = mock(PlaceCategory.class);
-    given(category.getId()).willReturn(1L);
-
     List<Post> posts = new ArrayList<>();
     for (int i = 0; i < 5; i++) {
       LocalDateTime start =
@@ -61,7 +57,7 @@ class MemberAnalyticsServiceTest {
               .studyTime(150)
               .focus(3)
               .scope(PublicScope.PUBLIC)
-              .placeCategory(category)
+              .placeCategory(PlaceCategoryCode.CAFE)
               .build();
 
       // createdAt 설정 (최근 5회 정렬을 위함)
