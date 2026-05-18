@@ -43,9 +43,7 @@ public record MyPageFeedResponse(
         post.getTags().stream().map(postTag -> postTag.getTag().getPlaceTag()).toList(),
         isLiked,
         isBookMarked,
-        post.getPlaceCategory() != null && post.getPlaceCategory().getCategoryName() != null
-            ? post.getPlaceCategory().getCategoryName().getValue()
-            : null,
+        post.getPlaceCategory() != null ? post.getPlaceCategory().getValue() : null,
         post.getScope() == PublicScope.PUBLIC);
   }
 }
