@@ -135,10 +135,9 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
   }
 
   /**
-   * 분석용: 회원의 전체 게시글을 tags, placeCategory와 함께 조회합니다.
+   * 분석용: 회원의 전체 게시글을 tags와 함께 조회합니다.
    *
    * <p>MultipleBagFetch 예외를 피하기 위해, Post ID 목록을 먼저 조회한 뒤 tags를 별도 쿼리로 초기화합니다.
-   * placeCategory(OneToOne)는 N+1 방지를 위해 최종 쿼리에서 fetch join합니다.
    */
   @Override
   public List<Post> findMyPostsForAnalytics(UUID memberKey) {
@@ -166,12 +165,10 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         .where(post.id.in(postIds))
         .fetch();
 
-    // 3단계: Post를 placeCategory와 함께 조회 (N+1 방지 fetch join)
+    // 3단계: Post를 생성일 내림차순으로 조회
     return queryFactory
         .selectFrom(post)
         .distinct()
-        .leftJoin(post.placeCategory)
-        .fetchJoin()
         .where(post.id.in(postIds))
         .orderBy(post.createdAt.desc())
         .fetch();
