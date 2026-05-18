@@ -1,7 +1,7 @@
 package com.plog.plogbackend.security.oauth2;
 
-import com.plog.plogbackend.domain.Member.Member;
-import com.plog.plogbackend.domain.Member.repository.MemberRepository;
+import com.plog.plogbackend.domain.member.Member;
+import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.global.util.CookieUtil;
 import com.plog.plogbackend.security.jwt.JwtProvider;
 import com.plog.plogbackend.security.jwt.RefreshTokenService;

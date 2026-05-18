@@ -49,6 +49,7 @@ public enum ErrorType {
   MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 회원을 찾을 수 없습니다.", LogLevel.WARN),
   POST_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 게시글을 찾을 수 없습니다.", LogLevel.WARN),
   POST_FORBIDDEN(HttpStatus.FORBIDDEN, ErrorCode.E403, "본인의 게시글만 조회/수정할 수 있습니다.", LogLevel.WARN),
+  POST_ACCESS_DENIED(HttpStatus.FORBIDDEN, ErrorCode.E403, "접근 권한이 없는 게시물 입니다.", LogLevel.WARN),
   TERMS_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "해당 약관을 찾을 수 없습니다.", LogLevel.WARN),
   REQUIRED_TERMS_NOT_AGREED(
       HttpStatus.BAD_REQUEST, ErrorCode.E400, "필수 약관에 동의해야 합니다.", LogLevel.WARN),
@@ -59,6 +60,7 @@ public enum ErrorType {
   BADGE_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E1200, "해당 뱃지를 찾을 수 없습니다.", LogLevel.WARN),
   BADGE_NOT_OWNED(
       HttpStatus.FORBIDDEN, ErrorCode.E1201, "보유하지 않은 뱃지는 대표 뱃지로 설정할 수 없습니다.", LogLevel.WARN),
+  MAIN_BADGE_NOT_SET(HttpStatus.BAD_REQUEST, ErrorCode.E1202, "설정된 대표 뱃지가 없습니다.", LogLevel.WARN),
 
   // 테그 관련
   TAG_LIMIT_EXCEEDED(
@@ -67,11 +69,11 @@ public enum ErrorType {
 
   // 포스트 관련
   INVALID_TITLE_LENGTH(
-      HttpStatus.BAD_REQUEST, ErrorCode.E1400, "환경 기록 제목 글자 수는 2글자 이상 20글자 미만 입니다.", LogLevel.WARN),
+      HttpStatus.BAD_REQUEST, ErrorCode.E1400, "환경 기록 제목 글자 수는 2글자 이상 20글자 이하 입니다.", LogLevel.WARN),
   INVALID_CONTENTS_LENGTH(
       HttpStatus.BAD_REQUEST,
       ErrorCode.E1401,
-      "환경 기록 리뷰 글자수는 20글자 이상 200글자 미만 입니다.",
+      "환경 기록 리뷰 글자수는 20글자 이상 300글자 이하 입니다.",
       LogLevel.WARN),
 
   // 타임피커 공부시간 관련

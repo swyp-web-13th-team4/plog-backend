@@ -1,14 +1,16 @@
 package com.plog.plogbackend.domain.post.service;
 
-import com.plog.plogbackend.domain.Member.Member;
-import com.plog.plogbackend.domain.Member.dto.response.*;
-import com.plog.plogbackend.domain.Member.repository.MemberRepository;
+import com.plog.plogbackend.domain.badge.entity.MemberBadge;
 import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
 import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
+import com.plog.plogbackend.domain.member.Member;
+import com.plog.plogbackend.domain.member.dto.response.*;
+import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.post.controller.dto.response.*;
 import com.plog.plogbackend.domain.post.entity.Like;
 import com.plog.plogbackend.domain.post.entity.Post;
+import com.plog.plogbackend.domain.post.entity.PublicScope;
 import com.plog.plogbackend.domain.post.repository.LikeRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.post.service.dto.FeedDetailCommand;
@@ -103,6 +105,12 @@ public class FeedService {
         postRepository
             .findById(command.postId())
             .orElseThrow(() -> new AppException(ErrorType.POST_NOT_FOUND));
+
+    if (post.getScope() == PublicScope.PRIVATE
+        && !post.getMember().getMemberKey().equals(memberKey)) {
+
+      throw new AppException(ErrorType.POST_ACCESS_DENIED);
+    }
 
     if (memberKey != null) {
       Member member =
@@ -205,7 +213,13 @@ public class FeedService {
     // 메인 뱃지 불러오기
     MemberBadgeResponse badgeResponse = null;
     if (targetMember.getMainBadge() != null) {
-      badgeResponse = MemberBadgeResponse.of(targetMember.getMainBadge(), true);
+      MemberBadge mb =
+          memberRepository
+              .findMemberBadgeByBadgeId(command.memberKey(), targetMember.getMainBadge().getId())
+              .orElse(null);
+      badgeResponse =
+          MemberBadgeResponse.of(
+              targetMember.getMainBadge(), true, mb != null ? mb.getAcquiredAt() : null);
     }
 
     MemberResponse memberInfo =

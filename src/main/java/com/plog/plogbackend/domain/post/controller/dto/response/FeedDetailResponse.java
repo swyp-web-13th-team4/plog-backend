@@ -2,6 +2,7 @@ package com.plog.plogbackend.domain.post.controller.dto.response;
 
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
+import com.plog.plogbackend.domain.post.entity.PublicScope;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,7 +27,8 @@ public record FeedDetailResponse(
     boolean like,
     boolean bookMark,
     String category,
-    String address) {
+    String address,
+    PublicScope scope) {
 
   public static FeedDetailResponse from(
       Post post, boolean isAuthor, Boolean isLiked, Boolean isBookMarked, String category) {
@@ -49,6 +51,7 @@ public record FeedDetailResponse(
         isLiked,
         isBookMarked,
         category,
-        post.getPlace().getAddress());
+        post.getPlace().getAddress(),
+        post.getScope());
   }
 }

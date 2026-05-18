@@ -31,7 +31,7 @@ public class JwtProvider {
   @Value("${jwt.refresh-token-validity-in-ms}")
   private long refreshTokenValidityInMs;
 
-  private SecretKey key; // Member UUID 식별키
+  private SecretKey key; // member UUID 식별키
 
   @PostConstruct // yml 에 저장된 JWT 토큰 시크릿 키를 메모리에 적제 (성능 향상 목적)
   public void init() {

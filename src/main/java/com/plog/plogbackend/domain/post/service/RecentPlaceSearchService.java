@@ -1,7 +1,7 @@
 package com.plog.plogbackend.domain.post.service;
 
-import com.plog.plogbackend.domain.Member.Member;
-import com.plog.plogbackend.domain.Member.repository.MemberRepository;
+import com.plog.plogbackend.domain.member.Member;
+import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.post.controller.dto.response.RecentPlaceDeleteResponse;
 import com.plog.plogbackend.domain.post.controller.dto.response.RecentPlaceSaveResponse;
 import com.plog.plogbackend.domain.post.controller.dto.response.RecentPlaceSearchListResponse;
