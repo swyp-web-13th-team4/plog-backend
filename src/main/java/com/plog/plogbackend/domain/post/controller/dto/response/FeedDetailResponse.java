@@ -15,6 +15,8 @@ public record FeedDetailResponse(
     String profileImage,
     //    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     LocalDateTime createAt,
+    TimePickerResponse startedAt,
+    TimePickerResponse endedAt,
     List<String> postImages,
     Long likes,
     String title,
@@ -39,6 +41,8 @@ public record FeedDetailResponse(
         post.getMember().getNickname(),
         post.getMember().getProfileImage(),
         post.getCreatedAt(),
+        TimePickerResponse.from(post.getStartedAt()),
+        TimePickerResponse.from(post.getEndedAt()),
         post.getImages().stream().map(PostImage::getImageUrl).toList(),
         post.getLikes(),
         post.getTitle(),
