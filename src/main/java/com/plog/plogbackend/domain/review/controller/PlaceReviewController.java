@@ -6,6 +6,7 @@ import com.plog.plogbackend.domain.review.dto.request.PlaceReviewUpdateRequest;
 import com.plog.plogbackend.domain.review.dto.response.PlaceReviewResponse;
 import com.plog.plogbackend.domain.review.service.PlaceReviewCommandService;
 import com.plog.plogbackend.domain.review.service.dto.PlaceReviewCreateCommand;
+import com.plog.plogbackend.domain.review.service.dto.PlaceReviewDeleteCommand;
 import com.plog.plogbackend.domain.review.service.dto.PlaceReviewUpdateCommand;
 import com.plog.plogbackend.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,15 +45,34 @@ public class PlaceReviewController {
     return ResponseEntity.ok(ApiResponse.success(response));
   }
 
-  @Operation(summary = "장소 리뷰 수정", description = "장소 리뷰 별점, 환경 점수, 내용을 수정합니다. (작성 후 30일 이내)")
-  @PutMapping("/{reviewId}")
+  @Operation(
+      summary = "장소 리뷰 수정",
+      description =
+          "장소 리뷰 별점, 환경 점수, 내용과 이미지를 수정합니다. keepImageIds로 유지할 기존 이미지를 지정하고, "
+              + "images로 새 이미지를 업로드합니다. (작성 후 30일 이내, 총합 5개 이하)")
+  @PutMapping(value = "/{reviewId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<PlaceReviewResponse>> updateReview(
       @PathVariable Long reviewId,
-      @Parameter(description = "장소 리뷰 수정 데이터") @RequestBody @Valid PlaceReviewUpdateRequest request,
+      @Parameter(description = "장소 리뷰 수정 데이터") @RequestPart("request") @Valid
+          PlaceReviewUpdateRequest request,
+      @Parameter(description = "새로 추가된 리뷰 이미지 (옵션)")
+          @RequestPart(value = "images", required = false)
+          List<MultipartFile> images,
       @Parameter(hidden = true) @AuthenticationPrincipal UUID memberKey) {
     PlaceReviewUpdateCommand command = PlaceReviewMapper.from(reviewId, request, memberKey);
-    PlaceReviewResponse response = placeReviewCommandService.update(command);
+    PlaceReviewResponse response = placeReviewCommandService.update(command, images);
 
     return ResponseEntity.ok(ApiResponse.success(response));
+  }
+
+  @Operation(summary = "장소 리뷰 삭제", description = "본인 장소 리뷰를 삭제 상태로 변경합니다.")
+  @DeleteMapping("/{reviewId}")
+  public ResponseEntity<ApiResponse<Void>> deleteReview(
+      @PathVariable Long reviewId,
+      @Parameter(hidden = true) @AuthenticationPrincipal UUID memberKey) {
+    PlaceReviewDeleteCommand command = PlaceReviewMapper.from(reviewId, memberKey);
+    placeReviewCommandService.delete(command);
+
+    return ResponseEntity.ok(ApiResponse.success(null));
   }
 }

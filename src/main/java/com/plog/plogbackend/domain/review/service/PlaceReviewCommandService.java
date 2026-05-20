@@ -4,6 +4,7 @@ import com.plog.plogbackend.domain.image.dto.ImageUrlResponse;
 import com.plog.plogbackend.domain.review.dto.response.PlaceReviewResponse;
 import com.plog.plogbackend.domain.review.entity.PlaceReview;
 import com.plog.plogbackend.domain.review.service.dto.PlaceReviewCreateCommand;
+import com.plog.plogbackend.domain.review.service.dto.PlaceReviewDeleteCommand;
 import com.plog.plogbackend.domain.review.service.dto.PlaceReviewUpdateCommand;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,16 +26,22 @@ public class PlaceReviewCommandService {
     PlaceReview placeReview = placeReviewService.create(command);
 
     List<ImageUrlResponse> uploadedImages =
-        placeReviewImageService.uploadPlaceReviewImages(placeReview.getId(), images);
+        placeReviewImageService.replacePlaceReviewImages(placeReview.getId(), List.of(), images);
 
     return PlaceReviewResponse.from(placeReview, uploadedImages);
   }
 
   @Transactional
-  public PlaceReviewResponse update(PlaceReviewUpdateCommand command) {
+  public PlaceReviewResponse update(PlaceReviewUpdateCommand command, List<MultipartFile> images) {
     PlaceReview placeReview = placeReviewService.update(command);
-    List<ImageUrlResponse> images =
-        placeReviewImageService.getPlaceReviewImages(placeReview.getId());
-    return PlaceReviewResponse.from(placeReview, images);
+    List<ImageUrlResponse> imageResponses =
+        placeReviewImageService.replacePlaceReviewImages(
+            placeReview.getId(), command.keepImageIds(), images);
+    return PlaceReviewResponse.from(placeReview, imageResponses);
+  }
+
+  @Transactional
+  public void delete(PlaceReviewDeleteCommand command) {
+    placeReviewService.delete(command);
   }
 }

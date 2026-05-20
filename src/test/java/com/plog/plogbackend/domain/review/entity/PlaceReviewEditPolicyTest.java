@@ -70,4 +70,32 @@ class PlaceReviewEditPolicyTest {
     assertThat(review.getStatus()).isEqualTo(EntityStatus.DELETED);
     assertThat(review.getDeletedAt()).isNotNull();
   }
+
+  @Test
+  @DisplayName("삭제된 장소 리뷰 복구 시 상태, 수정 가능 기간, 리뷰 내용을 새 작성 기준으로 갱신한다")
+  void restore_reactivatesReviewAndReplacesFields() {
+    PlaceReview review = PlaceReview.create(null, null, 5, "좋았어요", environments(5, 4, 3, 2));
+    review.delete();
+    LocalDateTime now = LocalDateTime.of(2026, 5, 20, 12, 0);
+    Map<ReviewEnvironmentName, Integer> newEnvironments = environments(1, 2, 3, 4);
+
+    review.restore(3, "다시 작성한 리뷰입니다", newEnvironments, now);
+
+    assertThat(review.getStatus()).isEqualTo(EntityStatus.ACTIVE);
+    assertThat(review.getDeletedAt()).isNull();
+    assertThat(review.getEditableUntil()).isEqualTo(now.plusDays(30));
+    assertThat(review.getRating()).isEqualTo(3);
+    assertThat(review.getContent()).isEqualTo("다시 작성한 리뷰입니다");
+    assertThat(review.getEnvironments()).containsExactlyInAnyOrderEntriesOf(newEnvironments);
+  }
+
+  private Map<ReviewEnvironmentName, Integer> environments(
+      int spaceSize, int noiseLevel, int congestionLevel, int focusLevel) {
+    Map<ReviewEnvironmentName, Integer> environments = new EnumMap<>(ReviewEnvironmentName.class);
+    environments.put(ReviewEnvironmentName.SPACE_SIZE, spaceSize);
+    environments.put(ReviewEnvironmentName.NOISE_LEVEL, noiseLevel);
+    environments.put(ReviewEnvironmentName.CONGESTION_LEVEL, congestionLevel);
+    environments.put(ReviewEnvironmentName.FOCUS_LEVEL, focusLevel);
+    return environments;
+  }
 }

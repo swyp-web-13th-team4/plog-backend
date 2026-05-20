@@ -11,6 +11,7 @@ import com.plog.plogbackend.domain.review.dto.response.PlaceReviewResponse;
 import com.plog.plogbackend.domain.review.entity.PlaceReview;
 import com.plog.plogbackend.domain.review.enums.ReviewEnvironmentName;
 import com.plog.plogbackend.domain.review.service.dto.PlaceReviewCreateCommand;
+import com.plog.plogbackend.domain.review.service.dto.PlaceReviewDeleteCommand;
 import com.plog.plogbackend.domain.review.service.dto.PlaceReviewUpdateCommand;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -61,7 +62,7 @@ class PlaceReviewCommandServiceTest {
     given(post.getEndedAt()).willReturn(LocalDateTime.of(2026, 1, 1, 11, 0));
     given(place.getId()).willReturn(2L);
     given(place.getName()).willReturn("테스트 카페");
-    given(placeReviewImageService.uploadPlaceReviewImages(placeReview.getId(), images))
+    given(placeReviewImageService.replacePlaceReviewImages(placeReview.getId(), List.of(), images))
         .willReturn(imageResponses);
 
     PlaceReviewResponse response = placeReviewCommandService.create(command, images);
@@ -70,14 +71,19 @@ class PlaceReviewCommandServiceTest {
     InOrder inOrder = inOrder(placeReviewImageService, placeReviewService);
     inOrder.verify(placeReviewImageService).validateImages(images);
     inOrder.verify(placeReviewService).create(command);
-    inOrder.verify(placeReviewImageService).uploadPlaceReviewImages(placeReview.getId(), images);
+    inOrder
+        .verify(placeReviewImageService)
+        .replacePlaceReviewImages(placeReview.getId(), List.of(), images);
   }
 
   @Test
   @DisplayName("리뷰 수정 후 기존 이미지와 함께 응답한다")
   void update_returnsUpdatedReviewWithImages() {
     PlaceReviewUpdateCommand command =
-        new PlaceReviewUpdateCommand(10L, UUID.randomUUID(), 4, "수정했어요", environments());
+        new PlaceReviewUpdateCommand(
+            10L, UUID.randomUUID(), 4, "수정했어요", environments(), List.of(1L));
+    List<MultipartFile> images =
+        List.of(new MockMultipartFile("images", "new.jpg", "image/jpeg", "new".getBytes()));
     List<ImageUrlResponse> imageResponses =
         List.of(new ImageUrlResponse("https://storage/existing-review.jpg"));
 
@@ -94,14 +100,24 @@ class PlaceReviewCommandServiceTest {
     given(post.getEndedAt()).willReturn(LocalDateTime.of(2026, 1, 1, 11, 0));
     given(place.getId()).willReturn(2L);
     given(place.getName()).willReturn("테스트 카페");
-    given(placeReviewImageService.getPlaceReviewImages(placeReview.getId()))
+    given(placeReviewImageService.replacePlaceReviewImages(10L, List.of(1L), images))
         .willReturn(imageResponses);
 
-    PlaceReviewResponse response = placeReviewCommandService.update(command);
+    PlaceReviewResponse response = placeReviewCommandService.update(command, images);
 
     assertThat(response.rating()).isEqualTo(4);
     assertThat(response.content()).isEqualTo("수정했어요");
     assertThat(response.imageUrls()).containsExactly("https://storage/existing-review.jpg");
+  }
+
+  @Test
+  @DisplayName("장소 리뷰 삭제를 서비스에 위임한다")
+  void delete_delegatesToPlaceReviewService() {
+    PlaceReviewDeleteCommand command = new PlaceReviewDeleteCommand(10L, UUID.randomUUID());
+
+    placeReviewCommandService.delete(command);
+
+    inOrder(placeReviewService).verify(placeReviewService).delete(command);
   }
 
   private Map<ReviewEnvironmentName, Integer> environments() {

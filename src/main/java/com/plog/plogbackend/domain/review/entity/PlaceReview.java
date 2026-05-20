@@ -104,6 +104,19 @@ public class PlaceReview extends BaseTimeStatusEntity {
     deleteEntity();
   }
 
+  public void restore(
+      Integer rating,
+      String content,
+      Map<ReviewEnvironmentName, Integer> environments,
+      LocalDateTime now) {
+    restoreEntity();
+    this.rating = rating;
+    this.content = content;
+    this.editableUntil = now.plusDays(EDITABLE_DAYS);
+    this.environments.clear();
+    addEnvironments(environments);
+  }
+
   public Map<ReviewEnvironmentName, Integer> getEnvironments() {
     Map<ReviewEnvironmentName, Integer> environmentScores =
         new EnumMap<>(ReviewEnvironmentName.class);

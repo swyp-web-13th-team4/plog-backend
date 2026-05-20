@@ -7,7 +7,9 @@ import com.plog.plogbackend.domain.review.dto.request.PlaceReviewUpdateRequest;
 import com.plog.plogbackend.domain.review.dto.request.ReviewEnvironmentRequest;
 import com.plog.plogbackend.domain.review.enums.ReviewEnvironmentName;
 import com.plog.plogbackend.domain.review.service.dto.PlaceReviewCreateCommand;
+import com.plog.plogbackend.domain.review.service.dto.PlaceReviewDeleteCommand;
 import com.plog.plogbackend.domain.review.service.dto.PlaceReviewUpdateCommand;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,7 +43,8 @@ class PlaceReviewMapperTest {
     Long reviewId = 10L;
     UUID memberKey = UUID.randomUUID();
     ReviewEnvironmentRequest environments = new ReviewEnvironmentRequest(1, 2, 3, 4);
-    PlaceReviewUpdateRequest request = new PlaceReviewUpdateRequest(3, environments, "수정한 리뷰입니다");
+    PlaceReviewUpdateRequest request =
+        new PlaceReviewUpdateRequest(3, environments, "수정한 리뷰입니다", List.of(1L, 2L));
 
     PlaceReviewUpdateCommand command = PlaceReviewMapper.from(reviewId, request, memberKey);
 
@@ -49,10 +52,23 @@ class PlaceReviewMapperTest {
     assertThat(command.memberKey()).isEqualTo(memberKey);
     assertThat(command.rating()).isEqualTo(3);
     assertThat(command.content()).isEqualTo("수정한 리뷰입니다");
+    assertThat(command.keepImageIds()).containsExactly(1L, 2L);
     assertThat(command.environments())
         .containsEntry(ReviewEnvironmentName.SPACE_SIZE, 1)
         .containsEntry(ReviewEnvironmentName.NOISE_LEVEL, 2)
         .containsEntry(ReviewEnvironmentName.CONGESTION_LEVEL, 3)
         .containsEntry(ReviewEnvironmentName.FOCUS_LEVEL, 4);
+  }
+
+  @Test
+  @DisplayName("장소 리뷰 삭제 요청을 서비스 Command로 변환한다")
+  void fromDeleteRequest() {
+    Long reviewId = 10L;
+    UUID memberKey = UUID.randomUUID();
+
+    PlaceReviewDeleteCommand command = PlaceReviewMapper.from(reviewId, memberKey);
+
+    assertThat(command.reviewId()).isEqualTo(reviewId);
+    assertThat(command.memberKey()).isEqualTo(memberKey);
   }
 }
