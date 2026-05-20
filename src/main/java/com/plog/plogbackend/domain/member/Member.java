@@ -41,7 +41,7 @@ public class Member extends BaseTimeStatusEntity {
   @Column(length = 500)
   private String profileImage;
 
-  @OneToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "mainBadge_id")
   private Badge mainBadge;
 
