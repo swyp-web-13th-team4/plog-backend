@@ -353,10 +353,12 @@ public class MemberService {
           }
         });
 
-    try {
-      gcsService.delete(profileImageUrl);
-    } catch (Exception e) {
-      log.warn("프로필 이미지 GCS 삭제 실패 - url: {}, error: {}", profileImageUrl, e.getMessage());
+    if (memberImageService.isCustomImage(profileImageUrl)) {
+      try {
+        gcsService.delete(profileImageUrl);
+      } catch (Exception e) {
+        log.warn("프로필 이미지 GCS 삭제 실패 - url: {}, error: {}", profileImageUrl, e.getMessage());
+      }
     }
 
     log.info("회원 탈퇴 완료 (하드 딜리트) - memberKey: {}", memberKey);
