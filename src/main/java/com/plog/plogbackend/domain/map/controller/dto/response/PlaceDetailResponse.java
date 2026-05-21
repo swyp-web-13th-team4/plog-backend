@@ -11,7 +11,8 @@ public record PlaceDetailResponse(
     Double avgFocus,
     Long totalStudyTime,
     String thumbnailUrl,
-    PlaceCategoryCode placeCategory) {
+    PlaceCategoryCode placeCategory,
+    PlaceReviewSummaryResponse reviewSummary) {
 
   public static PlaceDetailResponse from(PlaceDetail detail) {
     return new PlaceDetailResponse(
@@ -22,6 +23,7 @@ public record PlaceDetailResponse(
         detail.getAvgFocus(),
         detail.getTotalStudyTime(),
         detail.getThumbnailUrl(),
-        detail.getPlaceCategory());
+        detail.getPlaceCategory(),
+        PlaceReviewSummaryResponse.from(detail.getReviewSummary()));
   }
 }
