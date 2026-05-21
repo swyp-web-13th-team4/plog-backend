@@ -1,7 +1,7 @@
 package com.plog.plogbackend.domain.map.controller.dto.request;
 
-import com.plog.plogbackend.domain.map.model.SortType;
-import com.plog.plogbackend.domain.map.model.Viewport;
+import com.plog.plogbackend.domain.map.repository.dto.Viewport;
+import com.plog.plogbackend.global.common.enums.SortType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -14,9 +14,5 @@ public record MapRequest(
     SortType sortType) {
   public Viewport toViewport() {
     return Viewport.of(swLat, swLng, neLat, neLng);
-  }
-
-  public SortType sortType() {
-    return sortType == null ? SortType.LATEST : sortType;
   }
 }

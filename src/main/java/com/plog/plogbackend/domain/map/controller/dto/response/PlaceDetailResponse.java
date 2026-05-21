@@ -1,6 +1,6 @@
 package com.plog.plogbackend.domain.map.controller.dto.response;
 
-import com.plog.plogbackend.domain.map.model.PlaceDetail;
+import com.plog.plogbackend.domain.map.repository.dto.PlaceDetail;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 
 public record PlaceDetailResponse(

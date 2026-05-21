@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.map.model;
+package com.plog.plogbackend.global.common.enums;
 
 public enum SortType {
   LATEST,

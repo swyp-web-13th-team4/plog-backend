@@ -1,6 +1,6 @@
 package com.plog.plogbackend.domain.map.controller.dto.response;
 
-import com.plog.plogbackend.domain.map.model.PlaceSearchResult;
+import com.plog.plogbackend.domain.map.repository.dto.PlaceSearchResult;
 import java.time.LocalDate;
 
 public record PlaceSearchResponse(
