@@ -414,20 +414,12 @@ public class MapQueryRepository {
   }
 
   public Optional<PlaceDetail> findBookmarkPinDetailByPlaceId(Long memberId, Long placeId) {
-    NumberExpression<Long> countExpr = bookMark.id.count();
     NumberExpression<Long> studyTimeSumExpr = post.studyTime.sum().longValue();
     NumberExpression<Double> avgFocusExpr = post.focus.avg();
     Expression<String> thumbnail = bookmarkThumbnail(memberId);
     Tuple t =
         queryFactory
-            .select(
-                place.id,
-                place.name,
-                place.address,
-                countExpr,
-                avgFocusExpr,
-                studyTimeSumExpr,
-                thumbnail)
+            .select(place.id, place.name, place.address, avgFocusExpr, studyTimeSumExpr, thumbnail)
             .from(bookMark)
             .join(bookMark.post, post)
             .join(post.place, place)
@@ -436,13 +428,14 @@ public class MapQueryRepository {
             .fetchOne();
     if (t == null) return Optional.empty();
     Long studyTime = t.get(studyTimeSumExpr);
+    Long userCount = fetchPlaceBookmarkUserCountMap(List.of(placeId)).getOrDefault(placeId, 0L);
     PlaceCategoryCode category = fetchBookmarkCategoryMap(memberId, List.of(placeId)).get(placeId);
     return Optional.of(
         PlaceDetail.of(
             t.get(place.id),
             t.get(place.name),
             t.get(place.address),
-            t.get(countExpr),
+            userCount,
             t.get(avgFocusExpr),
             studyTime != null ? studyTime : 0L,
             t.get(thumbnail),
