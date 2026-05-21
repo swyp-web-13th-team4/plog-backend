@@ -338,9 +338,16 @@
         </div>
 
         <div class="form-group">
-          <label>장소명</label>
-          <input type="text" id="p-placeName" class="form-control" value="테스트 장소" required>
-          <small style="color:var(--muted); font-size:0.75rem;">(주의: DB에 미리 등록된 장소여야 할 수 있습니다)</small>
+          <label>장소 정보</label>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <input type="text" id="p-placeName" class="form-control" placeholder="장소명 (예: 스타벅스 강남점)" value="테스트 장소" required>
+            <input type="text" id="p-placeAddress" class="form-control" placeholder="주소 (예: 서울특별시 강남구 ...)" value="서울시 강남구 테헤란로 123" required>
+            <div class="row">
+              <input type="number" step="any" id="p-latitude" class="form-control" placeholder="위도" value="37.4979" required>
+              <input type="number" step="any" id="p-longitude" class="form-control" placeholder="경도" value="127.0276" required>
+            </div>
+          </div>
+          <small style="color:var(--muted); font-size:0.75rem;">(테스트를 위해 기본값이 입력되어 있습니다)</small>
         </div>
 
         <div class="form-group">
@@ -499,9 +506,8 @@
       try {
         // 1. JSON 텍스트 파트 구성
         const tagNames = Array.from(document.querySelectorAll('input[name="tag"]:checked')).map(el => el.value);
-        // 라디오 단일 선택 -> 배열로 감싸서 전송 (서버 PostCreateCommand.categoryNames가 List<String>)
         const selectedCategory = document.querySelector('input[name="category"]:checked');
-        const categoryNames = selectedCategory ? [selectedCategory.value] : [];
+        const categoryCode = selectedCategory ? selectedCategory.value : null;
 
         const payload = {
           title: document.getElementById('p-title').value,
@@ -509,19 +515,23 @@
           startedAt: getTimePicker('startedAt-picker'),
           endedAt: getTimePicker('endedAt-picker'),
           studyDate: document.getElementById('p-studyDate').value,
-          studyTime: parseInt(document.getElementById('p-studyTime').value),
           focus: parseInt(document.getElementById('p-focus').value),
           scope: document.getElementById('p-scope').value,
-          placeName: document.getElementById('p-placeName').value,
-          placeTag: tagNames,
-          categoryNames: categoryNames
+          place: {
+            name: document.getElementById('p-placeName').value,
+            address: document.getElementById('p-placeAddress').value,
+            latitude: parseFloat(document.getElementById('p-latitude').value),
+            longitude: parseFloat(document.getElementById('p-longitude').value)
+          },
+          placeTags: tagNames,
+          categoryCode: categoryCode
         };
 
         const formData = new FormData();
         
-        // 주의: @RequestPart("texts") 로 받을 때 Content-Type을 application/json으로 지정해야 함
+        // 주의: @RequestPart("request") 로 받을 때 Content-Type을 application/json으로 지정해야 함
         const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-        formData.append('texts', blob);
+        formData.append('request', blob);
 
         // 2. 파일 파트 구성
         const fileInput = document.getElementById('p-images');
@@ -558,6 +568,7 @@
         submitBtn.disabled = false;
       }
     }
+
   </script>
 </body>
 </html>

@@ -1,11 +1,13 @@
 package com.plog.plogbackend.domain.badge.event;
 
+import com.plog.plogbackend.domain.badge.dto.BadgeResponse;
 import com.plog.plogbackend.domain.badge.entity.Badge;
 import com.plog.plogbackend.domain.badge.entity.MemberBadge;
 import com.plog.plogbackend.domain.badge.repository.BadgeRepository;
 import com.plog.plogbackend.domain.badge.repository.MemberBadgeRepository;
 import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
+import com.plog.plogbackend.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -31,6 +33,7 @@ public class BadgeEventHandler {
   private final MemberRepository memberRepository;
   private final BadgeRepository badgeRepository;
   private final MemberBadgeRepository memberBadgeRepository;
+  private final NotificationService notificationService;
 
   /**
    * {@link BadgeGrantEvent}를 수신하여 뱃지를 부여합니다.
@@ -60,13 +63,18 @@ public class BadgeEventHandler {
               .orElseThrow(
                   () -> new IllegalStateException("뱃지 부여 실패 - 뱃지 없음: badgeId=" + event.badgeId()));
 
-      memberBadgeRepository.save(MemberBadge.of(member, badge));
+      MemberBadge memberBadge = memberBadgeRepository.save(MemberBadge.of(member, badge));
 
       log.info(
-          "뱃지 획득 - memberId: {}, badgeId: {}, badgeName: {}",
+          "뱃지 획득 - memberId: {}, Nickname: {}, badgeId: {}, badgeName: {}",
           member.getId(),
+          member.getNickname(),
           badge.getId(),
           badge.getName());
+
+      // SSE 알림 전송 (BadgeResponse로 통일)
+      notificationService.notify(
+          member.getId(), BadgeResponse.from(badge, memberBadge.getAcquiredAt()), "badge_grant");
 
     } catch (Exception e) {
       // 뱃지 오류는 메인 로직에 영향을 주지 않도록 로그만 남기고 삼킵니다.

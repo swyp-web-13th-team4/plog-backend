@@ -79,6 +79,7 @@ public class SecurityConfig {
                         "/api/members/signup",
                         "/api/members/refresh",
                         "/api/members/logout",
+                        "/api/auth/callback",
                         "/oauth2/**",
                         "/login/**")
                     .permitAll()
@@ -129,7 +130,8 @@ public class SecurityConfig {
                         "/api/members/bookmark",
                         "/api/members/badge",
                         "/api/members/badge/**",
-                        "/api/members/analytics")
+                        "/api/members/analytics",
+                        "/api/notification/**")
                     .authenticated()
 
                     // 내 프로필 이미지 관리, 테스트용 게시글 이미지 등록/삭제 TODO: 마이페이지 , 게시글 API 구현 완료후 삭제
@@ -139,6 +141,7 @@ public class SecurityConfig {
                     // 그 외 모든 요청은 인증(JWT) 필요
                     .anyRequest()
                     .authenticated())
+        //                    .permitAll())
 
         // 4. 소셜 로그인(OAuth2) 설정
         .oauth2Login(
