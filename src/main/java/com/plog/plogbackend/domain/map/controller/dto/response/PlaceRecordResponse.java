@@ -1,6 +1,6 @@
 package com.plog.plogbackend.domain.map.controller.dto.response;
 
-import com.plog.plogbackend.domain.map.model.PlaceRecord;
+import com.plog.plogbackend.domain.map.repository.dto.PlaceRecord;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import java.util.List;

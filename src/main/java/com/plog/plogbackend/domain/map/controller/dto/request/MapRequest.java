@@ -1,6 +1,6 @@
 package com.plog.plogbackend.domain.map.controller.dto.request;
 
-import com.plog.plogbackend.domain.map.model.Viewport;
+import com.plog.plogbackend.domain.map.repository.dto.Viewport;
 import com.plog.plogbackend.global.common.enums.SortType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

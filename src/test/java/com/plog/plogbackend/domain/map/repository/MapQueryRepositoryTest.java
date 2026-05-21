@@ -4,11 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
-import com.plog.plogbackend.domain.map.model.MapPin;
-import com.plog.plogbackend.domain.map.model.PlaceRecord;
-import com.plog.plogbackend.domain.map.model.PlaceSearchResult;
-import com.plog.plogbackend.domain.map.model.PlaceSummary;
-import com.plog.plogbackend.domain.map.model.Viewport;
+import com.plog.plogbackend.domain.map.repository.dto.MapPin;
+import com.plog.plogbackend.domain.map.repository.dto.PlaceRecord;
+import com.plog.plogbackend.domain.map.repository.dto.PlaceSearchResult;
+import com.plog.plogbackend.domain.map.repository.dto.PlaceSummary;
+import com.plog.plogbackend.domain.map.repository.dto.Viewport;
 import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.place.entity.Place;

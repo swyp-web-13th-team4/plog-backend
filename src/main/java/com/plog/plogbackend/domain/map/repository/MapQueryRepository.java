@@ -8,12 +8,12 @@ import static com.plog.plogbackend.domain.post.entity.QPostTag.postTag;
 import static com.plog.plogbackend.domain.tag.QTag.tag;
 
 import com.plog.plogbackend.domain.bookmark.entity.QBookMark;
-import com.plog.plogbackend.domain.map.model.MapPin;
-import com.plog.plogbackend.domain.map.model.PlaceDetail;
-import com.plog.plogbackend.domain.map.model.PlaceRecord;
-import com.plog.plogbackend.domain.map.model.PlaceSearchResult;
-import com.plog.plogbackend.domain.map.model.PlaceSummary;
-import com.plog.plogbackend.domain.map.model.Viewport;
+import com.plog.plogbackend.domain.map.repository.dto.MapPin;
+import com.plog.plogbackend.domain.map.repository.dto.PlaceDetail;
+import com.plog.plogbackend.domain.map.repository.dto.PlaceRecord;
+import com.plog.plogbackend.domain.map.repository.dto.PlaceSearchResult;
+import com.plog.plogbackend.domain.map.repository.dto.PlaceSummary;
+import com.plog.plogbackend.domain.map.repository.dto.Viewport;
 import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.QPost;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;

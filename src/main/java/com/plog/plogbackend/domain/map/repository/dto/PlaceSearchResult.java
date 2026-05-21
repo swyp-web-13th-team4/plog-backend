@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.map.model;
+package com.plog.plogbackend.domain.map.repository.dto;
 
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
