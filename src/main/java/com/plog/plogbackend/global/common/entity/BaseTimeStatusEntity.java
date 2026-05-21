@@ -34,4 +34,10 @@ public abstract class BaseTimeStatusEntity {
     this.status = EntityStatus.DELETED;
     this.deletedAt = LocalDateTime.now();
   }
+
+  /** 논리적 삭제 복구 */
+  protected void restoreEntity() {
+    this.status = EntityStatus.ACTIVE;
+    this.deletedAt = null;
+  }
 }

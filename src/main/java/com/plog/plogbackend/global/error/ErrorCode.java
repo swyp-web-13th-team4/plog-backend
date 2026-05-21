@@ -24,6 +24,7 @@ public enum ErrorCode {
   E1103,
   E1104,
   E1105,
+  E1106,
 
   // 뱃지 관련
   E1200,
