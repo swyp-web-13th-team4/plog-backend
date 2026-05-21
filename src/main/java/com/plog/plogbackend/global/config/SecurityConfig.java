@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import jakarta.servlet.DispatcherType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -70,6 +71,10 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth
+                    // SSE async dispatch 재진입 시 인증 컨텍스트가 없으므로 ASYNC는 무조건 통과
+                    // (Tomcat이 SSE 완료 후 내부적으로 ASYNC 타입 재디스패치를 하기 때문)
+                    .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
+
                     // Swagger 등 API 문서
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                     .permitAll()

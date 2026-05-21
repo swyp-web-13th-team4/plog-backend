@@ -79,10 +79,6 @@ spotless {
 // QueryDSL Setting
 def querydslDir = "build/generated/source/querydsl/main"
 
-sourceSets {
-    main.java.srcDirs += [querydslDir]
-}
-
 tasks.withType(JavaCompile) {
     options.generatedSourceOutputDirectory = file(querydslDir)
 }

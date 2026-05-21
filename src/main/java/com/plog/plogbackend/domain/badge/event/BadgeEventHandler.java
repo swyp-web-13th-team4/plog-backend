@@ -39,6 +39,9 @@ public class BadgeEventHandler {
    * {@link BadgeGrantEvent}를 수신하여 뱃지를 부여합니다.
    *
    * <p>메인 트랜잭션 커밋 후 별도의 새 트랜잭션에서 실행되며, 예외가 발생해도 메인 로직의 데이터는 보호됩니다.
+   *
+   * <p>SSE 연결이 아직 없으면 {@code notified = false}로 저장하고, SSE 구독 시점에
+   * {@link NotificationService#flushUnnotifiedBadges}가 재전송합니다.
    */
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -63,6 +66,7 @@ public class BadgeEventHandler {
               .orElseThrow(
                   () -> new IllegalStateException("뱃지 부여 실패 - 뱃지 없음: badgeId=" + event.badgeId()));
 
+      // notified = false 로 저장 (SSE 전송 성공 후 true 로 변경)
       MemberBadge memberBadge = memberBadgeRepository.save(MemberBadge.of(member, badge));
 
       log.info(
@@ -72,9 +76,22 @@ public class BadgeEventHandler {
           badge.getId(),
           badge.getName());
 
-      // SSE 알림 전송 (BadgeResponse로 통일)
-      notificationService.notify(
-          member.getId(), BadgeResponse.from(badge, memberBadge.getAcquiredAt()), "badge_grant");
+      // SSE 알림 전송 시도
+      // - 연결이 있으면 즉시 전송 후 notified = true 마킹
+      // - 연결이 없으면 notified = false 유지 → 구독 시점에 flushUnnotifiedBadges가 재전송
+      boolean sent =
+          notificationService.notify(
+              member.getId(), BadgeResponse.from(badge, memberBadge.getAcquiredAt()), "badge_grant");
+
+      if (sent) {
+        memberBadge.markNotified();
+        log.info("SSE 뱃지 알림 전송 완료 - memberId: {}, badgeId: {}", member.getId(), badge.getId());
+      } else {
+        log.info(
+            "SSE 연결 없음, 뱃지 알림 보류 (구독 시 재전송 예정) - memberId: {}, badgeId: {}",
+            member.getId(),
+            badge.getId());
+      }
 
     } catch (Exception e) {
       // 뱃지 오류는 메인 로직에 영향을 주지 않도록 로그만 남기고 삼킵니다.
