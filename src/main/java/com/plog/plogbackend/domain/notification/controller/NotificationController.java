@@ -25,7 +25,13 @@ public class NotificationController {
 
   @Operation(summary = "SSE 알림 구독", description = "로그인한 사용자의 SSE 연결을 생성합니다.")
   @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-  public SseEmitter subscribe(@AuthenticationPrincipal UUID memberKey) {
+  public SseEmitter subscribe(
+      @AuthenticationPrincipal UUID memberKey, jakarta.servlet.http.HttpServletResponse response) {
+
+    // Nginx 버퍼링 강제 비활성화
+    response.setHeader("X-Accel-Buffering", "no");
+    response.setHeader("Cache-Control", "no-cache");
+
     Member member =
         memberRepository
             .findByMemberKey(memberKey)
