@@ -16,7 +16,8 @@ public interface MemberBadgeRepository extends JpaRepository<MemberBadge, Long> 
   List<MemberBadge> findAllByMemberId(Long memberId);
 
   /** 특정 회원의 SSE 미전송 뽃지 조회 (notified = false) */
-  @Query("SELECT mb FROM MemberBadge mb JOIN FETCH mb.badge WHERE mb.member.id = :memberId AND mb.notified = false")
+  @Query(
+      "SELECT mb FROM MemberBadge mb JOIN FETCH mb.badge WHERE mb.member.id = :memberId AND mb.notified = false")
   List<MemberBadge> findUnnotifiedByMemberId(@Param("memberId") Long memberId);
 
   @Modifying

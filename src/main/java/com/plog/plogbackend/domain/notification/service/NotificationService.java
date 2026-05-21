@@ -59,8 +59,7 @@ public class NotificationService {
   /**
    * SSE 구독 시점에 아직 전송되지 않은 뱃지 알림을 일괄 전송합니다.
    *
-   * <p>회원가입 직후 SSE 연결이 없어 전송 실패한 첫 로그인 뱃지 등을 처리합니다.
-   * 전송 성공한 항목은 {@code notified = true}로 마킹합니다.
+   * <p>회원가입 직후 SSE 연결이 없어 전송 실패한 첫 로그인 뱃지 등을 처리합니다. 전송 성공한 항목은 {@code notified = true}로 마킹합니다.
    */
   @Transactional
   public void flushUnnotifiedBadges(Long memberId) {
@@ -76,8 +75,7 @@ public class NotificationService {
       boolean sent = notify(memberId, payload, "badge_grant");
       if (sent) {
         mb.markNotified();
-        log.info(
-            "미전송 뱃지 재전송 성공 - memberId: {}, badgeId: {}", memberId, mb.getBadge().getId());
+        log.info("미전송 뱃지 재전송 성공 - memberId: {}, badgeId: {}", memberId, mb.getBadge().getId());
       } else {
         log.warn(
             "미전송 뱃지 재전송 실패 (emitter 없음) - memberId: {}, badgeId: {}",

@@ -31,11 +31,7 @@ public class MemberBadge {
   @Column(nullable = false)
   private LocalDateTime acquiredAt;
 
-  /**
-   * SSE 알림 전송 여부.
-   * false: 아직 클라이언트에게 전송되지 않은 상태 (SSE 연결이 없었거나 전송 실패)
-   * true : SSE로 정상 전송 완료
-   */
+  /** SSE 알림 전송 여부. false: 아직 클라이언트에게 전송되지 않은 상태 (SSE 연결이 없었거나 전송 실패) true : SSE로 정상 전송 완료 */
   @Column(nullable = false)
   private boolean notified = false;
 

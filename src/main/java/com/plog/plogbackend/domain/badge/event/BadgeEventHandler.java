@@ -40,8 +40,8 @@ public class BadgeEventHandler {
    *
    * <p>메인 트랜잭션 커밋 후 별도의 새 트랜잭션에서 실행되며, 예외가 발생해도 메인 로직의 데이터는 보호됩니다.
    *
-   * <p>SSE 연결이 아직 없으면 {@code notified = false}로 저장하고, SSE 구독 시점에
-   * {@link NotificationService#flushUnnotifiedBadges}가 재전송합니다.
+   * <p>SSE 연결이 아직 없으면 {@code notified = false}로 저장하고, SSE 구독 시점에 {@link
+   * NotificationService#flushUnnotifiedBadges}가 재전송합니다.
    */
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -81,7 +81,9 @@ public class BadgeEventHandler {
       // - 연결이 없으면 notified = false 유지 → 구독 시점에 flushUnnotifiedBadges가 재전송
       boolean sent =
           notificationService.notify(
-              member.getId(), BadgeResponse.from(badge, memberBadge.getAcquiredAt()), "badge_grant");
+              member.getId(),
+              BadgeResponse.from(badge, memberBadge.getAcquiredAt()),
+              "badge_grant");
 
       if (sent) {
         memberBadge.markNotified();
