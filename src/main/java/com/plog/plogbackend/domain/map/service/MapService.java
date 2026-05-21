@@ -9,6 +9,7 @@ import com.plog.plogbackend.domain.map.model.PlaceSearchResult;
 import com.plog.plogbackend.domain.map.model.PlaceSummary;
 import com.plog.plogbackend.domain.map.model.SortType;
 import com.plog.plogbackend.domain.map.model.Viewport;
+import com.plog.plogbackend.domain.review.service.PlaceReviewStatisticsService;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.plog.plogbackend.global.support.paging.Cursorable;
 import com.plog.plogbackend.global.support.paging.Slice;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class MapService {
   private final MapManager mapManager;
+  private final PlaceReviewStatisticsService placeReviewStatisticsService;
 
   @Transactional(readOnly = true)
   public List<MapPin> findMyRecordPins(UUID memberKey, Viewport viewport) {
@@ -78,11 +80,15 @@ public class MapService {
 
   @Transactional(readOnly = true)
   public PlaceDetail findRecordPinDetail(UUID memberKey, Long placeId) {
-    return mapManager.getRecordPinDetail(memberKey, placeId);
+    return mapManager
+        .getRecordPinDetail(memberKey, placeId)
+        .withReviewSummary(placeReviewStatisticsService.getSummary(placeId));
   }
 
   @Transactional(readOnly = true)
   public PlaceDetail findBookmarkPinDetail(UUID memberKey, Long placeId) {
-    return mapManager.getBookmarkPinDetail(memberKey, placeId);
+    return mapManager
+        .getBookmarkPinDetail(memberKey, placeId)
+        .withReviewSummary(placeReviewStatisticsService.getSummary(placeId));
   }
 }
