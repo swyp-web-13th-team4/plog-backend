@@ -1,6 +1,7 @@
 package com.plog.plogbackend.domain.map.service;
 
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
+import com.plog.plogbackend.domain.map.repository.MapQueryRepository;
 import com.plog.plogbackend.domain.map.repository.dto.MapCount;
 import com.plog.plogbackend.domain.map.repository.dto.MapPin;
 import com.plog.plogbackend.domain.map.repository.dto.PlaceDetail;
@@ -8,7 +9,6 @@ import com.plog.plogbackend.domain.map.repository.dto.PlaceRecord;
 import com.plog.plogbackend.domain.map.repository.dto.PlaceSearchResult;
 import com.plog.plogbackend.domain.map.repository.dto.PlaceSummary;
 import com.plog.plogbackend.domain.map.repository.dto.Viewport;
-import com.plog.plogbackend.domain.map.repository.MapQueryRepository;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
