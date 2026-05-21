@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Slf4j
@@ -23,6 +22,7 @@ public class NotificationService {
   private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
 
   private final MemberBadgeRepository memberBadgeRepository;
+  private final org.springframework.transaction.PlatformTransactionManager transactionManager;
 
   public SseEmitter subscribe(Long memberId) {
     SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
@@ -50,8 +50,17 @@ public class NotificationService {
       return emitter;
     }
 
-    // 구독 시점에 미전송 뱃지 알림을 일괄 전송
-    flushUnnotifiedBadges(memberId);
+    // 비동기 스레드에서 미전송 뱃지 일괄 전송 (트랜잭션 적용 및 연결 안정성 확보)
+    java.util.concurrent.CompletableFuture.runAsync(
+        () -> {
+          try {
+            // 브라우저가 완전히 연결을 확립하고 준비할 수 있도록 150ms 딜레이를 줍니다.
+            Thread.sleep(150);
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
+          flushUnnotifiedBadges(memberId);
+        });
 
     return emitter;
   }
@@ -61,28 +70,33 @@ public class NotificationService {
    *
    * <p>회원가입 직후 SSE 연결이 없어 전송 실패한 첫 로그인 뱃지 등을 처리합니다. 전송 성공한 항목은 {@code notified = true}로 마킹합니다.
    */
-  @Transactional
   public void flushUnnotifiedBadges(Long memberId) {
-    List<MemberBadge> unnotified = memberBadgeRepository.findUnnotifiedByMemberId(memberId);
-    if (unnotified.isEmpty()) {
-      return;
-    }
+    new org.springframework.transaction.support.TransactionTemplate(transactionManager)
+        .executeWithoutResult(
+            status -> {
+              List<MemberBadge> unnotified =
+                  memberBadgeRepository.findUnnotifiedByMemberId(memberId);
+              if (unnotified.isEmpty()) {
+                return;
+              }
 
-    log.info("미전송 뱃지 {} 건 재전송 시작 - memberId: {}", unnotified.size(), memberId);
+              log.info("미전송 뱃지 {} 건 재전송 시작 - memberId: {}", unnotified.size(), memberId);
 
-    for (MemberBadge mb : unnotified) {
-      BadgeResponse payload = BadgeResponse.from(mb.getBadge(), mb.getAcquiredAt());
-      boolean sent = notify(memberId, payload, "badge_grant");
-      if (sent) {
-        mb.markNotified();
-        log.info("미전송 뱃지 재전송 성공 - memberId: {}, badgeId: {}", memberId, mb.getBadge().getId());
-      } else {
-        log.warn(
-            "미전송 뱃지 재전송 실패 (emitter 없음) - memberId: {}, badgeId: {}",
-            memberId,
-            mb.getBadge().getId());
-      }
-    }
+              for (MemberBadge mb : unnotified) {
+                BadgeResponse payload = BadgeResponse.from(mb.getBadge(), mb.getAcquiredAt());
+                boolean sent = notify(memberId, payload, "badge_grant");
+                if (sent) {
+                  mb.markNotified();
+                  log.info(
+                      "미전송 뱃지 재전송 성공 - memberId: {}, badgeId: {}", memberId, mb.getBadge().getId());
+                } else {
+                  log.warn(
+                      "미전송 뱃지 재전송 실패 (emitter 없음) - memberId: {}, badgeId: {}",
+                      memberId,
+                      mb.getBadge().getId());
+                }
+              }
+            });
   }
 
   /** 30초마다 하트비트 전송 연결 유지를 확인하고 클라이언트에게 연결 상태를 알림 */
