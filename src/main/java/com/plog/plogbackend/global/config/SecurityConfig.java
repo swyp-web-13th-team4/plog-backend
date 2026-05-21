@@ -52,7 +52,10 @@ public class SecurityConfig {
                 cors.configurationSource(
                     request -> {
                       CorsConfiguration config = new CorsConfiguration();
-                      config.setAllowedOrigins(List.of(allowedOrigins)); // 허용 주소
+                      config.setAllowedOrigins(
+                          java.util.Arrays.stream(allowedOrigins.split(","))
+                              .map(String::trim)
+                              .toList()); // 허용 주소
                       config.setAllowedMethods(
                           List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                       config.setAllowedHeaders(List.of("*"));
