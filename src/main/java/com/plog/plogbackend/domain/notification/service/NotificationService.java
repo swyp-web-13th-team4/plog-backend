@@ -40,26 +40,22 @@ public class NotificationService {
           emitters.remove(memberId);
         });
 
-    // SSE 연결 시 첫 데이터를 보내지 않으면 503 에러가 발생할 수 있음
-    try {
-      emitter.send(
-          SseEmitter.event().name("connect").data("SSE 연결 성공 [memberId: " + memberId + "]"));
-    } catch (IOException e) {
-      log.error("SSE connection error for memberId: {}", memberId, e);
-      emitters.remove(memberId);
-      return emitter;
-    }
-
-    // 비동기 스레드에서 미전송 뱃지 일괄 전송 (트랜잭션 적용 및 연결 안정성 확보)
+    // 비동기 스레드에서 첫 연결 메시지 및 미전송 뱃지 일괄 전송 (트랜잭션 적용 및 연결 안정성 확보)
     java.util.concurrent.CompletableFuture.runAsync(
         () -> {
           try {
             // 브라우저가 완전히 연결을 확립하고 준비할 수 있도록 150ms 딜레이를 줍니다.
             Thread.sleep(150);
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+
+            // 연결 확립 후 첫 데이터를 보내야 503 에러나 버퍼링 충돌을 막을 수 있음
+            emitter.send(
+                SseEmitter.event().name("connect").data("SSE 연결 성공 [memberId: " + memberId + "]"));
+
+            flushUnnotifiedBadges(memberId);
+          } catch (Exception e) {
+            log.error("SSE connection error for memberId: {}", memberId, e);
+            emitters.remove(memberId);
           }
-          flushUnnotifiedBadges(memberId);
         });
 
     return emitter;
