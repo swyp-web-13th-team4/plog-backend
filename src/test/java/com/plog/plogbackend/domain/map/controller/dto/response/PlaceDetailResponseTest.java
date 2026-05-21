@@ -47,4 +47,23 @@ class PlaceDetailResponseTest {
     assertThat(environment.label()).isEqualTo("넓은 편이에요");
     assertThat(environment.count()).isEqualTo(15L);
   }
+
+  @Test
+  @DisplayName("리뷰 데이터가 없으면 장소 상세 응답의 리뷰 요약을 null로 반환한다")
+  void from_withoutReviews_returnsNullReviewSummary() {
+    PlaceDetail detail =
+        PlaceDetail.of(
+            1L,
+            "스타벅스 광화문점",
+            "서울시 종로구 세종대로 172",
+            24L,
+            4.5,
+            1440L,
+            "https://storage/place.jpg",
+            PlaceCategoryCode.CAFE);
+
+    PlaceDetailResponse response = PlaceDetailResponse.from(detail);
+
+    assertThat(response.reviewSummary()).isNull();
+  }
 }

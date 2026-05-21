@@ -9,6 +9,10 @@ public record PlaceReviewSummaryResponse(
     List<PlaceReviewEnvironmentSummaryResponse> environments) {
 
   public static PlaceReviewSummaryResponse from(PlaceReviewSummary summary) {
+    if (summary.reviewCount() == 0) {
+      return null;
+    }
+
     return new PlaceReviewSummaryResponse(
         summary.reviewCount(),
         summary.averageRating(),
