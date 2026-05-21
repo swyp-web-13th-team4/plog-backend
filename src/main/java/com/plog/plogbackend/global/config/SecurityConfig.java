@@ -51,17 +51,16 @@ public class SecurityConfig {
             cors ->
                 cors.configurationSource(
                     request -> {
-                       CorsConfiguration config = new CorsConfiguration();
-                       config.setAllowedOrigins(
-                           java.util.Arrays.stream(allowedOrigins.split(","))
-                               .map(String::trim)
-                               .toList()
-                       ); // 허용 주소
-                       config.setAllowedMethods(
-                           List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-                       config.setAllowedHeaders(List.of("*"));
-                       config.setAllowCredentials(true);
-                       return config;
+                      CorsConfiguration config = new CorsConfiguration();
+                      config.setAllowedOrigins(
+                          java.util.Arrays.stream(allowedOrigins.split(","))
+                              .map(String::trim)
+                              .toList()); // 허용 주소
+                      config.setAllowedMethods(
+                          List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+                      config.setAllowedHeaders(List.of("*"));
+                      config.setAllowCredentials(true);
+                      return config;
                     }))
 
         // 2. 세션 정책: OAuth2 로그인 흐름(state 검증)을 위해 IF_REQUIRED 사용
