@@ -8,9 +8,9 @@ import com.plog.plogbackend.domain.map.controller.dto.response.PlaceDetailRespon
 import com.plog.plogbackend.domain.map.controller.dto.response.PlaceRecordResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.PlaceSearchResponse;
 import com.plog.plogbackend.domain.map.controller.dto.response.PlaceSummaryResponse;
-import com.plog.plogbackend.domain.map.model.SortType;
 import com.plog.plogbackend.domain.map.service.MapService;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
+import com.plog.plogbackend.global.common.enums.SortType;
 import com.plog.plogbackend.global.response.ApiResponse;
 import com.plog.plogbackend.global.support.paging.CursorDefault;
 import com.plog.plogbackend.global.support.paging.Cursorable;

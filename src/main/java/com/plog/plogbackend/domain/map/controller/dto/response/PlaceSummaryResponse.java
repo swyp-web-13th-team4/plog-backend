@@ -2,7 +2,6 @@ package com.plog.plogbackend.domain.map.controller.dto.response;
 
 import com.plog.plogbackend.domain.map.model.PlaceSummary;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
-import java.time.LocalDate;
 
 public record PlaceSummaryResponse(
     Long placeId,
@@ -13,7 +12,6 @@ public record PlaceSummaryResponse(
     Long count,
     String thumbnailUrl,
     PlaceCategoryCode placeCategory,
-    LocalDate lastStudyDate,
     Long totalStudyTime,
     Double avgFocus) {
 
@@ -27,7 +25,6 @@ public record PlaceSummaryResponse(
         summary.getCount(),
         summary.getThumbnailUrl(),
         summary.getPlaceCategory(),
-        summary.getLastStudyDate(),
         summary.getTotalStudyTime(),
         summary.getAvgFocus());
   }

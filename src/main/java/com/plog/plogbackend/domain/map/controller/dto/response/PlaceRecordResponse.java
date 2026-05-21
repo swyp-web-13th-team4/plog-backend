@@ -3,7 +3,6 @@ package com.plog.plogbackend.domain.map.controller.dto.response;
 import com.plog.plogbackend.domain.map.model.PlaceRecord;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
-import java.time.LocalDate;
 import java.util.List;
 import lombok.Builder;
 
@@ -12,7 +11,6 @@ public record PlaceRecordResponse(
     Long postId,
     String placeName,
     String title,
-    LocalDate studyDate,
     Integer studyTime,
     Integer focus,
     String contents,
@@ -25,7 +23,6 @@ public record PlaceRecordResponse(
         .postId(record.getPostId())
         .placeName(record.getPlaceName())
         .title(record.getTitle())
-        .studyDate(record.getStudyDate())
         .studyTime(record.getStudyTime())
         .focus(record.getFocus())
         .contents(record.getContents())

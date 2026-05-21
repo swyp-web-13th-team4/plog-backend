@@ -1,15 +1,20 @@
 package com.plog.plogbackend.domain.map.service;
 
-import com.plog.plogbackend.domain.map.implement.MapManager;
+import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.map.model.MapCount;
 import com.plog.plogbackend.domain.map.model.MapPin;
 import com.plog.plogbackend.domain.map.model.PlaceDetail;
 import com.plog.plogbackend.domain.map.model.PlaceRecord;
 import com.plog.plogbackend.domain.map.model.PlaceSearchResult;
 import com.plog.plogbackend.domain.map.model.PlaceSummary;
-import com.plog.plogbackend.domain.map.model.SortType;
 import com.plog.plogbackend.domain.map.model.Viewport;
+import com.plog.plogbackend.domain.map.repository.MapQueryRepository;
+import com.plog.plogbackend.domain.member.repository.MemberRepository;
+import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
+import com.plog.plogbackend.global.common.enums.SortType;
+import com.plog.plogbackend.global.error.AppException;
+import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.global.support.paging.Cursorable;
 import com.plog.plogbackend.global.support.paging.Slice;
 import java.util.List;
@@ -20,69 +25,78 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class MapService {
-  private final MapManager mapManager;
 
-  @Transactional(readOnly = true)
+  private final MapQueryRepository mapQueryRepository;
+  private final MemberRepository memberRepository;
+  private final PostRepository postRepository;
+  private final BookMarkRepository bookMarkRepository;
+
+  public MapCount getMapCount(UUID memberKey) {
+    Long memberId = getMemberId(memberKey);
+    return MapCount.of(
+        postRepository.countByMemberId(memberId), bookMarkRepository.countByMemberId(memberId));
+  }
+
   public List<MapPin> findMyRecordPins(UUID memberKey, Viewport viewport) {
-    return mapManager.getRecordsPins(memberKey, viewport);
+    return mapQueryRepository.findRecordPinsByMemberId(getMemberId(memberKey), viewport);
   }
 
-  @Transactional(readOnly = true)
   public List<MapPin> findMyBookmarkPins(UUID memberKey, Viewport viewport) {
-    return mapManager.getBookmarkPins(memberKey, viewport);
+    return mapQueryRepository.findBookmarkPinsByMemberId(getMemberId(memberKey), viewport);
   }
 
-  @Transactional(readOnly = true)
+  public Slice<PlaceSummary> findAllRecordPlaces(
+      UUID memberKey, SortType sortType, Cursorable<String> cursorable) {
+    return mapQueryRepository.findAllRecordPlace(getMemberId(memberKey), sortType, cursorable);
+  }
+
+  public Slice<PlaceSummary> findAllBookmarkPlaces(
+      UUID memberKey, SortType sortType, Cursorable<String> cursorable) {
+    return mapQueryRepository.findAllBookmarkPlaces(getMemberId(memberKey), sortType, cursorable);
+  }
+
   public Slice<PlaceRecord> findPlaceRecords(
       UUID memberKey,
       Long placeId,
       SortType sortType,
       List<PlaceTag> tags,
       Cursorable<String> cursorable) {
-    return mapManager.getPlaceRecords(memberKey, placeId, sortType, tags, cursorable);
+    return mapQueryRepository.findRecordsByPlaceId(
+        getMemberId(memberKey), placeId, sortType, tags, cursorable);
   }
 
-  @Transactional(readOnly = true)
-  public Slice<PlaceSummary> findAllRecordPlaces(
-      UUID memberKey, SortType sortType, Cursorable<String> cursorable) {
-    return mapManager.getAllRecordPlaces(memberKey, sortType, cursorable);
-  }
-
-  @Transactional(readOnly = true)
-  public Slice<PlaceSummary> findAllBookmarkPlaces(
-      UUID memberKey, SortType sortType, Cursorable<String> cursorable) {
-    return mapManager.getAllBookmarkPlaces(memberKey, sortType, cursorable);
-  }
-
-  @Transactional(readOnly = true)
-  public List<PlaceSearchResult> searchRecordedPlaces(UUID memberKey, String keyword) {
-    return mapManager.searchRecordedPlaces(memberKey, keyword);
-  }
-
-  @Transactional(readOnly = true)
   public Slice<PlaceRecord> findPlaceBookmarks(
       UUID memberKey,
       Long placeId,
       SortType sortType,
       List<PlaceTag> tags,
       Cursorable<String> cursorable) {
-    return mapManager.getPlaceBookmarks(memberKey, placeId, sortType, tags, cursorable);
+    return mapQueryRepository.findBookmarksByPlaceId(
+        getMemberId(memberKey), placeId, sortType, tags, cursorable);
   }
 
-  @Transactional(readOnly = true)
-  public MapCount getMapCount(UUID memberKey) {
-    return mapManager.getMapCount(memberKey);
+  public List<PlaceSearchResult> searchRecordedPlaces(UUID memberKey, String keyword) {
+    return mapQueryRepository.findRecordedPlacesByKeyword(getMemberId(memberKey), keyword);
   }
 
-  @Transactional(readOnly = true)
   public PlaceDetail findRecordPinDetail(UUID memberKey, Long placeId) {
-    return mapManager.getRecordPinDetail(memberKey, placeId);
+    return mapQueryRepository
+        .findRecordPinDetailByPlaceId(getMemberId(memberKey), placeId)
+        .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
   }
 
-  @Transactional(readOnly = true)
   public PlaceDetail findBookmarkPinDetail(UUID memberKey, Long placeId) {
-    return mapManager.getBookmarkPinDetail(memberKey, placeId);
+    return mapQueryRepository
+        .findBookmarkPinDetailByPlaceId(getMemberId(memberKey), placeId)
+        .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
+  }
+
+  private Long getMemberId(UUID memberKey) {
+    return memberRepository
+        .findByMemberKey(memberKey)
+        .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND))
+        .getId();
   }
 }
