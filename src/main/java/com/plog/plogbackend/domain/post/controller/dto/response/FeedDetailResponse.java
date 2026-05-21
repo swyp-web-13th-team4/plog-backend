@@ -4,6 +4,7 @@ import com.plog.plogbackend.domain.post.entity.Post;
 import com.plog.plogbackend.domain.post.entity.PostImage;
 import com.plog.plogbackend.domain.post.entity.PublicScope;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -17,6 +18,7 @@ public record FeedDetailResponse(
     LocalDateTime createAt,
     TimePickerResponse startedAt,
     TimePickerResponse endedAt,
+    LocalDate studyDate,
     List<String> postImages,
     Long likes,
     String title,
@@ -43,6 +45,7 @@ public record FeedDetailResponse(
         post.getCreatedAt(),
         TimePickerResponse.from(post.getStartedAt()),
         TimePickerResponse.from(post.getEndedAt()),
+        post.getStudyDate(),
         post.getImages().stream().map(PostImage::getImageUrl).toList(),
         post.getLikes(),
         post.getTitle(),
