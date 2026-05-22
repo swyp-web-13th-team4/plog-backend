@@ -2,6 +2,7 @@ package com.plog.plogbackend.domain.review.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class PlaceReviewServiceTest {
@@ -81,6 +83,26 @@ class PlaceReviewServiceTest {
     given(postRepository.findById(command.postId())).willReturn(Optional.of(post));
     given(placeReviewRepository.findByPostId(command.postId()))
         .willReturn(Optional.of(activeReview));
+
+    assertThatThrownBy(() -> placeReviewService.create(command))
+        .isInstanceOf(AppException.class)
+        .extracting("errorType")
+        .isEqualTo(ErrorType.PLACE_REVIEW_ALREADY_EXISTS);
+  }
+
+  @Test
+  @DisplayName("신규 장소 리뷰 저장 중 unique 제약 조건이 충돌하면 중복 작성 예외로 변환한다")
+  void create_uniqueConstraintViolation_throwsAlreadyExists() {
+    UUID memberKey = UUID.randomUUID();
+    PlaceReviewCreateCommand command =
+        new PlaceReviewCreateCommand(1L, memberKey, 3, "좋았어요", environments());
+    given(member.getId()).willReturn(1L);
+    given(post.getMember()).willReturn(member);
+    given(memberRepository.findByMemberKey(memberKey)).willReturn(Optional.of(member));
+    given(postRepository.findById(command.postId())).willReturn(Optional.of(post));
+    given(placeReviewRepository.findByPostId(command.postId())).willReturn(Optional.empty());
+    given(placeReviewRepository.saveAndFlush(any(PlaceReview.class)))
+        .willThrow(new DataIntegrityViolationException("uk_place_review_post"));
 
     assertThatThrownBy(() -> placeReviewService.create(command))
         .isInstanceOf(AppException.class)

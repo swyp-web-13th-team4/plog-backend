@@ -15,6 +15,7 @@ import com.plog.plogbackend.global.error.ErrorType;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -99,8 +100,13 @@ public class PlaceReviewService {
   }
 
   private PlaceReview saveNewReview(Post post, Member member, PlaceReviewCreateCommand command) {
-    return placeReviewRepository.save(
-        PlaceReview.create(
-            post, member, command.rating(), command.content(), command.environments()));
+    try {
+      return placeReviewRepository.saveAndFlush(
+          PlaceReview.create(
+              post, member, command.rating(), command.content(), command.environments()));
+      // 동시성 처리 이미 존재함을 던져준다 이후 고도화가 된다는 비관적 락 고려
+    } catch (DataIntegrityViolationException e) {
+      throw new AppException(ErrorType.PLACE_REVIEW_ALREADY_EXISTS);
+    }
   }
 }

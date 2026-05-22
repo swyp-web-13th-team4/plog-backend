@@ -11,6 +11,7 @@ import com.plog.plogbackend.domain.map.repository.dto.PlaceSummary;
 import com.plog.plogbackend.domain.map.repository.dto.Viewport;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
+import com.plog.plogbackend.domain.review.service.PlaceReviewStatisticsService;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.plog.plogbackend.global.common.enums.SortType;
 import com.plog.plogbackend.global.error.AppException;
@@ -32,6 +33,7 @@ public class MapService {
   private final MemberRepository memberRepository;
   private final PostRepository postRepository;
   private final BookMarkRepository bookMarkRepository;
+  private final PlaceReviewStatisticsService placeReviewStatisticsService;
 
   public MapCount getMapCount(UUID memberKey) {
     Long memberId = getMemberId(memberKey);
@@ -84,13 +86,15 @@ public class MapService {
   public PlaceDetail findRecordPinDetail(UUID memberKey, Long placeId) {
     return mapQueryRepository
         .findRecordPinDetailByPlaceId(getMemberId(memberKey), placeId)
-        .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
+        .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND))
+        .withReviewSummary(placeReviewStatisticsService.getSummary(placeId));
   }
 
   public PlaceDetail findBookmarkPinDetail(UUID memberKey, Long placeId) {
     return mapQueryRepository
         .findBookmarkPinDetailByPlaceId(getMemberId(memberKey), placeId)
-        .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
+        .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND))
+        .withReviewSummary(placeReviewStatisticsService.getSummary(placeId));
   }
 
   private Long getMemberId(UUID memberKey) {
