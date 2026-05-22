@@ -33,7 +33,14 @@ public class CursorableArgumentResolver implements HandlerMethodArgumentResolver
             ? Integer.parseInt(limitParam)
             : (annotation != null) ? annotation.defaultLimit() : 10;
 
-    String cursor = webRequest.getParameter(CURSOR);
+    String cursorParam = webRequest.getParameter(CURSOR);
+    String cursor = null;
+    if (cursorParam != null) {
+      cursor =
+          new String(
+              java.util.Base64.getUrlDecoder().decode(cursorParam),
+              java.nio.charset.StandardCharsets.UTF_8);
+    }
 
     return new Cursorable<>(cursor, limit);
   }

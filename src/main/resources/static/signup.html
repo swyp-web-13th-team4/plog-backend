@@ -780,7 +780,7 @@
           if (res.ok && data.resultType === 'SUCCESS') { // ApiResponse 결과 확인
             showToast('가입 완료! 메인 페이지로 이동합니다 🎉', 'success');
             setTimeout(() => {
-              window.location.href = `success.html`;
+              window.location.href = `success.html?welcome=true`;
             }, 1000);
           } else {
             showToast(data.message || '가입에 실패했습니다.', 'error');

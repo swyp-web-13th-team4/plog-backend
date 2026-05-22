@@ -2,7 +2,7 @@ package com.plog.plogbackend.domain.map.controller.dto.response;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.plog.plogbackend.domain.map.model.PlaceDetail;
+import com.plog.plogbackend.domain.map.repository.dto.PlaceDetail;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.review.enums.ReviewEnvironmentName;
 import com.plog.plogbackend.domain.review.model.PlaceReviewEnvironmentSummary;

@@ -53,7 +53,7 @@ public class MemberImageService {
   }
 
   /** 주어진 URL이 사용자가 직접 업로드한 GCS 파일인지 판단합니다. (기본 이미지이면 false) */
-  private boolean isCustomImage(String imageUrl) {
+  public boolean isCustomImage(String imageUrl) {
     if (imageUrl == null) return false;
     return !defaultProfileImageRepository.existsByImageUrl(imageUrl);
   }

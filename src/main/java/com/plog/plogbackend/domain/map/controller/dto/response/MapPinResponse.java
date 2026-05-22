@@ -1,6 +1,6 @@
 package com.plog.plogbackend.domain.map.controller.dto.response;
 
-import com.plog.plogbackend.domain.map.model.MapPin;
+import com.plog.plogbackend.domain.map.repository.dto.MapPin;
 import lombok.Builder;
 
 @Builder

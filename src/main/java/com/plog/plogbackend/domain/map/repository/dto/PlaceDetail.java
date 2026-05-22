@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.map.model;
+package com.plog.plogbackend.domain.map.repository.dto;
 
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.review.model.PlaceReviewSummary;

@@ -6,6 +6,7 @@ import com.plog.plogbackend.security.error.OAuth2FailureHandler;
 import com.plog.plogbackend.security.jwt.JwtAuthenticationFilter;
 import com.plog.plogbackend.security.oauth2.CustomOAuth2UserService;
 import com.plog.plogbackend.security.oauth2.OAuth2SuccessHandler;
+import jakarta.servlet.DispatcherType;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +52,10 @@ public class SecurityConfig {
                 cors.configurationSource(
                     request -> {
                       CorsConfiguration config = new CorsConfiguration();
-                      config.setAllowedOrigins(List.of(allowedOrigins)); // 허용 주소
+                      config.setAllowedOrigins(
+                          java.util.Arrays.stream(allowedOrigins.split(","))
+                              .map(String::trim)
+                              .toList()); // 허용 주소
                       config.setAllowedMethods(
                           List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                       config.setAllowedHeaders(List.of("*"));
@@ -70,6 +74,11 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth
+                    // SSE async dispatch 재진입 시 인증 컨텍스트가 없으므로 ASYNC는 무조건 통과
+                    // (Tomcat이 SSE 완료 후 내부적으로 ASYNC 타입 재디스패치를 하기 때문)
+                    .dispatcherTypeMatchers(DispatcherType.ASYNC)
+                    .permitAll()
+
                     // Swagger 등 API 문서
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                     .permitAll()
@@ -79,6 +88,7 @@ public class SecurityConfig {
                         "/api/members/signup",
                         "/api/members/refresh",
                         "/api/members/logout",
+                        "/api/auth/callback",
                         "/oauth2/**",
                         "/login/**")
                     .permitAll()
@@ -129,7 +139,8 @@ public class SecurityConfig {
                         "/api/members/bookmark",
                         "/api/members/badge",
                         "/api/members/badge/**",
-                        "/api/members/analytics")
+                        "/api/members/analytics",
+                        "/api/notification/**")
                     .authenticated()
 
                     // 내 프로필 이미지 관리, 테스트용 게시글 이미지 등록/삭제 TODO: 마이페이지 , 게시글 API 구현 완료후 삭제
@@ -139,6 +150,7 @@ public class SecurityConfig {
                     // 그 외 모든 요청은 인증(JWT) 필요
                     .anyRequest()
                     .authenticated())
+        //                    .permitAll())
 
         // 4. 소셜 로그인(OAuth2) 설정
         .oauth2Login(

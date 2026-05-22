@@ -1,7 +1,6 @@
-package com.plog.plogbackend.domain.map.model;
+package com.plog.plogbackend.domain.map.repository.dto;
 
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
-import java.time.LocalDate;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +18,6 @@ public class PlaceSummary {
   private Long count;
   private String thumbnailUrl;
   private PlaceCategoryCode placeCategory;
-  private LocalDate lastStudyDate;
   private Long totalStudyTime;
   private Double avgFocus;
 
@@ -32,7 +30,6 @@ public class PlaceSummary {
       Long count,
       String thumbnailUrl,
       PlaceCategoryCode placeCategory,
-      LocalDate lastStudyDate,
       Long totalStudyTime,
       Double avgFocus) {
     return PlaceSummary.builder()
@@ -44,7 +41,6 @@ public class PlaceSummary {
         .count(count)
         .thumbnailUrl(thumbnailUrl)
         .placeCategory(placeCategory)
-        .lastStudyDate(lastStudyDate)
         .totalStudyTime(totalStudyTime)
         .avgFocus(avgFocus)
         .build();
