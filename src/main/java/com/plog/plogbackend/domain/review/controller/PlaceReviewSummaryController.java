@@ -1,8 +1,10 @@
 package com.plog.plogbackend.domain.review.controller;
 
 import com.plog.plogbackend.domain.review.dto.response.PlaceReviewPageResponse;
-import com.plog.plogbackend.domain.review.service.PlaceReviewStatisticsService;
+import com.plog.plogbackend.domain.review.service.PlaceReviewPageService;
 import com.plog.plogbackend.global.response.ApiResponse;
+import com.plog.plogbackend.global.support.paging.CursorDefault;
+import com.plog.plogbackend.global.support.paging.Cursorable;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -18,23 +20,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/reviews")
 public class PlaceReviewSummaryController {
 
-  private final PlaceReviewStatisticsService placeReviewStatisticsService;
+  private final PlaceReviewPageService placeReviewPageService;
 
   @GetMapping("/record/{placeId}")
   @Operation(summary = "기록 장소 리뷰 화면 조회", description = "기록 장소의 리뷰 요약과 리뷰 목록을 반환합니다.")
   public ResponseEntity<ApiResponse<PlaceReviewPageResponse>> getRecordReviews(
-      @PathVariable Long placeId) {
-    return ResponseEntity.ok(ApiResponse.success(getReviewPage(placeId)));
+      @PathVariable Long placeId, @CursorDefault Cursorable<String> cursorable) {
+    return ResponseEntity.ok(
+        ApiResponse.success(placeReviewPageService.getReviewPage(placeId, cursorable)));
   }
 
   @GetMapping("/bookmark/{placeId}")
   @Operation(summary = "북마크 장소 리뷰 화면 조회", description = "북마크 장소의 리뷰 요약과 리뷰 목록을 반환합니다.")
   public ResponseEntity<ApiResponse<PlaceReviewPageResponse>> getBookmarkReviews(
-      @PathVariable Long placeId) {
-    return ResponseEntity.ok(ApiResponse.success(getReviewPage(placeId)));
-  }
-
-  private PlaceReviewPageResponse getReviewPage(Long placeId) {
-    return PlaceReviewPageResponse.from(placeReviewStatisticsService.getSummary(placeId));
+      @PathVariable Long placeId, @CursorDefault Cursorable<String> cursorable) {
+    return ResponseEntity.ok(
+        ApiResponse.success(placeReviewPageService.getReviewPage(placeId, cursorable)));
   }
 }
