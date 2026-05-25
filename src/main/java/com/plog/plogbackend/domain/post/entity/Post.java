@@ -164,7 +164,9 @@ public class Post extends BaseTimeStatusEntity {
     this.images.add(image);
   }
 
-  public void removeImage(PostImage image) {
-    this.images.remove(image);
+  // 편의 메소드
+  public void replaceTags(List<PostTag> newTags) {
+    this.tags.clear();
+    this.tags.addAll(newTags);
   }
 }
