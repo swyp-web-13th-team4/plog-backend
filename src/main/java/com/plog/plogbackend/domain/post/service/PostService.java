@@ -130,8 +130,7 @@ public class PostService {
     postTagRepository.saveAll(newPostTagLinks);
 
     // 양방향 컬렉션 동기화
-    post.getTags().clear();
-    post.getTags().addAll(newPostTagLinks);
+    post.replaceTags(newPostTagLinks);
   }
 
   @Transactional
