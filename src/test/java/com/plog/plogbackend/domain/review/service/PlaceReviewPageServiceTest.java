@@ -98,6 +98,21 @@ class PlaceReviewPageServiceTest {
   }
 
   @Test
+  @DisplayName("회원을 찾을 수 없으면 내 기록 장소 리뷰 페이지 조회를 거부한다")
+  void getRecordReviewPage_whenMemberNotFound_throwsMemberNotFound() {
+    UUID memberKey = UUID.randomUUID();
+    Long placeId = 1L;
+    Cursorable<String> cursorable = new Cursorable<>(null, 10);
+    given(memberRepository.findByMemberKey(memberKey)).willReturn(Optional.empty());
+
+    assertThatThrownBy(
+            () -> placeReviewPageService.getRecordReviewPage(memberKey, placeId, cursorable))
+        .isInstanceOf(AppException.class)
+        .extracting("errorType")
+        .isEqualTo(ErrorType.MEMBER_NOT_FOUND);
+  }
+
+  @Test
   @DisplayName("북마크한 장소이면 리뷰 요약과 리뷰 목록 페이지를 반환한다")
   void getBookmarkReviewPage_whenBookmarkedPlace_returnsSummaryAndReviewPage() {
     UUID memberKey = UUID.randomUUID();
@@ -136,6 +151,21 @@ class PlaceReviewPageServiceTest {
         .isInstanceOf(AppException.class)
         .extracting("errorType")
         .isEqualTo(ErrorType.PLACE_NOT_FOUND);
+  }
+
+  @Test
+  @DisplayName("회원을 찾을 수 없으면 북마크 장소 리뷰 페이지 조회를 거부한다")
+  void getBookmarkReviewPage_whenMemberNotFound_throwsMemberNotFound() {
+    UUID memberKey = UUID.randomUUID();
+    Long placeId = 1L;
+    Cursorable<String> cursorable = new Cursorable<>(null, 10);
+    given(memberRepository.findByMemberKey(memberKey)).willReturn(Optional.empty());
+
+    assertThatThrownBy(
+            () -> placeReviewPageService.getBookmarkReviewPage(memberKey, placeId, cursorable))
+        .isInstanceOf(AppException.class)
+        .extracting("errorType")
+        .isEqualTo(ErrorType.MEMBER_NOT_FOUND);
   }
 
   private Map<ReviewEnvironmentName, Integer> environments() {

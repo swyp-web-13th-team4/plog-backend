@@ -25,7 +25,9 @@ public class PlaceReviewSummaryController {
   private final PlaceReviewPageService placeReviewPageService;
 
   @GetMapping("/record/{placeId}")
-  @Operation(summary = "기록 장소 리뷰 화면 조회", description = "기록 장소의 리뷰 요약과 리뷰 목록을 반환합니다.")
+  @Operation(
+      summary = "기록 장소 리뷰 화면 조회",
+      description = "내가 기록한 장소의 리뷰 요약과 방문자 리뷰 목록을 커서 페이징으로 반환합니다.")
   public ResponseEntity<ApiResponse<PlaceReviewPageResponse>> getRecordReviews(
       @AuthenticationPrincipal UUID memberKey,
       @PathVariable Long placeId,
@@ -36,7 +38,9 @@ public class PlaceReviewSummaryController {
   }
 
   @GetMapping("/bookmark/{placeId}")
-  @Operation(summary = "북마크 장소 리뷰 화면 조회", description = "북마크 장소의 리뷰 요약과 리뷰 목록을 반환합니다.")
+  @Operation(
+      summary = "북마크 장소 리뷰 화면 조회",
+      description = "내가 북마크한 장소의 리뷰 요약과 방문자 리뷰 목록을 커서 페이징으로 반환합니다.")
   public ResponseEntity<ApiResponse<PlaceReviewPageResponse>> getBookmarkReviews(
       @AuthenticationPrincipal UUID memberKey,
       @PathVariable Long placeId,
