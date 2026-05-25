@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -16,6 +15,5 @@ public record PlaceReviewCreateRequest(
     @Schema(description = "장소 환경 점수") @Valid @NotNull ReviewEnvironmentRequest environments,
     /** 컨텍츠 최대 길이 300 * */
     @Schema(description = "장소 리뷰 내용", example = "집중하기 좋은 공간이었어요.")
-        @NotBlank
         @Size(max = CONTENT_MAX_LENGTH)
         String content) {}
