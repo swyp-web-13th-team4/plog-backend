@@ -105,7 +105,7 @@ public enum ErrorType {
   PLACE_REVIEW_EDIT_PERIOD_EXPIRED(
       HttpStatus.BAD_REQUEST, ErrorCode.E400, "장소 리뷰 수정 가능 기간이 만료되었습니다.", LogLevel.WARN),
   PLACE_REVIEW_IMAGE_LIMIT_EXCEEDED(
-      HttpStatus.BAD_REQUEST, ErrorCode.E1106, "장소 리뷰 이미지는 최대 5개까지 업로드 가능합니다.", LogLevel.WARN);
+      HttpStatus.BAD_REQUEST, ErrorCode.E1106, "장소 리뷰 이미지는 최대 3개까지 업로드 가능합니다.", LogLevel.WARN);
 
   // 여기에 추가해주시고 사용하시면 됩니다.
 
