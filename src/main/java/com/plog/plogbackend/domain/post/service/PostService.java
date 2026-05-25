@@ -19,6 +19,8 @@ import com.plog.plogbackend.domain.post.service.dto.PlaceCommand;
 import com.plog.plogbackend.domain.post.service.dto.PostCreateCommand;
 import com.plog.plogbackend.domain.post.service.dto.PostUpdateCommand;
 import com.plog.plogbackend.domain.post.service.dto.TimePickerCommand;
+import com.plog.plogbackend.domain.review.repository.PlaceReviewImageRepository;
+import com.plog.plogbackend.domain.review.repository.PlaceReviewRepository;
 import com.plog.plogbackend.domain.tag.Tag;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.plog.plogbackend.domain.tag.repository.TagRepository;
@@ -53,6 +55,8 @@ public class PostService {
   private final BookMarkRepository bookMarkRepository;
   private final LikeRepository likeRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final PlaceReviewRepository placeReviewRepository;
+  private final PlaceReviewImageRepository placeReviewImageRepository;
 
   @Transactional
   public PostTextResponse create(PostCreateCommand command) {
@@ -144,8 +148,10 @@ public class PostService {
     // 연관 데이터 수동 삭제 (FK 제약 조건 해결)
     bookMarkRepository.deleteAllByPostIdIn(List.of(postId));
     likeRepository.deleteAllByPostIdIn(List.of(postId));
+    placeReviewImageRepository.deleteAllByPostId(postId);
+    placeReviewRepository.deleteEnvironmentsByPostId(postId);
+    placeReviewRepository.deleteByPostId(postId);
     postTagRepository.deleteAllByPostId(postId);
-
     postRepository.delete(post);
   }
 
