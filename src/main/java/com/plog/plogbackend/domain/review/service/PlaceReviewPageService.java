@@ -37,7 +37,7 @@ public class PlaceReviewPageService {
     Long memberId = getMemberId(memberKey);
     validateRecordedPlace(memberId, placeId);
 
-    return getReviewPage(placeId, cursorable, imageOnly, sortType);
+    return getReviewPage(memberId, placeId, cursorable, imageOnly, sortType);
   }
 
   public PlaceReviewPageResponse getBookmarkReviewPage(
@@ -49,10 +49,11 @@ public class PlaceReviewPageService {
     Long memberId = getMemberId(memberKey);
     validateBookmarkedPlace(memberId, placeId);
 
-    return getReviewPage(placeId, cursorable, imageOnly, sortType);
+    return getReviewPage(memberId, placeId, cursorable, imageOnly, sortType);
   }
 
   public PlaceReviewPageResponse getReviewPage(
+      Long currentMemberId,
       Long placeId,
       Cursorable<String> cursorable,
       boolean imageOnly,
@@ -62,7 +63,7 @@ public class PlaceReviewPageService {
     Slice<PlaceReviewListItemResponse> reviews =
         placeReviewQueryRepository
             .findReviewPageByPlaceId(placeId, cursorable, imageOnly, sortType)
-            .map(PlaceReviewListItemResponse::from);
+            .map(item -> PlaceReviewListItemResponse.from(item, currentMemberId));
 
     return PlaceReviewPageResponse.from(summary, reviews);
   }

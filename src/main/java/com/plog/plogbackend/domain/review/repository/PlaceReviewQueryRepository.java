@@ -75,6 +75,7 @@ public class PlaceReviewQueryRepository {
             Projections.constructor(
                 PlaceReviewBaseItem.class,
                 placeReview.id,
+                member.id,
                 member.nickname,
                 member.profileImage,
                 placeReview.rating,
@@ -215,6 +216,7 @@ public class PlaceReviewQueryRepository {
       List<String> imageUrls) {
     return new PlaceReviewListItem(
         item.reviewId(),
+        item.authorId(),
         item.nickname(),
         item.profileImage(),
         item.rating(),

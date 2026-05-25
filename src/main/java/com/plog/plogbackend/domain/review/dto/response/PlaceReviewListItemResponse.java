@@ -5,22 +5,25 @@ import com.plog.plogbackend.domain.review.repository.dto.PlaceReviewListItem;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public record PlaceReviewListItemResponse(
     Long reviewId,
     String nickname,
     String profileImageUrl,
+    boolean isAuthor,
     Integer rating,
     LocalDateTime createdAt,
     List<PlaceReviewEnvironmentItemResponse> environments,
     String content,
     List<String> imageUrls) {
 
-  public static PlaceReviewListItemResponse from(PlaceReviewListItem item) {
+  public static PlaceReviewListItemResponse from(PlaceReviewListItem item, Long currentMemberId) {
     return new PlaceReviewListItemResponse(
         item.reviewId(),
         item.nickname(),
         item.profileImageUrl(),
+        Objects.equals(item.authorId(), currentMemberId),
         item.rating(),
         item.createdAt(),
         toEnvironmentResponses(item),

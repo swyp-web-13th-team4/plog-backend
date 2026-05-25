@@ -56,6 +56,7 @@ class PlaceReviewPageServiceTest {
     PlaceReviewListItem item =
         new PlaceReviewListItem(
             10L,
+            memberId,
             "남나밍",
             "https://profile/namnaming.jpg",
             5,
@@ -78,6 +79,7 @@ class PlaceReviewPageServiceTest {
     assertThat(response.reviews().content().get(0).nickname()).isEqualTo("남나밍");
     assertThat(response.reviews().content().get(0).profileImageUrl())
         .isEqualTo("https://profile/namnaming.jpg");
+    assertThat(response.reviews().content().get(0).isAuthor()).isTrue();
     assertThat(response.reviews().content().get(0).environments()).hasSize(4);
     assertThat(response.reviews().content().get(0).imageUrls())
         .containsExactly("https://storage/review.jpg");
