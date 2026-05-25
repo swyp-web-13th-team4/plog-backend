@@ -11,10 +11,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "장소 리뷰", description = "장소 리뷰 관련 API")
 @RestController
@@ -31,10 +28,11 @@ public class PlaceReviewSummaryController {
   public ResponseEntity<ApiResponse<PlaceReviewPageResponse>> getRecordReviews(
       @AuthenticationPrincipal UUID memberKey,
       @PathVariable Long placeId,
-      @CursorDefault Cursorable<String> cursorable) {
+      @CursorDefault Cursorable<String> cursorable,
+      @RequestParam(defaultValue = "false") boolean imageOnly) {
     return ResponseEntity.ok(
         ApiResponse.success(
-            placeReviewPageService.getRecordReviewPage(memberKey, placeId, cursorable)));
+            placeReviewPageService.getRecordReviewPage(memberKey, placeId, cursorable, imageOnly)));
   }
 
   @GetMapping("/bookmark/{placeId}")
@@ -44,9 +42,11 @@ public class PlaceReviewSummaryController {
   public ResponseEntity<ApiResponse<PlaceReviewPageResponse>> getBookmarkReviews(
       @AuthenticationPrincipal UUID memberKey,
       @PathVariable Long placeId,
-      @CursorDefault Cursorable<String> cursorable) {
+      @CursorDefault Cursorable<String> cursorable,
+      @RequestParam(defaultValue = "false") boolean imageOnly) {
     return ResponseEntity.ok(
         ApiResponse.success(
-            placeReviewPageService.getBookmarkReviewPage(memberKey, placeId, cursorable)));
+            placeReviewPageService.getBookmarkReviewPage(
+                memberKey, placeId, cursorable, imageOnly)));
   }
 }

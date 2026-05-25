@@ -28,27 +28,28 @@ public class PlaceReviewPageService {
   private final PlaceReviewQueryRepository placeReviewQueryRepository;
 
   public PlaceReviewPageResponse getRecordReviewPage(
-      UUID memberKey, Long placeId, Cursorable<String> cursorable) {
+      UUID memberKey, Long placeId, Cursorable<String> cursorable, boolean imageOnly) {
     Long memberId = getMemberId(memberKey);
     validateRecordedPlace(memberId, placeId);
 
-    return getReviewPage(placeId, cursorable);
+    return getReviewPage(placeId, cursorable, imageOnly);
   }
 
   public PlaceReviewPageResponse getBookmarkReviewPage(
-      UUID memberKey, Long placeId, Cursorable<String> cursorable) {
+      UUID memberKey, Long placeId, Cursorable<String> cursorable, boolean imageOnly) {
     Long memberId = getMemberId(memberKey);
     validateBookmarkedPlace(memberId, placeId);
 
-    return getReviewPage(placeId, cursorable);
+    return getReviewPage(placeId, cursorable, imageOnly);
   }
 
-  public PlaceReviewPageResponse getReviewPage(Long placeId, Cursorable<String> cursorable) {
+  public PlaceReviewPageResponse getReviewPage(
+      Long placeId, Cursorable<String> cursorable, boolean imageOnly) {
     PlaceReviewSummary summary = placeReviewStatisticsService.getSummary(placeId);
 
     Slice<PlaceReviewListItemResponse> reviews =
         placeReviewQueryRepository
-            .findReviewPageByPlaceId(placeId, cursorable)
+            .findReviewPageByPlaceId(placeId, cursorable, imageOnly)
             .map(PlaceReviewListItemResponse::from);
 
     return PlaceReviewPageResponse.from(summary, reviews);

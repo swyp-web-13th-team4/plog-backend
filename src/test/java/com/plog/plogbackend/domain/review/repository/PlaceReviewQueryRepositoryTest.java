@@ -66,7 +66,7 @@ class PlaceReviewQueryRepositoryTest {
     flushAndClear();
 
     Slice<PlaceReviewListItem> firstPage =
-        placeReviewQueryRepository.findReviewPageByPlaceId(place.getId(), cursor(null, 2));
+        placeReviewQueryRepository.findReviewPageByPlaceId(place.getId(), cursor(null, 2), false);
 
     assertThat(firstPage.isHasNext()).isTrue();
     assertThat(firstPage.getContent())
@@ -83,12 +83,40 @@ class PlaceReviewQueryRepositoryTest {
 
     String nextCursor = second.createdAt() + "|" + second.reviewId();
     Slice<PlaceReviewListItem> secondPage =
-        placeReviewQueryRepository.findReviewPageByPlaceId(place.getId(), cursor(nextCursor, 2));
+        placeReviewQueryRepository.findReviewPageByPlaceId(
+            place.getId(), cursor(nextCursor, 2), false);
 
     assertThat(secondPage.isHasNext()).isFalse();
     assertThat(secondPage.getContent())
         .extracting(PlaceReviewListItem::reviewId)
         .containsExactly(firstReview.getId());
+  }
+
+  @Test
+  @DisplayName("사진 리뷰만 조회하면 이미지가 있는 리뷰만 반환한다")
+  void findReviewPageByPlaceId_whenImageOnly_returnsOnlyReviewsWithImages() {
+    Place place = placeRepository.save(Place.of("콤파일", "서울 마포구 잔다리로 73", 37.0, 127.0));
+
+    PlaceReview firstReview =
+        saveReview(place, "첫번째", 3, "첫번째 리뷰", List.of("https://storage/first.jpg"));
+    saveReview(place, "사진없음", 4, "사진 없는 리뷰", List.of());
+    PlaceReview thirdReview =
+        saveReview(
+            place,
+            "세번째",
+            5,
+            "세번째 리뷰",
+            List.of("https://storage/third-1.jpg", "https://storage/third-2.jpg"));
+    flushAndClear();
+
+    Slice<PlaceReviewListItem> slice =
+        placeReviewQueryRepository.findReviewPageByPlaceId(place.getId(), cursor(null, 10), true);
+
+    assertThat(slice.isHasNext()).isFalse();
+    assertThat(slice.getContent())
+        .extracting(PlaceReviewListItem::reviewId)
+        .containsExactly(thirdReview.getId(), firstReview.getId());
+    assertThat(slice.getContent()).allSatisfy(item -> assertThat(item.imageUrls()).isNotEmpty());
   }
 
   private PlaceReview saveReview(

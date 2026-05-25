@@ -30,11 +30,12 @@ class PlaceReviewSummaryControllerTest {
     UUID memberKey = UUID.randomUUID();
     Long placeId = 1L;
     Cursorable<String> cursorable = new Cursorable<>(null, 10);
-    given(placeReviewPageService.getRecordReviewPage(memberKey, placeId, cursorable))
+    boolean imageOnly = true;
+    given(placeReviewPageService.getRecordReviewPage(memberKey, placeId, cursorable, imageOnly))
         .willReturn(PlaceReviewPageResponse.from(new PlaceReviewSummary(15L, 4.27, List.of())));
 
     ResponseEntity<ApiResponse<PlaceReviewPageResponse>> response =
-        placeReviewSummaryController.getRecordReviews(memberKey, placeId, cursorable);
+        placeReviewSummaryController.getRecordReviews(memberKey, placeId, cursorable, imageOnly);
 
     assertThat(response.getBody().getData().summary().reviewCount()).isEqualTo(15L);
     assertThat(response.getBody().getData().reviews().content()).isEmpty();
@@ -48,11 +49,12 @@ class PlaceReviewSummaryControllerTest {
     UUID memberKey = UUID.randomUUID();
     Long placeId = 1L;
     Cursorable<String> cursorable = new Cursorable<>(null, 10);
-    given(placeReviewPageService.getBookmarkReviewPage(memberKey, placeId, cursorable))
+    boolean imageOnly = true;
+    given(placeReviewPageService.getBookmarkReviewPage(memberKey, placeId, cursorable, imageOnly))
         .willReturn(PlaceReviewPageResponse.from(new PlaceReviewSummary(7L, 3.5, List.of())));
 
     ResponseEntity<ApiResponse<PlaceReviewPageResponse>> response =
-        placeReviewSummaryController.getBookmarkReviews(memberKey, placeId, cursorable);
+        placeReviewSummaryController.getBookmarkReviews(memberKey, placeId, cursorable, imageOnly);
 
     assertThat(response.getBody().getData().summary().reviewCount()).isEqualTo(7L);
     assertThat(response.getBody().getData().reviews().content()).isEmpty();

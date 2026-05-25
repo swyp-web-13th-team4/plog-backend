@@ -15,6 +15,7 @@ import com.plog.plogbackend.global.support.paging.Slice;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,8 +33,8 @@ public class PlaceReviewQueryRepository {
   private final JPAQueryFactory queryFactory;
 
   public Slice<PlaceReviewListItem> findReviewPageByPlaceId(
-      Long placeId, Cursorable<String> cursorable) {
-    Slice<PlaceReviewBaseItem> baseSlice = findBaseReviewSlice(placeId, cursorable);
+      Long placeId, Cursorable<String> cursorable, boolean imageOnly) {
+    Slice<PlaceReviewBaseItem> baseSlice = findBaseReviewSlice(placeId, cursorable, imageOnly);
     List<Long> reviewIds = extractReviewIds(baseSlice);
 
     Map<Long, Map<ReviewEnvironmentName, Integer>> environmentMap = fetchEnvironmentMap(reviewIds);
@@ -48,14 +49,14 @@ public class PlaceReviewQueryRepository {
   }
 
   private Slice<PlaceReviewBaseItem> findBaseReviewSlice(
-      Long placeId, Cursorable<String> cursorable) {
-    List<PlaceReviewBaseItem> baseItems = fetchBaseReviewItems(placeId, cursorable);
+      Long placeId, Cursorable<String> cursorable, boolean imageOnly) {
+    List<PlaceReviewBaseItem> baseItems = fetchBaseReviewItems(placeId, cursorable, imageOnly);
 
     return Slice.of(baseItems, cursorable, item -> item.createdAt() + "|" + item.reviewId());
   }
 
   private List<PlaceReviewBaseItem> fetchBaseReviewItems(
-      Long placeId, Cursorable<String> cursorable) {
+      Long placeId, Cursorable<String> cursorable, boolean imageOnly) {
     return queryFactory
         .select(
             Projections.constructor(
@@ -71,7 +72,8 @@ public class PlaceReviewQueryRepository {
         .where(
             post.place.id.eq(placeId),
             placeReview.status.eq(EntityStatus.ACTIVE),
-            reviewCursorCondition(cursorable.getCursor()))
+            reviewCursorCondition(cursorable.getCursor()),
+            imageOnlyCondition(imageOnly))
         .orderBy(placeReview.createdAt.desc(), placeReview.id.desc())
         .limit(cursorable.getLimit() + 1)
         .fetch();
@@ -163,5 +165,16 @@ public class PlaceReviewQueryRepository {
         environments,
         item.content(),
         imageUrls);
+  }
+
+  private BooleanExpression imageOnlyCondition(boolean imageOnly) {
+    if (!imageOnly) {
+      return null;
+    }
+
+    return JPAExpressions.selectOne()
+        .from(placeReviewImage)
+        .where(placeReviewImage.placeReview.id.eq(placeReview.id))
+        .exists();
   }
 }

@@ -64,11 +64,11 @@ class PlaceReviewPageServiceTest {
     given(member.getId()).willReturn(memberId);
     given(postRepository.existsByMemberIdAndPlaceId(memberId, placeId)).willReturn(true);
     given(placeReviewStatisticsService.getSummary(placeId)).willReturn(summary);
-    given(placeReviewQueryRepository.findReviewPageByPlaceId(placeId, cursorable))
+    given(placeReviewQueryRepository.findReviewPageByPlaceId(placeId, cursorable, true))
         .willReturn(Slice.of(new ArrayList<>(List.of(item)), cursorable, review -> "10"));
 
     PlaceReviewPageResponse response =
-        placeReviewPageService.getRecordReviewPage(memberKey, placeId, cursorable);
+        placeReviewPageService.getRecordReviewPage(memberKey, placeId, cursorable, true);
 
     assertThat(response.summary().reviewCount()).isEqualTo(2L);
     assertThat(response.reviews().content()).hasSize(1);
@@ -91,7 +91,7 @@ class PlaceReviewPageServiceTest {
     given(postRepository.existsByMemberIdAndPlaceId(memberId, placeId)).willReturn(false);
 
     assertThatThrownBy(
-            () -> placeReviewPageService.getRecordReviewPage(memberKey, placeId, cursorable))
+            () -> placeReviewPageService.getRecordReviewPage(memberKey, placeId, cursorable, false))
         .isInstanceOf(AppException.class)
         .extracting("errorType")
         .isEqualTo(ErrorType.PLACE_NOT_FOUND);
@@ -106,7 +106,7 @@ class PlaceReviewPageServiceTest {
     given(memberRepository.findByMemberKey(memberKey)).willReturn(Optional.empty());
 
     assertThatThrownBy(
-            () -> placeReviewPageService.getRecordReviewPage(memberKey, placeId, cursorable))
+            () -> placeReviewPageService.getRecordReviewPage(memberKey, placeId, cursorable, false))
         .isInstanceOf(AppException.class)
         .extracting("errorType")
         .isEqualTo(ErrorType.MEMBER_NOT_FOUND);
@@ -124,15 +124,15 @@ class PlaceReviewPageServiceTest {
     given(member.getId()).willReturn(memberId);
     given(bookMarkRepository.existsByMemberIdAndPlaceId(memberId, placeId)).willReturn(true);
     given(placeReviewStatisticsService.getSummary(placeId)).willReturn(summary);
-    given(placeReviewQueryRepository.findReviewPageByPlaceId(placeId, cursorable))
+    given(placeReviewQueryRepository.findReviewPageByPlaceId(placeId, cursorable, true))
         .willReturn(Slice.of(new ArrayList<>(), cursorable, review -> "unused"));
 
     PlaceReviewPageResponse response =
-        placeReviewPageService.getBookmarkReviewPage(memberKey, placeId, cursorable);
+        placeReviewPageService.getBookmarkReviewPage(memberKey, placeId, cursorable, true);
 
     assertThat(response.reviews().content()).isEmpty();
     assertThat(response.reviews().hasNext()).isFalse();
-    verify(placeReviewQueryRepository).findReviewPageByPlaceId(placeId, cursorable);
+    verify(placeReviewQueryRepository).findReviewPageByPlaceId(placeId, cursorable, true);
   }
 
   @Test
@@ -147,7 +147,8 @@ class PlaceReviewPageServiceTest {
     given(bookMarkRepository.existsByMemberIdAndPlaceId(memberId, placeId)).willReturn(false);
 
     assertThatThrownBy(
-            () -> placeReviewPageService.getBookmarkReviewPage(memberKey, placeId, cursorable))
+            () ->
+                placeReviewPageService.getBookmarkReviewPage(memberKey, placeId, cursorable, false))
         .isInstanceOf(AppException.class)
         .extracting("errorType")
         .isEqualTo(ErrorType.PLACE_NOT_FOUND);
@@ -162,7 +163,8 @@ class PlaceReviewPageServiceTest {
     given(memberRepository.findByMemberKey(memberKey)).willReturn(Optional.empty());
 
     assertThatThrownBy(
-            () -> placeReviewPageService.getBookmarkReviewPage(memberKey, placeId, cursorable))
+            () ->
+                placeReviewPageService.getBookmarkReviewPage(memberKey, placeId, cursorable, false))
         .isInstanceOf(AppException.class)
         .extracting("errorType")
         .isEqualTo(ErrorType.MEMBER_NOT_FOUND);
