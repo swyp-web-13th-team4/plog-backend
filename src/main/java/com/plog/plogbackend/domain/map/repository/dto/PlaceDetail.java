@@ -1,7 +1,6 @@
 package com.plog.plogbackend.domain.map.repository.dto;
 
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
-import com.plog.plogbackend.domain.review.model.PlaceReviewSummary;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,7 +16,6 @@ public class PlaceDetail {
   private Long totalStudyTime;
   private String thumbnailUrl;
   private PlaceCategoryCode placeCategory;
-  private PlaceReviewSummary reviewSummary;
 
   public static PlaceDetail of(
       Long placeId,
@@ -29,27 +27,6 @@ public class PlaceDetail {
       String thumbnailUrl,
       PlaceCategoryCode placeCategory) {
     return new PlaceDetail(
-        placeId,
-        placeName,
-        address,
-        count,
-        avgFocus,
-        totalStudyTime,
-        thumbnailUrl,
-        placeCategory,
-        PlaceReviewSummary.empty());
-  }
-
-  public PlaceDetail withReviewSummary(PlaceReviewSummary reviewSummary) {
-    return new PlaceDetail(
-        placeId,
-        placeName,
-        address,
-        count,
-        avgFocus,
-        totalStudyTime,
-        thumbnailUrl,
-        placeCategory,
-        reviewSummary);
+        placeId, placeName, address, count, avgFocus, totalStudyTime, thumbnailUrl, placeCategory);
   }
 }

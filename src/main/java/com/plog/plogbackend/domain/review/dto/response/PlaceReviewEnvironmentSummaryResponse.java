@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.map.controller.dto.response;
+package com.plog.plogbackend.domain.review.dto.response;
 
 import com.plog.plogbackend.domain.review.model.PlaceReviewEnvironmentSummary;
 
