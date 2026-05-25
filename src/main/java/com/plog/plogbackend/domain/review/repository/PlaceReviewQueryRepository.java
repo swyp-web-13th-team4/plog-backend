@@ -76,6 +76,7 @@ public class PlaceReviewQueryRepository {
                 PlaceReviewBaseItem.class,
                 placeReview.id,
                 member.nickname,
+                member.profileImage,
                 placeReview.rating,
                 placeReview.createdAt,
                 placeReview.content))
@@ -215,6 +216,7 @@ public class PlaceReviewQueryRepository {
     return new PlaceReviewListItem(
         item.reviewId(),
         item.nickname(),
+        item.profileImage(),
         item.rating(),
         item.createdAt(),
         environments,

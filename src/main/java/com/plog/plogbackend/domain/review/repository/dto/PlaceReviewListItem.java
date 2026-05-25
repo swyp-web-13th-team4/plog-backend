@@ -8,6 +8,7 @@ import java.util.Map;
 public record PlaceReviewListItem(
     Long reviewId,
     String nickname,
+    String profileImageUrl,
     Integer rating,
     LocalDateTime createdAt,
     Map<ReviewEnvironmentName, Integer> environments,

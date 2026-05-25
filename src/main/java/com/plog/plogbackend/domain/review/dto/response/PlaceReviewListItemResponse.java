@@ -9,6 +9,7 @@ import java.util.List;
 public record PlaceReviewListItemResponse(
     Long reviewId,
     String nickname,
+    String profileImageUrl,
     Integer rating,
     LocalDateTime createdAt,
     List<PlaceReviewEnvironmentItemResponse> environments,
@@ -19,6 +20,7 @@ public record PlaceReviewListItemResponse(
     return new PlaceReviewListItemResponse(
         item.reviewId(),
         item.nickname(),
+        item.profileImageUrl(),
         item.rating(),
         item.createdAt(),
         toEnvironmentResponses(item),
