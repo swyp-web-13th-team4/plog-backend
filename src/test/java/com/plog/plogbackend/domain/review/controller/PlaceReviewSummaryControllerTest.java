@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import com.plog.plogbackend.domain.review.dto.response.PlaceReviewPageResponse;
+import com.plog.plogbackend.domain.review.enums.PlaceReviewSortType;
 import com.plog.plogbackend.domain.review.model.PlaceReviewSummary;
 import com.plog.plogbackend.domain.review.service.PlaceReviewPageService;
 import com.plog.plogbackend.global.response.ApiResponse;
@@ -31,11 +32,15 @@ class PlaceReviewSummaryControllerTest {
     Long placeId = 1L;
     Cursorable<String> cursorable = new Cursorable<>(null, 10);
     boolean imageOnly = true;
-    given(placeReviewPageService.getRecordReviewPage(memberKey, placeId, cursorable, imageOnly))
+    PlaceReviewSortType sortType = PlaceReviewSortType.LATEST;
+    given(
+            placeReviewPageService.getRecordReviewPage(
+                memberKey, placeId, cursorable, imageOnly, sortType))
         .willReturn(PlaceReviewPageResponse.from(new PlaceReviewSummary(15L, 4.27, List.of())));
 
     ResponseEntity<ApiResponse<PlaceReviewPageResponse>> response =
-        placeReviewSummaryController.getRecordReviews(memberKey, placeId, cursorable, imageOnly);
+        placeReviewSummaryController.getRecordReviews(
+            memberKey, placeId, cursorable, imageOnly, sortType);
 
     assertThat(response.getBody().getData().summary().reviewCount()).isEqualTo(15L);
     assertThat(response.getBody().getData().reviews().content()).isEmpty();
@@ -50,11 +55,15 @@ class PlaceReviewSummaryControllerTest {
     Long placeId = 1L;
     Cursorable<String> cursorable = new Cursorable<>(null, 10);
     boolean imageOnly = true;
-    given(placeReviewPageService.getBookmarkReviewPage(memberKey, placeId, cursorable, imageOnly))
+    PlaceReviewSortType sortType = PlaceReviewSortType.LATEST;
+    given(
+            placeReviewPageService.getBookmarkReviewPage(
+                memberKey, placeId, cursorable, imageOnly, sortType))
         .willReturn(PlaceReviewPageResponse.from(new PlaceReviewSummary(7L, 3.5, List.of())));
 
     ResponseEntity<ApiResponse<PlaceReviewPageResponse>> response =
-        placeReviewSummaryController.getBookmarkReviews(memberKey, placeId, cursorable, imageOnly);
+        placeReviewSummaryController.getBookmarkReviews(
+            memberKey, placeId, cursorable, imageOnly, sortType);
 
     assertThat(response.getBody().getData().summary().reviewCount()).isEqualTo(7L);
     assertThat(response.getBody().getData().reviews().content()).isEmpty();

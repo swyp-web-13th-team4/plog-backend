@@ -1,6 +1,7 @@
 package com.plog.plogbackend.domain.review.controller;
 
 import com.plog.plogbackend.domain.review.dto.response.PlaceReviewPageResponse;
+import com.plog.plogbackend.domain.review.enums.PlaceReviewSortType;
 import com.plog.plogbackend.domain.review.service.PlaceReviewPageService;
 import com.plog.plogbackend.global.response.ApiResponse;
 import com.plog.plogbackend.global.support.paging.CursorDefault;
@@ -29,10 +30,12 @@ public class PlaceReviewSummaryController {
       @AuthenticationPrincipal UUID memberKey,
       @PathVariable Long placeId,
       @CursorDefault Cursorable<String> cursorable,
-      @RequestParam(defaultValue = "false") boolean imageOnly) {
+      @RequestParam(defaultValue = "false") boolean imageOnly,
+      @RequestParam(defaultValue = "LATEST") PlaceReviewSortType sortType) {
     return ResponseEntity.ok(
         ApiResponse.success(
-            placeReviewPageService.getRecordReviewPage(memberKey, placeId, cursorable, imageOnly)));
+            placeReviewPageService.getRecordReviewPage(
+                memberKey, placeId, cursorable, imageOnly, sortType)));
   }
 
   @GetMapping("/bookmark/{placeId}")
@@ -43,10 +46,11 @@ public class PlaceReviewSummaryController {
       @AuthenticationPrincipal UUID memberKey,
       @PathVariable Long placeId,
       @CursorDefault Cursorable<String> cursorable,
-      @RequestParam(defaultValue = "false") boolean imageOnly) {
+      @RequestParam(defaultValue = "false") boolean imageOnly,
+      @RequestParam(defaultValue = "LATEST") PlaceReviewSortType sortType) {
     return ResponseEntity.ok(
         ApiResponse.success(
             placeReviewPageService.getBookmarkReviewPage(
-                memberKey, placeId, cursorable, imageOnly)));
+                memberKey, placeId, cursorable, imageOnly, sortType)));
   }
 }

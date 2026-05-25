@@ -12,6 +12,7 @@ import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.review.entity.PlaceReview;
 import com.plog.plogbackend.domain.review.entity.PlaceReviewImage;
+import com.plog.plogbackend.domain.review.enums.PlaceReviewSortType;
 import com.plog.plogbackend.domain.review.enums.ReviewEnvironmentName;
 import com.plog.plogbackend.domain.review.repository.dto.PlaceReviewListItem;
 import com.plog.plogbackend.global.support.paging.Cursorable;
@@ -66,7 +67,8 @@ class PlaceReviewQueryRepositoryTest {
     flushAndClear();
 
     Slice<PlaceReviewListItem> firstPage =
-        placeReviewQueryRepository.findReviewPageByPlaceId(place.getId(), cursor(null, 2), false);
+        placeReviewQueryRepository.findReviewPageByPlaceId(
+            place.getId(), cursor(null, 2), false, PlaceReviewSortType.LATEST);
 
     assertThat(firstPage.isHasNext()).isTrue();
     assertThat(firstPage.getContent())
@@ -84,7 +86,7 @@ class PlaceReviewQueryRepositoryTest {
     String nextCursor = second.createdAt() + "|" + second.reviewId();
     Slice<PlaceReviewListItem> secondPage =
         placeReviewQueryRepository.findReviewPageByPlaceId(
-            place.getId(), cursor(nextCursor, 2), false);
+            place.getId(), cursor(nextCursor, 2), false, PlaceReviewSortType.LATEST);
 
     assertThat(secondPage.isHasNext()).isFalse();
     assertThat(secondPage.getContent())
@@ -110,13 +112,119 @@ class PlaceReviewQueryRepositoryTest {
     flushAndClear();
 
     Slice<PlaceReviewListItem> slice =
-        placeReviewQueryRepository.findReviewPageByPlaceId(place.getId(), cursor(null, 10), true);
+        placeReviewQueryRepository.findReviewPageByPlaceId(
+            place.getId(), cursor(null, 10), true, PlaceReviewSortType.LATEST);
 
     assertThat(slice.isHasNext()).isFalse();
     assertThat(slice.getContent())
         .extracting(PlaceReviewListItem::reviewId)
         .containsExactly(thirdReview.getId(), firstReview.getId());
     assertThat(slice.getContent()).allSatisfy(item -> assertThat(item.imageUrls()).isNotEmpty());
+  }
+
+  @Test
+  @DisplayName("등록순으로 조회하면 오래된 리뷰부터 반환한다")
+  void findReviewPageByPlaceId_whenOldest_returnsReviewsByCreatedAtAsc() {
+    Place place = placeRepository.save(Place.of("콤파일", "서울 마포구 잔다리로 73", 37.0, 127.0));
+    PlaceReview firstReview = saveReview(place, "첫번째", 3, "첫번째 리뷰", List.of());
+    PlaceReview secondReview = saveReview(place, "두번째", 4, "두번째 리뷰", List.of());
+    PlaceReview thirdReview = saveReview(place, "세번째", 5, "세번째 리뷰", List.of());
+    flushAndClear();
+
+    Slice<PlaceReviewListItem> slice =
+        placeReviewQueryRepository.findReviewPageByPlaceId(
+            place.getId(), cursor(null, 10), false, PlaceReviewSortType.OLDEST);
+
+    assertThat(slice.getContent())
+        .extracting(PlaceReviewListItem::reviewId)
+        .containsExactly(firstReview.getId(), secondReview.getId(), thirdReview.getId());
+  }
+
+  @Test
+  @DisplayName("별점 높은 순으로 조회하면 별점이 높은 리뷰부터 반환한다")
+  void findReviewPageByPlaceId_whenRatingHigh_returnsReviewsByRatingDesc() {
+    Place place = placeRepository.save(Place.of("콤파일", "서울 마포구 잔다리로 73", 37.0, 127.0));
+    PlaceReview lowReview = saveReview(place, "낮은별점", 2, "낮은 별점 리뷰", List.of());
+    PlaceReview highReview = saveReview(place, "높은별점", 5, "높은 별점 리뷰", List.of());
+    PlaceReview middleReview = saveReview(place, "중간별점", 4, "중간 별점 리뷰", List.of());
+    flushAndClear();
+
+    Slice<PlaceReviewListItem> slice =
+        placeReviewQueryRepository.findReviewPageByPlaceId(
+            place.getId(), cursor(null, 10), false, PlaceReviewSortType.RATING_HIGH);
+
+    assertThat(slice.getContent())
+        .extracting(PlaceReviewListItem::reviewId)
+        .containsExactly(highReview.getId(), middleReview.getId(), lowReview.getId());
+  }
+
+  @Test
+  @DisplayName("별점 낮은 순으로 조회하면 별점이 낮은 리뷰부터 반환한다")
+  void findReviewPageByPlaceId_whenRatingLow_returnsReviewsByRatingAsc() {
+    Place place = placeRepository.save(Place.of("콤파일", "서울 마포구 잔다리로 73", 37.0, 127.0));
+    PlaceReview lowReview = saveReview(place, "낮은별점", 2, "낮은 별점 리뷰", List.of());
+    PlaceReview highReview = saveReview(place, "높은별점", 5, "높은 별점 리뷰", List.of());
+    PlaceReview middleReview = saveReview(place, "중간별점", 4, "중간 별점 리뷰", List.of());
+    flushAndClear();
+
+    Slice<PlaceReviewListItem> slice =
+        placeReviewQueryRepository.findReviewPageByPlaceId(
+            place.getId(), cursor(null, 10), false, PlaceReviewSortType.RATING_LOW);
+
+    assertThat(slice.getContent())
+        .extracting(PlaceReviewListItem::reviewId)
+        .containsExactly(lowReview.getId(), middleReview.getId(), highReview.getId());
+  }
+
+  @Test
+  @DisplayName("사진 리뷰만 보기를 별점 높은 순과 함께 적용한다")
+  void findReviewPageByPlaceId_whenImageOnlyAndRatingHigh_returnsImageReviewsByRatingDesc() {
+    Place place = placeRepository.save(Place.of("콤파일", "서울 마포구 잔다리로 73", 37.0, 127.0));
+    saveReview(place, "사진없는높은별점", 5, "사진 없는 높은 별점 리뷰", List.of());
+    PlaceReview imageMiddleReview =
+        saveReview(place, "사진있는중간별점", 4, "사진 있는 중간 별점 리뷰", List.of("middle.jpg"));
+    PlaceReview imageLowReview =
+        saveReview(place, "사진있는낮은별점", 2, "사진 있는 낮은 별점 리뷰", List.of("low.jpg"));
+    flushAndClear();
+
+    Slice<PlaceReviewListItem> slice =
+        placeReviewQueryRepository.findReviewPageByPlaceId(
+            place.getId(), cursor(null, 10), true, PlaceReviewSortType.RATING_HIGH);
+
+    assertThat(slice.getContent())
+        .extracting(PlaceReviewListItem::reviewId)
+        .containsExactly(imageMiddleReview.getId(), imageLowReview.getId());
+    assertThat(slice.getContent()).allSatisfy(item -> assertThat(item.imageUrls()).isNotEmpty());
+  }
+
+  @Test
+  @DisplayName("별점 높은 순 커서 페이징이 동작한다")
+  void findReviewPageByPlaceId_whenRatingHigh_usesRatingCursor() {
+    Place place = placeRepository.save(Place.of("콤파일", "서울 마포구 잔다리로 73", 37.0, 127.0));
+    PlaceReview lowReview = saveReview(place, "낮은별점", 2, "낮은 별점 리뷰", List.of());
+    PlaceReview middleReview = saveReview(place, "중간별점", 4, "중간 별점 리뷰", List.of());
+    PlaceReview highReview = saveReview(place, "높은별점", 5, "높은 별점 리뷰", List.of());
+    flushAndClear();
+
+    Slice<PlaceReviewListItem> firstPage =
+        placeReviewQueryRepository.findReviewPageByPlaceId(
+            place.getId(), cursor(null, 2), false, PlaceReviewSortType.RATING_HIGH);
+
+    assertThat(firstPage.isHasNext()).isTrue();
+    assertThat(firstPage.getContent())
+        .extracting(PlaceReviewListItem::reviewId)
+        .containsExactly(highReview.getId(), middleReview.getId());
+
+    PlaceReviewListItem lastItem = firstPage.getContent().get(1);
+    String nextCursor = lastItem.rating() + "|" + lastItem.reviewId();
+    Slice<PlaceReviewListItem> secondPage =
+        placeReviewQueryRepository.findReviewPageByPlaceId(
+            place.getId(), cursor(nextCursor, 2), false, PlaceReviewSortType.RATING_HIGH);
+
+    assertThat(secondPage.isHasNext()).isFalse();
+    assertThat(secondPage.getContent())
+        .extracting(PlaceReviewListItem::reviewId)
+        .containsExactly(lowReview.getId());
   }
 
   private PlaceReview saveReview(

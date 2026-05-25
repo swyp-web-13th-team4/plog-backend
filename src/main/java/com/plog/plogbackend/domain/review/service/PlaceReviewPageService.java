@@ -5,6 +5,7 @@ import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.review.dto.response.PlaceReviewListItemResponse;
 import com.plog.plogbackend.domain.review.dto.response.PlaceReviewPageResponse;
+import com.plog.plogbackend.domain.review.enums.PlaceReviewSortType;
 import com.plog.plogbackend.domain.review.model.PlaceReviewSummary;
 import com.plog.plogbackend.domain.review.repository.PlaceReviewQueryRepository;
 import com.plog.plogbackend.global.error.AppException;
@@ -28,28 +29,39 @@ public class PlaceReviewPageService {
   private final PlaceReviewQueryRepository placeReviewQueryRepository;
 
   public PlaceReviewPageResponse getRecordReviewPage(
-      UUID memberKey, Long placeId, Cursorable<String> cursorable, boolean imageOnly) {
+      UUID memberKey,
+      Long placeId,
+      Cursorable<String> cursorable,
+      boolean imageOnly,
+      PlaceReviewSortType sortType) {
     Long memberId = getMemberId(memberKey);
     validateRecordedPlace(memberId, placeId);
 
-    return getReviewPage(placeId, cursorable, imageOnly);
+    return getReviewPage(placeId, cursorable, imageOnly, sortType);
   }
 
   public PlaceReviewPageResponse getBookmarkReviewPage(
-      UUID memberKey, Long placeId, Cursorable<String> cursorable, boolean imageOnly) {
+      UUID memberKey,
+      Long placeId,
+      Cursorable<String> cursorable,
+      boolean imageOnly,
+      PlaceReviewSortType sortType) {
     Long memberId = getMemberId(memberKey);
     validateBookmarkedPlace(memberId, placeId);
 
-    return getReviewPage(placeId, cursorable, imageOnly);
+    return getReviewPage(placeId, cursorable, imageOnly, sortType);
   }
 
   public PlaceReviewPageResponse getReviewPage(
-      Long placeId, Cursorable<String> cursorable, boolean imageOnly) {
+      Long placeId,
+      Cursorable<String> cursorable,
+      boolean imageOnly,
+      PlaceReviewSortType sortType) {
     PlaceReviewSummary summary = placeReviewStatisticsService.getSummary(placeId);
 
     Slice<PlaceReviewListItemResponse> reviews =
         placeReviewQueryRepository
-            .findReviewPageByPlaceId(placeId, cursorable, imageOnly)
+            .findReviewPageByPlaceId(placeId, cursorable, imageOnly, sortType)
             .map(PlaceReviewListItemResponse::from);
 
     return PlaceReviewPageResponse.from(summary, reviews);

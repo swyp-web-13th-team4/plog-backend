@@ -6,6 +6,7 @@ import static com.plog.plogbackend.domain.review.entity.QPlaceReview.placeReview
 import static com.plog.plogbackend.domain.review.entity.QPlaceReviewEnvironment.placeReviewEnvironment;
 import static com.plog.plogbackend.domain.review.entity.QPlaceReviewImage.placeReviewImage;
 
+import com.plog.plogbackend.domain.review.enums.PlaceReviewSortType;
 import com.plog.plogbackend.domain.review.enums.ReviewEnvironmentName;
 import com.plog.plogbackend.domain.review.repository.dto.PlaceReviewBaseItem;
 import com.plog.plogbackend.domain.review.repository.dto.PlaceReviewListItem;
@@ -13,6 +14,7 @@ import com.plog.plogbackend.global.common.Enum.EntityStatus;
 import com.plog.plogbackend.global.support.paging.Cursorable;
 import com.plog.plogbackend.global.support.paging.Slice;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
@@ -33,8 +35,12 @@ public class PlaceReviewQueryRepository {
   private final JPAQueryFactory queryFactory;
 
   public Slice<PlaceReviewListItem> findReviewPageByPlaceId(
-      Long placeId, Cursorable<String> cursorable, boolean imageOnly) {
-    Slice<PlaceReviewBaseItem> baseSlice = findBaseReviewSlice(placeId, cursorable, imageOnly);
+      Long placeId,
+      Cursorable<String> cursorable,
+      boolean imageOnly,
+      PlaceReviewSortType sortType) {
+    Slice<PlaceReviewBaseItem> baseSlice =
+        findBaseReviewSlice(placeId, cursorable, imageOnly, sortType);
     List<Long> reviewIds = extractReviewIds(baseSlice);
 
     Map<Long, Map<ReviewEnvironmentName, Integer>> environmentMap = fetchEnvironmentMap(reviewIds);
@@ -49,14 +55,21 @@ public class PlaceReviewQueryRepository {
   }
 
   private Slice<PlaceReviewBaseItem> findBaseReviewSlice(
-      Long placeId, Cursorable<String> cursorable, boolean imageOnly) {
-    List<PlaceReviewBaseItem> baseItems = fetchBaseReviewItems(placeId, cursorable, imageOnly);
+      Long placeId,
+      Cursorable<String> cursorable,
+      boolean imageOnly,
+      PlaceReviewSortType sortType) {
+    List<PlaceReviewBaseItem> baseItems =
+        fetchBaseReviewItems(placeId, cursorable, imageOnly, sortType);
 
-    return Slice.of(baseItems, cursorable, item -> item.createdAt() + "|" + item.reviewId());
+    return Slice.of(baseItems, cursorable, item -> reviewCursor(sortType, item));
   }
 
   private List<PlaceReviewBaseItem> fetchBaseReviewItems(
-      Long placeId, Cursorable<String> cursorable, boolean imageOnly) {
+      Long placeId,
+      Cursorable<String> cursorable,
+      boolean imageOnly,
+      PlaceReviewSortType sortType) {
     return queryFactory
         .select(
             Projections.constructor(
@@ -72,18 +85,27 @@ public class PlaceReviewQueryRepository {
         .where(
             post.place.id.eq(placeId),
             placeReview.status.eq(EntityStatus.ACTIVE),
-            reviewCursorCondition(cursorable.getCursor()),
+            reviewCursorCondition(cursorable.getCursor(), sortType),
             imageOnlyCondition(imageOnly))
-        .orderBy(placeReview.createdAt.desc(), placeReview.id.desc())
+        .orderBy(reviewOrderBy(sortType))
         .limit(cursorable.getLimit() + 1)
         .fetch();
   }
 
-  private BooleanExpression reviewCursorCondition(String cursor) {
+  private BooleanExpression reviewCursorCondition(String cursor, PlaceReviewSortType sortType) {
     if (cursor == null || cursor.isBlank()) {
       return null;
     }
 
+    return switch (sortType) {
+      case LATEST -> latestCursorCondition(cursor);
+      case OLDEST -> oldestCursorCondition(cursor);
+      case RATING_HIGH -> ratingHighCursorCondition(cursor);
+      case RATING_LOW -> ratingLowCursorCondition(cursor);
+    };
+  }
+
+  private BooleanExpression latestCursorCondition(String cursor) {
     String[] parts = cursor.split("\\|");
     LocalDateTime createdAt = LocalDateTime.parse(parts[0]);
     Long reviewId = Long.parseLong(parts[1]);
@@ -92,6 +114,39 @@ public class PlaceReviewQueryRepository {
         .createdAt
         .lt(createdAt)
         .or(placeReview.createdAt.eq(createdAt).and(placeReview.id.lt(reviewId)));
+  }
+
+  private BooleanExpression oldestCursorCondition(String cursor) {
+    String[] parts = cursor.split("\\|");
+    LocalDateTime createdAt = LocalDateTime.parse(parts[0]);
+    Long reviewId = Long.parseLong(parts[1]);
+
+    return placeReview
+        .createdAt
+        .gt(createdAt)
+        .or(placeReview.createdAt.eq(createdAt).and(placeReview.id.gt(reviewId)));
+  }
+
+  private BooleanExpression ratingHighCursorCondition(String cursor) {
+    String[] parts = cursor.split("\\|");
+    Integer rating = Integer.parseInt(parts[0]);
+    Long reviewId = Long.parseLong(parts[1]);
+
+    return placeReview
+        .rating
+        .lt(rating)
+        .or(placeReview.rating.eq(rating).and(placeReview.id.lt(reviewId)));
+  }
+
+  private BooleanExpression ratingLowCursorCondition(String cursor) {
+    String[] parts = cursor.split("\\|");
+    Integer rating = Integer.parseInt(parts[0]);
+    Long reviewId = Long.parseLong(parts[1]);
+
+    return placeReview
+        .rating
+        .gt(rating)
+        .or(placeReview.rating.eq(rating).and(placeReview.id.lt(reviewId)));
   }
 
   private List<Long> extractReviewIds(Slice<PlaceReviewBaseItem> baseSlice) {
@@ -176,5 +231,22 @@ public class PlaceReviewQueryRepository {
         .from(placeReviewImage)
         .where(placeReviewImage.placeReview.id.eq(placeReview.id))
         .exists();
+  }
+
+  private OrderSpecifier<?>[] reviewOrderBy(PlaceReviewSortType sortType) {
+    return switch (sortType) {
+      case LATEST -> new OrderSpecifier<?>[] {placeReview.createdAt.desc(), placeReview.id.desc()};
+      case OLDEST -> new OrderSpecifier<?>[] {placeReview.createdAt.asc(), placeReview.id.asc()};
+      case RATING_HIGH ->
+          new OrderSpecifier<?>[] {placeReview.rating.desc(), placeReview.id.desc()};
+      case RATING_LOW -> new OrderSpecifier<?>[] {placeReview.rating.asc(), placeReview.id.desc()};
+    };
+  }
+
+  private String reviewCursor(PlaceReviewSortType sortType, PlaceReviewBaseItem item) {
+    return switch (sortType) {
+      case LATEST, OLDEST -> item.createdAt() + "|" + item.reviewId();
+      case RATING_HIGH, RATING_LOW -> item.rating() + "|" + item.reviewId();
+    };
   }
 }
