@@ -14,6 +14,5 @@ public record PlaceReviewCreateRequest(
     @Schema(description = "장소 리뷰 별점", example = "5") @NotNull @Min(1) @Max(5) Integer rating,
     @Schema(description = "장소 환경 점수") @Valid @NotNull ReviewEnvironmentRequest environments,
     /** 컨텍츠 최대 길이 300 * */
-    @Schema(description = "장소 리뷰 내용", example = "집중하기 좋은 공간이었어요.")
-        @Size(max = CONTENT_MAX_LENGTH)
+    @Schema(description = "장소 리뷰 내용", example = "집중하기 좋은 공간이었어요.") @Size(max = CONTENT_MAX_LENGTH)
         String content) {}

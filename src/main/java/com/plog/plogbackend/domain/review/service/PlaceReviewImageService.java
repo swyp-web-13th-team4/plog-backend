@@ -26,7 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class PlaceReviewImageService {
 
   private static final String PLACE_REVIEW_DIR = "place-reviews";
-  private static final int PLACE_REVIEW_IMAGE_MAX = 5;
+  private static final int PLACE_REVIEW_IMAGE_MAX = 3;
 
   private final GcsService gcsService;
   private final PlaceReviewRepository placeReviewRepository;
