@@ -107,7 +107,7 @@ class PlaceReviewPageServiceTest {
     PlaceReviewSummary summary = new PlaceReviewSummary(0L, 0.0, List.of());
     given(memberRepository.findByMemberKey(memberKey)).willReturn(Optional.of(member));
     given(member.getId()).willReturn(memberId);
-    given(bookMarkRepository.existsByMemberIdAndPostPlaceId(memberId, placeId)).willReturn(true);
+    given(bookMarkRepository.existsByMemberIdAndPlaceId(memberId, placeId)).willReturn(true);
     given(placeReviewStatisticsService.getSummary(placeId)).willReturn(summary);
     given(placeReviewQueryRepository.findReviewPageByPlaceId(placeId, cursorable))
         .willReturn(Slice.of(new ArrayList<>(), cursorable, review -> "unused"));
@@ -129,7 +129,7 @@ class PlaceReviewPageServiceTest {
     Cursorable<String> cursorable = new Cursorable<>(null, 10);
     given(memberRepository.findByMemberKey(memberKey)).willReturn(Optional.of(member));
     given(member.getId()).willReturn(memberId);
-    given(bookMarkRepository.existsByMemberIdAndPostPlaceId(memberId, placeId)).willReturn(false);
+    given(bookMarkRepository.existsByMemberIdAndPlaceId(memberId, placeId)).willReturn(false);
 
     assertThatThrownBy(
             () -> placeReviewPageService.getBookmarkReviewPage(memberKey, placeId, cursorable))
