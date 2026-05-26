@@ -3,8 +3,10 @@ package com.plog.plogbackend.domain.review.controller;
 import com.plog.plogbackend.domain.review.controller.api.PlaceReviewMapper;
 import com.plog.plogbackend.domain.review.dto.request.PlaceReviewCreateRequest;
 import com.plog.plogbackend.domain.review.dto.request.PlaceReviewUpdateRequest;
+import com.plog.plogbackend.domain.review.dto.response.PlaceReviewQueryResponse;
 import com.plog.plogbackend.domain.review.dto.response.PlaceReviewResponse;
 import com.plog.plogbackend.domain.review.service.PlaceReviewCommandService;
+import com.plog.plogbackend.domain.review.service.PlaceReviewQueryService;
 import com.plog.plogbackend.domain.review.service.dto.PlaceReviewCreateCommand;
 import com.plog.plogbackend.domain.review.service.dto.PlaceReviewDeleteCommand;
 import com.plog.plogbackend.domain.review.service.dto.PlaceReviewUpdateCommand;
@@ -29,14 +31,15 @@ import org.springframework.web.multipart.MultipartFile;
 public class PlaceReviewController {
 
   private final PlaceReviewCommandService placeReviewCommandService;
+  private final PlaceReviewQueryService placeReviewQueryService;
 
-  @Operation(summary = "장소 리뷰 생성", description = "장소 리뷰 정보와 이미지를 함께 업로드합니다. (이미지 최대 3개)")
+  @Operation(summary = "장소 리뷰 생성", description = "장소 리뷰 정보와 이미지를 함께 업로드합니다. (이미지 최대 5개)")
   @PostMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<PlaceReviewResponse>> createReview(
       @PathVariable Long postId,
       @Parameter(description = "장소 리뷰 텍스트 데이터") @RequestPart("request") @Valid
           PlaceReviewCreateRequest request,
-      @Parameter(description = "장소 리뷰 이미지 (최대 3개)") @RequestPart(value = "images", required = false)
+      @Parameter(description = "장소 리뷰 이미지 (최대 5개)") @RequestPart(value = "images", required = false)
           List<MultipartFile> images,
       @Parameter(hidden = true) @AuthenticationPrincipal UUID memberKey) {
     PlaceReviewCreateCommand command = PlaceReviewMapper.from(postId, request, memberKey);
@@ -45,17 +48,27 @@ public class PlaceReviewController {
     return ResponseEntity.ok(ApiResponse.success(response));
   }
 
+  @Operation(summary = "수정용 장소 리뷰 조회", description = "본인의 장소 리뷰 수정 폼에 표시할 데이터를 조회합니다.")
+  @GetMapping("/{reviewId}/edit")
+  public ResponseEntity<ApiResponse<PlaceReviewQueryResponse>> getEditReview(
+      @Parameter(description = "장소 리뷰 ID") @PathVariable Long reviewId,
+      @Parameter(hidden = true) @AuthenticationPrincipal UUID memberKey) {
+    PlaceReviewQueryResponse placeReview =
+        placeReviewQueryService.getPlaceReview(reviewId, memberKey);
+    return ResponseEntity.ok(ApiResponse.success(placeReview));
+  }
+
   @Operation(
       summary = "장소 리뷰 수정",
       description =
           "장소 리뷰 별점, 환경 점수, 내용과 이미지를 수정합니다. keepImageIds로 유지할 기존 이미지를 지정하고, "
-              + "images로 새 이미지를 업로드합니다. (작성 후 30일 이내, 총합 3개 이하)")
+              + "images로 새 이미지를 업로드합니다. (작성 후 30일 이내, 총합 5개 이하)")
   @PutMapping(value = "/{reviewId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<PlaceReviewResponse>> updateReview(
-      @PathVariable Long reviewId,
+      @Parameter(description = "장소 리뷰 ID") @PathVariable Long reviewId,
       @Parameter(description = "장소 리뷰 수정 데이터") @RequestPart("request") @Valid
           PlaceReviewUpdateRequest request,
-      @Parameter(description = "새로 추가된 리뷰 이미지 (옵션)")
+      @Parameter(description = "새로 추가할 리뷰 이미지 (옵션, 유지 이미지와 합산 최대 5개)")
           @RequestPart(value = "images", required = false)
           List<MultipartFile> images,
       @Parameter(hidden = true) @AuthenticationPrincipal UUID memberKey) {
@@ -68,7 +81,7 @@ public class PlaceReviewController {
   @Operation(summary = "장소 리뷰 삭제", description = "본인 장소 리뷰를 삭제 상태로 변경합니다.")
   @DeleteMapping("/{reviewId}")
   public ResponseEntity<ApiResponse<Void>> deleteReview(
-      @PathVariable Long reviewId,
+      @Parameter(description = "장소 리뷰 ID") @PathVariable Long reviewId,
       @Parameter(hidden = true) @AuthenticationPrincipal UUID memberKey) {
     PlaceReviewDeleteCommand command = PlaceReviewMapper.from(reviewId, memberKey);
     placeReviewCommandService.delete(command);

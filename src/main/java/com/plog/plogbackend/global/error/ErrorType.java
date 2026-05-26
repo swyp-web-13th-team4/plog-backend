@@ -100,12 +100,14 @@ public enum ErrorType {
       HttpStatus.FORBIDDEN, ErrorCode.E403, "본인의 검색 이력만 삭제할 수 있습니다.", LogLevel.WARN),
 
   // 장소 리뷰 관련
+  PLACE_REVIEW_NOT_FOUND(
+      HttpStatus.NOT_FOUND, ErrorCode.E404, "저장된 장소 리뷰 값과 일치하지 않습니다.", LogLevel.WARN),
   PLACE_REVIEW_ALREADY_EXISTS(
       HttpStatus.CONFLICT, ErrorCode.E409, "이미 작성된 장소 리뷰가 있습니다.", LogLevel.WARN),
   PLACE_REVIEW_EDIT_PERIOD_EXPIRED(
       HttpStatus.BAD_REQUEST, ErrorCode.E400, "장소 리뷰 수정 가능 기간이 만료되었습니다.", LogLevel.WARN),
   PLACE_REVIEW_IMAGE_LIMIT_EXCEEDED(
-      HttpStatus.BAD_REQUEST, ErrorCode.E1106, "장소 리뷰 이미지는 최대 3개까지 업로드 가능합니다.", LogLevel.WARN);
+      HttpStatus.BAD_REQUEST, ErrorCode.E1106, "장소 리뷰 이미지는 최대 5개까지 업로드 가능합니다.", LogLevel.WARN);
 
   // 여기에 추가해주시고 사용하시면 됩니다.
 
