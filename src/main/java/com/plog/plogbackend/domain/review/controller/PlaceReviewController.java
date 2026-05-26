@@ -30,13 +30,13 @@ public class PlaceReviewController {
 
   private final PlaceReviewCommandService placeReviewCommandService;
 
-  @Operation(summary = "장소 리뷰 생성", description = "장소 리뷰 정보와 이미지를 함께 업로드합니다. (이미지 최대 3개)")
+  @Operation(summary = "장소 리뷰 생성", description = "장소 리뷰 정보와 이미지를 함께 업로드합니다. (이미지 최대 5개)")
   @PostMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<PlaceReviewResponse>> createReview(
       @PathVariable Long postId,
       @Parameter(description = "장소 리뷰 텍스트 데이터") @RequestPart("request") @Valid
           PlaceReviewCreateRequest request,
-      @Parameter(description = "장소 리뷰 이미지 (최대 3개)") @RequestPart(value = "images", required = false)
+      @Parameter(description = "장소 리뷰 이미지 (최대 5개)") @RequestPart(value = "images", required = false)
           List<MultipartFile> images,
       @Parameter(hidden = true) @AuthenticationPrincipal UUID memberKey) {
     PlaceReviewCreateCommand command = PlaceReviewMapper.from(postId, request, memberKey);
