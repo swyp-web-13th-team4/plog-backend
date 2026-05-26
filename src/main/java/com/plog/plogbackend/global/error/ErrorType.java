@@ -100,6 +100,8 @@ public enum ErrorType {
       HttpStatus.FORBIDDEN, ErrorCode.E403, "본인의 검색 이력만 삭제할 수 있습니다.", LogLevel.WARN),
 
   // 장소 리뷰 관련
+  PLACE_REVIEW_NOT_FOUND(
+      HttpStatus.NOT_FOUND, ErrorCode.E404, "저장된 장소 리뷰 값과 일치하지 않습니다.", LogLevel.WARN),
   PLACE_REVIEW_ALREADY_EXISTS(
       HttpStatus.CONFLICT, ErrorCode.E409, "이미 작성된 장소 리뷰가 있습니다.", LogLevel.WARN),
   PLACE_REVIEW_EDIT_PERIOD_EXPIRED(

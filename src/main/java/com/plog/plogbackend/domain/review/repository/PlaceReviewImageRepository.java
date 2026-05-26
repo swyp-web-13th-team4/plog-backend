@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 public interface PlaceReviewImageRepository extends JpaRepository<PlaceReviewImage, Long> {
   List<PlaceReviewImage> findAllByPlaceReviewId(Long placeReviewId);
 
+  List<PlaceReviewImage> findAllByPlaceReviewIdOrderByIdAsc(Long placeReviewId);
+
   @Modifying
   @Query(
       """
