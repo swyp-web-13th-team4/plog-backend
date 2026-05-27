@@ -70,6 +70,29 @@ class PlaceReviewEnvironmentPersistenceTest {
         .isBetween(beforeCreate.plusDays(30), afterCreate.plusDays(30));
   }
 
+  @Test
+  @DisplayName("장소 리뷰 환경 점수 수정 시 기존 환경 엔티티를 중복 삽입하지 않고 갱신한다")
+  void updatePlaceReview_replacesEnvironmentEntitiesWithoutUniqueConstraintViolation() {
+    Member member =
+        memberRepository.save(Member.createNewMember("reviewer", "provider-reviewer", null, null));
+    Place place = placeRepository.save(Place.of("테스트 카페", "서울시 강남구", 37.0, 127.0));
+    Post post = postRepository.save(createPost(member, place));
+    PlaceReview review =
+        placeReviewRepository.save(
+            PlaceReview.create(post, member, 5, "집중하기 좋았어요", environments(5)));
+    em.flush();
+
+    review.update(3, "수정했어요", environments(3), LocalDateTime.now());
+    em.flush();
+    em.clear();
+
+    PlaceReview updatedReview = placeReviewRepository.findById(review.getId()).orElseThrow();
+
+    assertThat(updatedReview.getRating()).isEqualTo(3);
+    assertThat(updatedReview.getContent()).isEqualTo("수정했어요");
+    assertThat(updatedReview.getEnvironments()).containsAllEntriesOf(environments(3));
+  }
+
   private Post createPost(Member member, Place place) {
     return Post.of(
         "스터디 기록",
@@ -82,5 +105,14 @@ class PlaceReviewEnvironmentPersistenceTest {
         member,
         place,
         PlaceCategoryCode.CAFE);
+  }
+
+  private Map<ReviewEnvironmentName, Integer> environments(int score) {
+    Map<ReviewEnvironmentName, Integer> environments = new EnumMap<>(ReviewEnvironmentName.class);
+    environments.put(ReviewEnvironmentName.SPACE_SIZE, score);
+    environments.put(ReviewEnvironmentName.NOISE_LEVEL, score);
+    environments.put(ReviewEnvironmentName.CONGESTION_LEVEL, score);
+    environments.put(ReviewEnvironmentName.FOCUS_LEVEL, score);
+    return environments;
   }
 }

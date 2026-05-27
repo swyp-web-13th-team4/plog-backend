@@ -43,4 +43,8 @@ public class PlaceReviewEnvironment {
       PlaceReview placeReview, ReviewEnvironmentName name, Integer score) {
     return new PlaceReviewEnvironment(placeReview, name, score);
   }
+
+  void updateScore(Integer score) {
+    this.score = score;
+  }
 }
