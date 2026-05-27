@@ -96,8 +96,7 @@ public class PlaceReview extends BaseTimeStatusEntity {
     validateEditable(now);
     this.rating = rating;
     this.content = content;
-    this.environments.clear();
-    addEnvironments(environments);
+    replaceEnvironments(environments);
   }
 
   public void delete() {
@@ -113,8 +112,7 @@ public class PlaceReview extends BaseTimeStatusEntity {
     this.rating = rating;
     this.content = content;
     this.editableUntil = now.plusDays(EDITABLE_DAYS);
-    this.environments.clear();
-    addEnvironments(environments);
+    replaceEnvironments(environments);
   }
 
   public Map<ReviewEnvironmentName, Integer> getEnvironments() {
@@ -135,6 +133,28 @@ public class PlaceReview extends BaseTimeStatusEntity {
           if (name != null && score != null) {
             this.environments.add(PlaceReviewEnvironment.of(this, name, score));
           }
+        });
+  }
+
+  private void replaceEnvironments(Map<ReviewEnvironmentName, Integer> environments) {
+    if (environments == null || environments.isEmpty()) {
+      this.environments.clear();
+      return;
+    }
+
+    this.environments.removeIf(environment -> !environments.containsKey(environment.getName()));
+    environments.forEach(
+        (name, score) -> {
+          if (name == null || score == null) {
+            return;
+          }
+
+          this.environments.stream()
+              .filter(environment -> environment.getName() == name)
+              .findFirst()
+              .ifPresentOrElse(
+                  environment -> environment.updateScore(score),
+                  () -> this.environments.add(PlaceReviewEnvironment.of(this, name, score)));
         });
   }
 }
