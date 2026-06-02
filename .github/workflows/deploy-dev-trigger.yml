@@ -52,6 +52,20 @@ jobs:
           docker push ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPOSITORY }}:latest
           docker push ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPOSITORY }}:${GITHUB_SHA::8}
 
+      - name: Get Github action runner IP
+        id: ip
+        uses: haythem/public-ip@v1.3
+
+      - name: Add Github actions IP to Firewall
+        run: |
+          gcloud compute firewall-rules create allow-github-actions-ssh-${{ github.run_id }} \
+            --direction=INGRESS \
+            --priority=1000 \
+            --network=default \
+            --action=ALLOW \
+            --rules=tcp:22 \
+            --source-ranges=${{ steps.ip.outputs.ipv4 }}/32
+
       - name: Copy promtail-config to server
         uses: appleboy/scp-action@master
         with:
@@ -104,3 +118,8 @@ jobs:
             cd ${{ secrets.DEPLOY_DIR }}
             docker compose -f docker-compose.dev.yml --env-file .env.dev pull
             docker compose -f docker-compose.dev.yml --env-file .env.dev up -d
+
+      - name: Remove Github actions IP from Firewall
+        if: always()
+        run: |
+          gcloud compute firewall-rules delete allow-github-actions-ssh-${{ github.run_id }} --quiet
