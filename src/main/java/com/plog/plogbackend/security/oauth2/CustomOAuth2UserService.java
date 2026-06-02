@@ -14,7 +14,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
   @Override
   public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-    // 기본 설정을 통해 유저 정보를 가져옴
+    // 기본 설정을 통해 유저 정보를 가져옵니다
     OAuth2User oAuth2User = super.loadUser(userRequest);
 
     // 카카오 로그인은 "id" 필드가 고유 식별자
