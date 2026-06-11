@@ -1,14 +1,12 @@
 package com.plog.plogbackend.domain.notification.service;
 
-import com.plog.plogbackend.domain.badge.dto.BadgeResponse;
-import com.plog.plogbackend.domain.badge.entity.MemberBadge;
-import com.plog.plogbackend.domain.badge.repository.MemberBadgeRepository;
+import com.plog.plogbackend.domain.notification.event.SseConnectedEvent;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -18,11 +16,10 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequiredArgsConstructor
 public class NotificationService {
 
-  private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60; // 60분
+  private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60; // SSE 연결 타임아웃 시간 : 60분
   private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
 
-  private final MemberBadgeRepository memberBadgeRepository;
-  private final org.springframework.transaction.PlatformTransactionManager transactionManager;
+  private final ApplicationEventPublisher eventPublisher;
 
   public SseEmitter subscribe(Long memberId) {
     SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
@@ -40,9 +37,8 @@ public class NotificationService {
           emitters.remove(memberId);
         });
 
-    // 비동기 스레드에서 첫 연결 메시지 및 미전송 뱃지 일괄 전송 (트랜잭션 적용 및 연결 안정성 확보)
-    java.util.concurrent.CompletableFuture.runAsync(
-        () -> {
+    // 비동기 스레드에서 첫 연결 메시지 전송 후 구독 완료 이벤트 발행
+    java.util.concurrent.CompletableFuture.runAsync(() -> {
           try {
             // 브라우저가 완전히 연결을 확립하고 준비할 수 있도록 150ms 딜레이를 줍니다.
             Thread.sleep(150);
@@ -51,7 +47,9 @@ public class NotificationService {
             emitter.send(
                 SseEmitter.event().name("connect").data("SSE 연결 성공 [memberId: " + memberId + "]"));
 
-            flushUnnotifiedBadges(memberId);
+            // SSE 연결 완료 이벤트 발행 → 각 도메인이 미전송 알림을 재전송
+            eventPublisher.publishEvent(new SseConnectedEvent(memberId));
+
           } catch (Exception e) {
             log.error("SSE connection error for memberId: {}", memberId, e);
             emitters.remove(memberId);
@@ -59,40 +57,6 @@ public class NotificationService {
         });
 
     return emitter;
-  }
-
-  /**
-   * SSE 구독 시점에 아직 전송되지 않은 뱃지 알림을 일괄 전송합니다.
-   *
-   * <p>회원가입 직후 SSE 연결이 없어 전송 실패한 첫 로그인 뱃지 등을 처리합니다. 전송 성공한 항목은 {@code notified = true}로 마킹합니다.
-   */
-  public void flushUnnotifiedBadges(Long memberId) {
-    new org.springframework.transaction.support.TransactionTemplate(transactionManager)
-        .executeWithoutResult(
-            status -> {
-              List<MemberBadge> unnotified =
-                  memberBadgeRepository.findUnnotifiedByMemberId(memberId);
-              if (unnotified.isEmpty()) {
-                return;
-              }
-
-              log.info("미전송 뱃지 {} 건 재전송 시작 - memberId: {}", unnotified.size(), memberId);
-
-              for (MemberBadge mb : unnotified) {
-                BadgeResponse payload = BadgeResponse.from(mb.getBadge(), mb.getAcquiredAt());
-                boolean sent = notify(memberId, payload, "badge_grant");
-                if (sent) {
-                  mb.markNotified();
-                  log.info(
-                      "미전송 뱃지 재전송 성공 - memberId: {}, badgeId: {}", memberId, mb.getBadge().getId());
-                } else {
-                  log.warn(
-                      "미전송 뱃지 재전송 실패 (emitter 없음) - memberId: {}, badgeId: {}",
-                      memberId,
-                      mb.getBadge().getId());
-                }
-              }
-            });
   }
 
   /** 30초마다 하트비트 전송 연결 유지를 확인하고 클라이언트에게 연결 상태를 알림 */
