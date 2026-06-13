@@ -40,39 +40,43 @@ public class NotificationService {
     emitters.computeIfAbsent(memberId, id -> new CopyOnWriteArrayList<>()).add(emitter);
 
     // [포인트 3] onCompletion / onTimeout / onError 세 가지 종료 케이스 모두 처리
-    emitter.onCompletion(() -> {
-      log.info("SSE connection completed for memberId: {}", memberId);
-      removeEmitter(memberId, emitter);
-    });
-    emitter.onTimeout(() -> {
-      log.info("SSE connection timeout for memberId: {}", memberId);
-      removeEmitter(memberId, emitter);
-    });
+    emitter.onCompletion(
+        () -> {
+          log.info("SSE connection completed for memberId: {}", memberId);
+          removeEmitter(memberId, emitter);
+        });
+    emitter.onTimeout(
+        () -> {
+          log.info("SSE connection timeout for memberId: {}", memberId);
+          removeEmitter(memberId, emitter);
+        });
     // 기존 코드에 누락되어 있던 onError 콜백 - 비정상 종료 시 메모리 누수 방지
-    emitter.onError((e) -> {
-      log.error("SSE connection error for memberId: {}", memberId, e);
-      removeEmitter(memberId, emitter);
-    });
+    emitter.onError(
+        (e) -> {
+          log.error("SSE connection error for memberId: {}", memberId, e);
+          removeEmitter(memberId, emitter);
+        });
 
     // [포인트 4] 공용 ForkJoinPool 대신 전용 sseExecutor 사용
-    sseExecutor.execute(() -> {
-      try {
-        // 브라우저가 완전히 연결을 확립하고 준비할 수 있도록 150ms 딜레이를 줍니다.
-        Thread.sleep(150);
+    sseExecutor.execute(
+        () -> {
+          try {
+            // 브라우저가 완전히 연결을 확립하고 준비할 수 있도록 150ms 딜레이를 줍니다.
+            Thread.sleep(150);
 
-        // 연결 확립 후 첫 데이터를 보내야 503 에러나 버퍼링 충돌을 막을 수 있음
-        sendToClient(
-            emitter,
-            SseEmitter.event().name("connect").data("SSE 연결 성공 [memberId: " + memberId + "]"));
+            // 연결 확립 후 첫 데이터를 보내야 503 에러나 버퍼링 충돌을 막을 수 있음
+            sendToClient(
+                emitter,
+                SseEmitter.event().name("connect").data("SSE 연결 성공 [memberId: " + memberId + "]"));
 
-        // SSE 연결 완료 이벤트 발행 → 각 도메인이 미전송 알림을 재전송
-        eventPublisher.publishEvent(new SseConnectedEvent(memberId));
+            // SSE 연결 완료 이벤트 발행 → 각 도메인이 미전송 알림을 재전송
+            eventPublisher.publishEvent(new SseConnectedEvent(memberId));
 
-      } catch (Exception e) {
-        log.error("SSE initial message error for memberId: {}", memberId, e);
-        removeEmitter(memberId, emitter);
-      }
-    });
+          } catch (Exception e) {
+            log.error("SSE initial message error for memberId: {}", memberId, e);
+            removeEmitter(memberId, emitter);
+          }
+        });
 
     return emitter;
   }
@@ -80,9 +84,9 @@ public class NotificationService {
   /**
    * 특정 emitter를 해당 memberId 리스트에서 안전하게 제거합니다.
    *
-   * <p>ConcurrentHashMap.compute()를 사용하여 리스트 수정과 Map 키 제거를 원자적으로 처리합니다.
-   * 단순 list.isEmpty() 체크 후 remove(key)를 분리하면, 두 스레드가 동시에 마지막 emitter를
-   * 제거할 때 새 구독자의 emitter가 의도치 않게 삭제되는 race condition이 발생할 수 있습니다.
+   * <p>ConcurrentHashMap.compute()를 사용하여 리스트 수정과 Map 키 제거를 원자적으로 처리합니다. 단순 list.isEmpty() 체크 후
+   * remove(key)를 분리하면, 두 스레드가 동시에 마지막 emitter를 제거할 때 새 구독자의 emitter가 의도치 않게 삭제되는 race condition이
+   * 발생할 수 있습니다.
    */
   private void removeEmitter(Long memberId, SseEmitter emitter) {
     emitters.compute(
@@ -103,8 +107,7 @@ public class NotificationService {
           // CopyOnWriteArrayList의 iterator는 스냅샷 기반이므로 순회 중 remove가 발생해도 안전
           for (SseEmitter emitter : emitterList) {
             try {
-              sendToClient(
-                  emitter, SseEmitter.event().name("heartbeat").data("SSE 연결 유지 확인 중..."));
+              sendToClient(emitter, SseEmitter.event().name("heartbeat").data("SSE 연결 유지 확인 중..."));
             } catch (IOException e) {
               log.info("Heartbeat 전송 실패로 인한 연결 제거 - memberId: {}", memberId);
               removeEmitter(memberId, emitter);
@@ -139,9 +142,8 @@ public class NotificationService {
   }
 
   /**
-   * [포인트 2] SseEmitter.send()는 Thread-Safe하지 않으므로 emitter 인스턴스를 락 객체로 하여
-   * synchronized로 직렬화합니다. 하트비트 스케줄러와 notify()가 동시에 send()를 호출하는
-   * 경우에도 IllegalStateException / 데이터 손상을 방지합니다.
+   * [포인트 2] SseEmitter.send()는 Thread-Safe하지 않으므로 emitter 인스턴스를 락 객체로 하여 synchronized로 직렬화합니다. 하트비트
+   * 스케줄러와 notify()가 동시에 send()를 호출하는 경우에도 IllegalStateException / 데이터 손상을 방지합니다.
    */
   private void sendToClient(SseEmitter emitter, SseEmitter.SseEventBuilder event)
       throws IOException {

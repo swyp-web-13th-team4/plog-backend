@@ -16,11 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * SSE 구독 완료 이벤트를 수신하여 미전송 뱃지 알림을 재전송하는 핸들러.
  *
- * <p>{@link SseConnectedEvent}가 발행되면 해당 회원의 {@code notified = false} 뱃지 목록을 조회하여
- * SSE로 재전송하고 {@code notified = true}로 마킹합니다.
+ * <p>{@link SseConnectedEvent}가 발행되면 해당 회원의 {@code notified = false} 뱃지 목록을 조회하여 SSE로 재전송하고 {@code
+ * notified = true}로 마킹합니다.
  *
- * <p>별도의 트랜잭션({@code REQUIRES_NEW})으로 실행되므로, 재전송 중 오류가 발생해도
- * SSE 연결 흐름에는 영향을 주지 않습니다.
+ * <p>별도의 트랜잭션({@code REQUIRES_NEW})으로 실행되므로, 재전송 중 오류가 발생해도 SSE 연결 흐름에는 영향을 주지 않습니다.
  */
 @Slf4j
 @Component
@@ -33,8 +32,7 @@ public class BadgeNotificationHandler {
   /**
    * SSE 연결 완료 이벤트 수신 시, 미전송 뱃지 알림을 일괄 재전송합니다.
    *
-   * <p>회원가입 직후 SSE 연결이 없어 전송 실패한 첫 로그인 뱃지 등을 처리합니다.
-   * 전송 성공한 항목은 {@code notified = true}로 마킹합니다.
+   * <p>회원가입 직후 SSE 연결이 없어 전송 실패한 첫 로그인 뱃지 등을 처리합니다. 전송 성공한 항목은 {@code notified = true}로 마킹합니다.
    */
   @EventListener
   @Transactional(propagation = Propagation.REQUIRES_NEW)
