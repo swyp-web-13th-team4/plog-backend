@@ -13,10 +13,8 @@ public interface PostRepositoryCustom {
   // 작성한 글의 수
   Long count(Long memberId, PostSearch search);
 
-  // 피드 글 조회
-
-  List<Post> findAllByFeed( // LocalDateTime lastStudyDate,
-      Long lastPostId, int size);
+  // 피드 글 조회 (차단 유저 제외)
+  List<Post> findAllByFeed(Long lastPostId, int size, List<Long> blockedMemberIds);
 
   // 북마크
   List<Post> bookMarkPost(Long memberId);

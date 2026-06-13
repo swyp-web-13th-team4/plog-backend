@@ -3,6 +3,7 @@ package com.plog.plogbackend.domain.member.service;
 import com.plog.plogbackend.domain.badge.entity.MemberBadge;
 import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
 import com.plog.plogbackend.domain.badge.repository.MemberBadgeRepository;
+import com.plog.plogbackend.domain.block.repository.BlockRepository;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.MemberAgreement;
@@ -72,6 +73,7 @@ public class MemberService {
   private final PostImageRepository postImageRepository;
   private final PostTagRepository postTagRepository;
   private final PostRepository postRepository;
+  private final BlockRepository blockRepository;
   private final GcsService gcsService;
   private final RefreshTokenRepository refreshTokenRepository;
   private final EntityManager entityManager;
@@ -308,9 +310,10 @@ public class MemberService {
     likeRepository.deleteAllByMemberId(memberId);
     bookMarkRepository.deleteAllByMemberId(memberId);
 
-    // 4. 획득 배지·약관 동의 내역 삭제
+    // 4. 획득 배지·약관 동의 내역·차단 내역 삭제
     memberBadgeRepository.deleteAllByMemberId(memberId);
     memberAgreementRepository.deleteAllByMemberId(memberId);
+    blockRepository.deleteAllByMemberId(memberId);
 
     // 5. 작성 게시글 하위 데이터 + 게시글 DB 삭제
     List<Post> myPosts = postRepository.findAllByMemberId(memberId);

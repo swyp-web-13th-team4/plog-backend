@@ -1,5 +1,7 @@
 package com.plog.plogbackend.domain.member.controller;
 
+import com.plog.plogbackend.domain.block.controller.dto.BlockedUserResponse;
+import com.plog.plogbackend.domain.block.service.BlockService;
 import com.plog.plogbackend.domain.member.dto.response.MemberAnalyticsResponse;
 import com.plog.plogbackend.domain.member.dto.response.MemberResponse;
 import com.plog.plogbackend.domain.member.dto.response.MyPageBadgeResponse;
@@ -32,6 +34,7 @@ public class MyPageController {
 
   private final MyPageService myPageService;
   private final MemberAnalyticsService memberAnalyticsService;
+  private final BlockService blockService;
 
   /** 회원 기본 정보 조회 GET /api/members/mypage */
   @Operation(summary = "마이페이지 기본 정보 조회", description = "로그인한 회원의 기본 정보(닉네임·프로필·소개글)를 조회합니다")
@@ -122,5 +125,14 @@ public class MyPageController {
       Authentication authentication) {
     UUID memberKey = (UUID) authentication.getPrincipal();
     return ResponseEntity.ok(ApiResponse.success(memberAnalyticsService.getAnalytics(memberKey)));
+  }
+
+  /** 차단한 유저 목록 조회 GET /api/members/mypage/blocks */
+  @Operation(summary = "차단한 유저 목록 조회", description = "내가 차단한 유저 목록을 조회합니다.")
+  @GetMapping("/mypage/blocks")
+  public ResponseEntity<ApiResponse<List<BlockedUserResponse>>> getBlockedUsers(
+      Authentication authentication) {
+    UUID memberKey = (UUID) authentication.getPrincipal();
+    return ResponseEntity.ok(ApiResponse.success(blockService.getBlockedUsers(memberKey)));
   }
 }
