@@ -26,6 +26,7 @@ class MapServiceTest {
   @Mock private MemberRepository memberRepository;
   @Mock private PostRepository postRepository;
   @Mock private BookMarkRepository bookMarkRepository;
+  @Mock private com.plog.plogbackend.domain.block.repository.BlockRepository blockRepository;
   @Mock private Member member;
   @InjectMocks private MapService mapService;
 
@@ -55,9 +56,13 @@ class MapServiceTest {
     PlaceDetail detail = placeDetail(placeId);
     given(member.getId()).willReturn(memberId);
     given(memberRepository.findByMemberKey(memberKey)).willReturn(Optional.of(member));
+    given(blockRepository.findBlockedMemberIdsByBlockerId(memberId))
+        .willReturn(java.util.List.of());
     given(
             mapQueryRepository.findBookmarkPinDetailByPlaceId(
-                memberId, placeId, org.mockito.ArgumentMatchers.any()))
+                org.mockito.ArgumentMatchers.eq(memberId),
+                org.mockito.ArgumentMatchers.eq(placeId),
+                org.mockito.ArgumentMatchers.any()))
         .willReturn(Optional.of(detail));
 
     PlaceDetail result = mapService.findBookmarkPinDetail(memberKey, placeId);
