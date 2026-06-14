@@ -73,7 +73,8 @@ public class MapQueryRepository {
         .toList();
   }
 
-  public List<MapPin> findBookmarkPinsByMemberId(Long memberId, Viewport viewport) {
+  public List<MapPin> findBookmarkPinsByMemberId(
+      Long memberId, Viewport viewport, List<Long> blockedMemberIds) {
     Expression<String> thumbnail = bookmarkThumbnail(memberId);
     return queryFactory
         .select(place.id, place.latitude, place.longitude, bookMark.id.count(), thumbnail)
@@ -83,7 +84,8 @@ public class MapQueryRepository {
         .where(
             bookMark.member.id.eq(memberId),
             place.latitude.between(viewport.getSwLat(), viewport.getNeLat()),
-            place.longitude.between(viewport.getSwLng(), viewport.getNeLng()))
+            place.longitude.between(viewport.getSwLng(), viewport.getNeLng()),
+            blockFilter(blockedMemberIds))
         .groupBy(place.id)
         .fetch()
         .stream()
@@ -140,7 +142,8 @@ public class MapQueryRepository {
       Long placeId,
       SortType sortType,
       List<PlaceTag> tags,
-      Cursorable<String> cursorable) {
+      Cursorable<String> cursorable,
+      List<Long> blockedMemberIds) {
     StringExpression thumbnail = postImage.imageUrl.min();
     List<Tuple> tuples =
         queryFactory
@@ -154,7 +157,8 @@ public class MapQueryRepository {
                 bookMark.member.id.eq(memberId),
                 post.place.id.eq(placeId),
                 tagFilterCondition(tags),
-                postCursorCondition(sortType, cursorable.getCursor()))
+                postCursorCondition(sortType, cursorable.getCursor()),
+                blockFilter(blockedMemberIds))
             .groupBy(post.id)
             .orderBy(postOrderBy(sortType))
             .limit(cursorable.getLimit() + 1)
@@ -225,7 +229,10 @@ public class MapQueryRepository {
   }
 
   public Slice<PlaceSummary> findAllBookmarkPlaces(
-      Long memberId, SortType sortType, Cursorable<String> cursorable) {
+      Long memberId,
+      SortType sortType,
+      Cursorable<String> cursorable,
+      List<Long> blockedMemberIds) {
     NumberExpression<Long> countExpr = bookMark.id.count();
     DateTimeExpression<LocalDateTime> latestBookmarkedAt = bookMark.createdAt.max();
     NumberExpression<Long> studyTimeSumExpr = post.studyTime.sum().longValue();
@@ -247,7 +254,7 @@ public class MapQueryRepository {
             .from(bookMark)
             .join(bookMark.post, post)
             .join(post.place, place)
-            .where(bookMark.member.id.eq(memberId))
+            .where(bookMark.member.id.eq(memberId), blockFilter(blockedMemberIds))
             .groupBy(place.id)
             .having(bookmarkPlaceCursorHaving(sortType, cursorable.getCursor(), countExpr))
             .orderBy(orderBy(sortType, true))
@@ -413,7 +420,8 @@ public class MapQueryRepository {
             category));
   }
 
-  public Optional<PlaceDetail> findBookmarkPinDetailByPlaceId(Long memberId, Long placeId) {
+  public Optional<PlaceDetail> findBookmarkPinDetailByPlaceId(
+      Long memberId, Long placeId, List<Long> blockedMemberIds) {
     NumberExpression<Long> studyTimeSumExpr = post.studyTime.sum().longValue();
     NumberExpression<Double> avgFocusExpr = post.focus.avg();
     Expression<String> thumbnail = bookmarkThumbnail(memberId);
@@ -423,7 +431,10 @@ public class MapQueryRepository {
             .from(bookMark)
             .join(bookMark.post, post)
             .join(post.place, place)
-            .where(bookMark.member.id.eq(memberId), place.id.eq(placeId))
+            .where(
+                bookMark.member.id.eq(memberId),
+                place.id.eq(placeId),
+                blockFilter(blockedMemberIds))
             .groupBy(place.id)
             .fetchOne();
     if (t == null) return Optional.empty();
@@ -566,5 +577,12 @@ public class MapQueryRepository {
         .join(bookMark)
         .on(bookMark.post.id.eq(post.id), bookMark.member.id.eq(memberId))
         .where(post.place.id.eq(place.id));
+  }
+
+  // ── block filter ───────────────────────────────────────────────────────────
+
+  private BooleanExpression blockFilter(List<Long> blockedMemberIds) {
+    if (blockedMemberIds == null || blockedMemberIds.isEmpty()) return null;
+    return post.member.id.notIn(blockedMemberIds);
   }
 }

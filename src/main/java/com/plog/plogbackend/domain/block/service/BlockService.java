@@ -99,6 +99,22 @@ public class BlockService {
         .toList();
   }
 
+  /**
+   * 이 유저가 내가 차단한 유저인지 확인합니다.
+   *
+   * @param blockerKey 내 memberKey
+   * @param targetKey 차단 여부를 확인할 대상의 memberKey
+   * @return 차단했으면 true, 아니면 false
+   */
+  public boolean isBlockedUser(UUID blockerKey, UUID targetKey) {
+    if (blockerKey.equals(targetKey)) {
+      return false;
+    }
+    Member blocker = getMember(blockerKey);
+    Member blocked = getMember(targetKey);
+    return blockRepository.existsByBlockerIdAndBlockedId(blocker.getId(), blocked.getId());
+  }
+
   private Member getMember(UUID memberKey) {
     return memberRepository
         .findByMemberKey(memberKey)

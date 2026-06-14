@@ -12,7 +12,8 @@ public interface MemberRepositoryCustom {
 
   List<Post> findMyPostsSorted(UUID memberKey, String sort, List<PlaceTag> tags);
 
-  List<Post> findMyBookmarksSorted(UUID memberKey, String sort, List<PlaceTag> tags);
+  List<Post> findMyBookmarksSorted(
+      UUID memberKey, String sort, List<PlaceTag> tags, List<Long> blockedMemberIds);
 
   List<Badge> findMyBadges(UUID memberKey);
 
