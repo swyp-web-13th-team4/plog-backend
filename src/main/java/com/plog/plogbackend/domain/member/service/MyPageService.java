@@ -3,6 +3,7 @@ package com.plog.plogbackend.domain.member.service;
 import com.plog.plogbackend.domain.badge.entity.Badge;
 import com.plog.plogbackend.domain.badge.entity.MemberBadge;
 import com.plog.plogbackend.domain.badge.repository.BadgeRepository;
+import com.plog.plogbackend.domain.block.repository.BlockRepository;
 import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.dto.response.*;
 import com.plog.plogbackend.domain.member.dto.response.MemberResponse;
@@ -36,6 +37,7 @@ public class MyPageService {
   private final MemberService memberService;
   private final BadgeRepository badgeRepository;
   private final PostRepository postRepository;
+  private final BlockRepository blockRepository;
 
   /**
    * GET /api/members/mypage 회원 기본 정보를 반환합니다.
@@ -80,7 +82,8 @@ public class MyPageService {
       UUID memberKey, String sort, List<PlaceTag> tags) {
     Member member = getMember(memberKey);
 
-    List<Post> feeds = memberRepository.findMyBookmarksSorted(memberKey, sort, tags);
+    List<Long> blockedIds = blockRepository.findBlockedMemberIdsByBlockerId(member.getId());
+    List<Post> feeds = memberRepository.findMyBookmarksSorted(memberKey, sort, tags, blockedIds);
     List<MyPageFeedResponse> bookmarks = createMyPageFeedResponses(member, feeds);
 
     return new MyPageBookmarkResponse(bookmarks);

@@ -41,7 +41,8 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
   }
 
   @Override
-  public List<Post> findMyBookmarksSorted(UUID memberKey, String sort, List<PlaceTag> tags) {
+  public List<Post> findMyBookmarksSorted(
+      UUID memberKey, String sort, List<PlaceTag> tags, List<Long> blockedMemberIds) {
     return queryFactory
         .select(post)
         .from(bookMark)
@@ -51,7 +52,12 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         .fetchJoin()
         .leftJoin(post.place)
         .fetchJoin()
-        .where(member.memberKey.eq(memberKey), tagsEqAll(tags))
+        .where(
+            member.memberKey.eq(memberKey),
+            tagsEqAll(tags),
+            (blockedMemberIds == null || blockedMemberIds.isEmpty())
+                ? null
+                : post.member.id.notIn(blockedMemberIds))
         .orderBy(getBookmarkOrderSpecifier(sort), post.id.desc())
         .fetch();
   }

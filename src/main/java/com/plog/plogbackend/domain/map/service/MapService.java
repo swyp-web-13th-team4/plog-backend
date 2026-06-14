@@ -1,5 +1,6 @@
 package com.plog.plogbackend.domain.map.service;
 
+import com.plog.plogbackend.domain.block.repository.BlockRepository;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.map.repository.MapQueryRepository;
 import com.plog.plogbackend.domain.map.repository.dto.MapCount;
@@ -32,6 +33,7 @@ public class MapService {
   private final MemberRepository memberRepository;
   private final PostRepository postRepository;
   private final BookMarkRepository bookMarkRepository;
+  private final BlockRepository blockRepository;
 
   public MapCount getMapCount(UUID memberKey) {
     Long memberId = getMemberId(memberKey);
@@ -44,7 +46,9 @@ public class MapService {
   }
 
   public List<MapPin> findMyBookmarkPins(UUID memberKey, Viewport viewport) {
-    return mapQueryRepository.findBookmarkPinsByMemberId(getMemberId(memberKey), viewport);
+    Long memberId = getMemberId(memberKey);
+    List<Long> blockedIds = blockRepository.findBlockedMemberIdsByBlockerId(memberId);
+    return mapQueryRepository.findBookmarkPinsByMemberId(memberId, viewport, blockedIds);
   }
 
   public Slice<PlaceSummary> findAllRecordPlaces(
@@ -54,7 +58,9 @@ public class MapService {
 
   public Slice<PlaceSummary> findAllBookmarkPlaces(
       UUID memberKey, SortType sortType, Cursorable<String> cursorable) {
-    return mapQueryRepository.findAllBookmarkPlaces(getMemberId(memberKey), sortType, cursorable);
+    Long memberId = getMemberId(memberKey);
+    List<Long> blockedIds = blockRepository.findBlockedMemberIdsByBlockerId(memberId);
+    return mapQueryRepository.findAllBookmarkPlaces(memberId, sortType, cursorable, blockedIds);
   }
 
   public Slice<PlaceRecord> findPlaceRecords(
@@ -73,8 +79,10 @@ public class MapService {
       SortType sortType,
       List<PlaceTag> tags,
       Cursorable<String> cursorable) {
+    Long memberId = getMemberId(memberKey);
+    List<Long> blockedIds = blockRepository.findBlockedMemberIdsByBlockerId(memberId);
     return mapQueryRepository.findBookmarksByPlaceId(
-        getMemberId(memberKey), placeId, sortType, tags, cursorable);
+        memberId, placeId, sortType, tags, cursorable, blockedIds);
   }
 
   public List<PlaceSearchResult> searchRecordedPlaces(UUID memberKey, String keyword) {
@@ -88,8 +96,10 @@ public class MapService {
   }
 
   public PlaceDetail findBookmarkPinDetail(UUID memberKey, Long placeId) {
+    Long memberId = getMemberId(memberKey);
+    List<Long> blockedIds = blockRepository.findBlockedMemberIdsByBlockerId(memberId);
     return mapQueryRepository
-        .findBookmarkPinDetailByPlaceId(getMemberId(memberKey), placeId)
+        .findBookmarkPinDetailByPlaceId(memberId, placeId, blockedIds)
         .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
   }
 
