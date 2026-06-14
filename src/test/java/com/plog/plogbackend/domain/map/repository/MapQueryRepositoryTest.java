@@ -170,7 +170,9 @@ class MapQueryRepositoryTest {
     bookMarkRepository.save(new BookMark(member, postOut));
     flushAndClear();
 
-    List<MapPin> result = mapQueryRepository.findBookmarkPinsByMemberId(member.getId(), VIEWPORT, java.util.List.of());
+    List<MapPin> result =
+        mapQueryRepository.findBookmarkPinsByMemberId(
+            member.getId(), VIEWPORT, java.util.List.of());
 
     assertThat(result).hasSize(1);
     assertThat(result.get(0).getPlaceId()).isEqualTo(inside.getId());
@@ -188,7 +190,8 @@ class MapQueryRepositoryTest {
     bookMarkRepository.save(new BookMark(other, otherPost));
     flushAndClear();
 
-    List<MapPin> result = mapQueryRepository.findBookmarkPinsByMemberId(me.getId(), VIEWPORT, java.util.List.of());
+    List<MapPin> result =
+        mapQueryRepository.findBookmarkPinsByMemberId(me.getId(), VIEWPORT, java.util.List.of());
 
     assertThat(result).hasSize(1);
     assertThat(result.get(0).getCount()).isEqualTo(1L);
@@ -208,7 +211,8 @@ class MapQueryRepositoryTest {
     bookMarkRepository.save(new BookMark(me, p3));
     flushAndClear();
 
-    List<MapPin> result = mapQueryRepository.findBookmarkPinsByMemberId(me.getId(), VIEWPORT, java.util.List.of());
+    List<MapPin> result =
+        mapQueryRepository.findBookmarkPinsByMemberId(me.getId(), VIEWPORT, java.util.List.of());
 
     assertThat(result).hasSize(1);
     assertThat(result.get(0).getCount()).isEqualTo(3L);
@@ -228,7 +232,8 @@ class MapQueryRepositoryTest {
     bookMarkRepository.save(new BookMark(me, newPost));
     flushAndClear();
 
-    List<MapPin> result = mapQueryRepository.findBookmarkPinsByMemberId(me.getId(), VIEWPORT, java.util.List.of());
+    List<MapPin> result =
+        mapQueryRepository.findBookmarkPinsByMemberId(me.getId(), VIEWPORT, java.util.List.of());
 
     assertThat(result.get(0).getThumbnailUrl()).isEqualTo("z-new-image.jpg");
   }
@@ -246,7 +251,8 @@ class MapQueryRepositoryTest {
     bookMarkRepository.save(new BookMark(me, bookmarked));
     flushAndClear();
 
-    List<MapPin> result = mapQueryRepository.findBookmarkPinsByMemberId(me.getId(), VIEWPORT, java.util.List.of());
+    List<MapPin> result =
+        mapQueryRepository.findBookmarkPinsByMemberId(me.getId(), VIEWPORT, java.util.List.of());
 
     assertThat(result.get(0).getThumbnailUrl()).isEqualTo("bookmarked-image.jpg");
   }
@@ -770,7 +776,8 @@ class MapQueryRepositoryTest {
     flushAndClear();
 
     Slice<PlaceSummary> result =
-        mapQueryRepository.findAllBookmarkPlaces(me.getId(), SortType.LATEST, cursor(null, 10), java.util.List.of());
+        mapQueryRepository.findAllBookmarkPlaces(
+            me.getId(), SortType.LATEST, cursor(null, 10), java.util.List.of());
 
     assertThat(result.getContent()).hasSize(2);
   }
@@ -788,7 +795,8 @@ class MapQueryRepositoryTest {
     flushAndClear();
 
     Slice<PlaceSummary> result =
-        mapQueryRepository.findAllBookmarkPlaces(me.getId(), SortType.LATEST, cursor(null, 10), java.util.List.of());
+        mapQueryRepository.findAllBookmarkPlaces(
+            me.getId(), SortType.LATEST, cursor(null, 10), java.util.List.of());
 
     assertThat(result.getContent()).hasSize(1);
     assertThat(result.getContent().get(0).getCount()).isEqualTo(2L);
@@ -811,7 +819,8 @@ class MapQueryRepositoryTest {
     flushAndClear();
 
     Slice<PlaceSummary> result =
-        mapQueryRepository.findAllBookmarkPlaces(me.getId(), SortType.LATEST, cursor(null, 10), java.util.List.of());
+        mapQueryRepository.findAllBookmarkPlaces(
+            me.getId(), SortType.LATEST, cursor(null, 10), java.util.List.of());
 
     assertThat(result.getContent()).hasSize(1);
     assertThat(result.getContent().get(0).getCount()).isEqualTo(3L);
@@ -831,7 +840,8 @@ class MapQueryRepositoryTest {
     flushAndClear();
 
     Slice<PlaceSummary> result =
-        mapQueryRepository.findAllBookmarkPlaces(me.getId(), SortType.LATEST, cursor(null, 10), java.util.List.of());
+        mapQueryRepository.findAllBookmarkPlaces(
+            me.getId(), SortType.LATEST, cursor(null, 10), java.util.List.of());
 
     assertThat(result.getContent().get(0).getThumbnailUrl()).isEqualTo("bookmarked.jpg");
   }
@@ -1034,7 +1044,12 @@ class MapQueryRepositoryTest {
 
     Slice<PlaceRecord> result =
         mapQueryRepository.findBookmarksByPlaceId(
-            me.getId(), cafe.getId(), SortType.LATEST, List.of(PlaceTag.QUIET), cursor(null, 10), java.util.List.of());
+            me.getId(),
+            cafe.getId(),
+            SortType.LATEST,
+            List.of(PlaceTag.QUIET),
+            cursor(null, 10),
+            java.util.List.of());
 
     assertThat(result.getContent()).hasSize(1);
     assertThat(result.getContent().get(0).getPostId()).isEqualTo(tagged.getId());
@@ -1086,7 +1101,12 @@ class MapQueryRepositoryTest {
 
     Slice<PlaceRecord> page2 =
         mapQueryRepository.findBookmarksByPlaceId(
-            me.getId(), cafe.getId(), SortType.LATEST, null, cursor(nextCursor, 2), java.util.List.of());
+            me.getId(),
+            cafe.getId(),
+            SortType.LATEST,
+            null,
+            cursor(nextCursor, 2),
+            java.util.List.of());
 
     assertThat(page2.isHasNext()).isFalse();
     assertThat(page2.getContent()).hasSize(1);

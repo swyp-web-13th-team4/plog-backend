@@ -55,7 +55,9 @@ class MapServiceTest {
     PlaceDetail detail = placeDetail(placeId);
     given(member.getId()).willReturn(memberId);
     given(memberRepository.findByMemberKey(memberKey)).willReturn(Optional.of(member));
-    given(mapQueryRepository.findBookmarkPinDetailByPlaceId(memberId, placeId, org.mockito.ArgumentMatchers.any()))
+    given(
+            mapQueryRepository.findBookmarkPinDetailByPlaceId(
+                memberId, placeId, org.mockito.ArgumentMatchers.any()))
         .willReturn(Optional.of(detail));
 
     PlaceDetail result = mapService.findBookmarkPinDetail(memberKey, placeId);
