@@ -2,6 +2,7 @@ package com.plog.plogbackend.domain.post.service;
 
 import com.plog.plogbackend.domain.badge.entity.MemberBadge;
 import com.plog.plogbackend.domain.badge.event.BadgeGrantEvent;
+import com.plog.plogbackend.domain.block.repository.BlockRepository;
 import com.plog.plogbackend.domain.bookmark.entity.BookMark;
 import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.member.Member;
@@ -37,6 +38,7 @@ public class FeedService {
   private final MemberRepository memberRepository;
   private final BookMarkRepository bookMarkRepository;
   private final LikeRepository likeRepository;
+  private final BlockRepository blockRepository;
 
   // 이벤트 처리 객체
   private final ApplicationEventPublisher eventPublisher;
@@ -49,10 +51,15 @@ public class FeedService {
         (memberKey != null) ? memberRepository.findByMemberKey(memberKey).orElse(null) : null;
     int pageSize = 10;
 
+    // 차단 유저 ID 목록 조회 (비로그인이면 빈 리스트)
+    List<Long> blockedIds =
+        (member != null)
+            ? blockRepository.findBlockedMemberIdsByBlockerId(member.getId())
+            : Collections.emptyList();
+
     List<Post> feeds =
         new ArrayList<>(
-            postRepository.findAllByFeed( // command.createAt(),
-                command.lastPostId(), pageSize + 1));
+            postRepository.findAllByFeed(command.lastPostId(), pageSize + 1, blockedIds));
     List<Long> postIds = feeds.stream().map(Post::getId).toList();
 
     Set<Long> likedPosts;
@@ -117,6 +124,11 @@ public class FeedService {
           memberRepository
               .findByMemberKey(memberKey)
               .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
+
+      // 차단한 유저의 게시글에 접근 불가
+      if (blockRepository.existsByBlockerIdAndBlockedId(member.getId(), post.getMember().getId())) {
+        throw new AppException(ErrorType.BLOCKED_USER_ACCESS);
+      }
 
       if (member.getId().equals(post.getMember().getId())) {
 
@@ -209,6 +221,19 @@ public class FeedService {
         memberRepository
             .findByMemberKey(command.memberKey())
             .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
+
+    // 로그인한 유저가 대상 유저를 차단했으면 접근 차단
+    if (loggedInMemberKey != null) {
+      memberRepository
+          .findByMemberKey(loggedInMemberKey)
+          .ifPresent(
+              loggedInMember -> {
+                if (blockRepository.existsByBlockerIdAndBlockedId(
+                    loggedInMember.getId(), targetMember.getId())) {
+                  throw new AppException(ErrorType.BLOCKED_USER_ACCESS);
+                }
+              });
+    }
 
     // 메인 뱃지 불러오기
     MemberBadgeResponse badgeResponse = null;

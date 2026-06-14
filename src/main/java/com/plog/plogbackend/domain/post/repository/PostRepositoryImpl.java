@@ -60,8 +60,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
   }
 
   @Override
-  public List<Post> findAllByFeed( // LocalDateTime lastStudyDate,
-      Long lastPostId, int size) {
+  public List<Post> findAllByFeed(Long lastPostId, int size, List<Long> blockedMemberIds) {
     return queryFactory
         .selectFrom(post)
         .join(post.member)
@@ -70,8 +69,11 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         .fetchJoin()
         .where(
             post.scope.eq(PublicScope.PUBLIC),
-            scroll( // lastStudyDate,
-                lastPostId))
+            scroll(lastPostId),
+            // 차단 유저 제외 조건 — 목록이 비어있으면 null 반환하여 조건 무시
+            (blockedMemberIds == null || blockedMemberIds.isEmpty())
+                ? null
+                : post.member.id.notIn(blockedMemberIds))
         .limit(size)
         .orderBy(post.createdAt.desc(), post.id.desc())
         .fetch();
