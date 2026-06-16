@@ -267,7 +267,7 @@ public class MapQueryRepository {
             bookmarkPlaceCursorExtractor(sortType, countExpr, latestBookmarkedAt));
     List<Long> placeIds = tupleSlice.getContent().stream().map(t -> t.get(place.id)).toList();
     Map<Long, PlaceCategoryCode> categoryMap = fetchBookmarkCategoryMap(memberId, placeIds);
-    Map<Long, Long> userCountMap = fetchPlaceBookmarkUserCountMap(placeIds);
+    Map<Long, Long> userCountMap = fetchPlaceBookmarkUserCountMap(placeIds, blockedMemberIds);
     return tupleSlice.map(
         t -> {
           Long pid = t.get(place.id);
@@ -286,7 +286,8 @@ public class MapQueryRepository {
         });
   }
 
-  private Map<Long, Long> fetchPlaceBookmarkUserCountMap(List<Long> placeIds) {
+  private Map<Long, Long> fetchPlaceBookmarkUserCountMap(
+      List<Long> placeIds, List<Long> blockedMemberIds) {
     if (placeIds.isEmpty()) return Map.of();
     QBookMark bm2 = new QBookMark("bm2");
     QPost p2 = new QPost("p2");
@@ -294,7 +295,14 @@ public class MapQueryRepository {
         .select(p2.place.id, bm2.member.id.countDistinct())
         .from(bm2)
         .join(bm2.post, p2)
-        .where(p2.place.id.in(placeIds))
+        .where(
+            p2.place.id.in(placeIds),
+            blockedMemberIds == null || blockedMemberIds.isEmpty()
+                ? null
+                : bm2.member.id.notIn(blockedMemberIds),
+            blockedMemberIds == null || blockedMemberIds.isEmpty()
+                ? null
+                : p2.member.id.notIn(blockedMemberIds))
         .groupBy(p2.place.id)
         .fetch()
         .stream()
@@ -439,7 +447,9 @@ public class MapQueryRepository {
             .fetchOne();
     if (t == null) return Optional.empty();
     Long studyTime = t.get(studyTimeSumExpr);
-    Long userCount = fetchPlaceBookmarkUserCountMap(List.of(placeId)).getOrDefault(placeId, 0L);
+    Long userCount =
+        fetchPlaceBookmarkUserCountMap(List.of(placeId), blockedMemberIds)
+            .getOrDefault(placeId, 0L);
     PlaceCategoryCode category = fetchBookmarkCategoryMap(memberId, List.of(placeId)).get(placeId);
     return Optional.of(
         PlaceDetail.of(
