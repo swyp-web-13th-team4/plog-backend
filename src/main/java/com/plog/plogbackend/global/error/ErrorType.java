@@ -114,8 +114,10 @@ public enum ErrorType {
   NOT_BLOCKED(HttpStatus.BAD_REQUEST, ErrorCode.E1601, "차단하지 않은 유저입니다.", LogLevel.WARN),
   BLOCKED_USER_ACCESS(
       HttpStatus.FORBIDDEN, ErrorCode.E1602, "차단한 유저의 콘텐츠에는 접근할 수 없습니다.", LogLevel.WARN),
-  CANNOT_BLOCK_SELF(HttpStatus.BAD_REQUEST, ErrorCode.E1603, "자기 자신을 차단할 수 없습니다.", LogLevel.WARN);
+  CANNOT_BLOCK_SELF(HttpStatus.BAD_REQUEST, ErrorCode.E1603, "자기 자신을 차단할 수 없습니다.", LogLevel.WARN),
 
+  // 공지 관련
+  NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E1700, "해당 공지를 찾을 수 없습니다", LogLevel.WARN);
   // 여기에 추가해주시고 사용하시면 됩니다.
 
   private final HttpStatus status;
