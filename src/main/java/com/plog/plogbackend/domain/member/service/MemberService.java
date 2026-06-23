@@ -24,7 +24,7 @@ import com.plog.plogbackend.domain.post.repository.PostTagRepository;
 import com.plog.plogbackend.domain.post.repository.RecentPlaceSearchRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
-import com.plog.plogbackend.global.util.GcsService;
+import com.plog.plogbackend.global.storage.CloudStorageService;
 import com.plog.plogbackend.security.jwt.JwtProvider;
 import com.plog.plogbackend.security.jwt.RefreshTokenRepository;
 import jakarta.persistence.EntityManager;
@@ -74,7 +74,7 @@ public class MemberService {
   private final PostTagRepository postTagRepository;
   private final PostRepository postRepository;
   private final BlockRepository blockRepository;
-  private final GcsService gcsService;
+  private final CloudStorageService cloudStorageService;
   private final RefreshTokenRepository refreshTokenRepository;
   private final EntityManager entityManager;
 
@@ -350,7 +350,7 @@ public class MemberService {
     finalPostImageUrls.forEach(
         url -> {
           try {
-            gcsService.delete(url);
+            cloudStorageService.delete(url);
           } catch (Exception e) {
             log.warn("게시글 이미지 GCS 삭제 실패 - url: {}, error: {}", url, e.getMessage());
           }
@@ -358,7 +358,7 @@ public class MemberService {
 
     if (memberImageService.isCustomImage(profileImageUrl)) {
       try {
-        gcsService.delete(profileImageUrl);
+        cloudStorageService.delete(profileImageUrl);
       } catch (Exception e) {
         log.warn("프로필 이미지 GCS 삭제 실패 - url: {}, error: {}", profileImageUrl, e.getMessage());
       }

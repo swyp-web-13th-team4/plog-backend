@@ -1,4 +1,4 @@
-package com.plog.plogbackend.global.util;
+package com.plog.plogbackend.global.storage;
 
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.google.cloud.storage.BlobId;
@@ -18,14 +18,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * Google Cloud Storage 파일 업로드/삭제 공통 유틸 서비스.
+ * Google Cloud Storage 구현체.
  *
  * <p>GCS 객체 URL 형식: {@code https://storage.googleapis.com/{bucket}/{objectName}}
+ *
+ * <p>다른 클라우드 벤더로 교체할 경우, 이 클래스 대신 새 구현체를 등록하면 됩니다. 자세한 방법은 {@link CloudStorageService} 인터페이스의
+ * Javadoc을 참조하세요.
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class GcsService {
+public class GcsCloudStorageService implements CloudStorageService {
 
   private static final String GCS_BASE_URL = "https://storage.googleapis.com/";
 
@@ -34,13 +37,7 @@ public class GcsService {
   @Value("${spring.cloud.gcp.storage.bucket}")
   private String bucket;
 
-  /**
-   * 파일을 GCS에 업로드하고 공개 URL을 반환합니다.
-   *
-   * @param file 업로드할 파일
-   * @param directory GCS 내 디렉터리 경로 (예: "profiles", "posts")
-   * @return 업로드된 파일의 공개 접근 URL
-   */
+  @Override
   public String upload(MultipartFile file, String directory) {
     validateFile(file);
 
@@ -78,11 +75,7 @@ public class GcsService {
     }
   }
 
-  /**
-   * GCS에서 파일을 삭제합니다. 파일이 존재하지 않아도 예외를 발생시키지 않습니다.
-   *
-   * @param fileUrl 삭제할 파일의 GCS 공개 URL
-   */
+  @Override
   public void delete(String fileUrl) {
     if (fileUrl == null || fileUrl.isBlank()) {
       return;

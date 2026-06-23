@@ -3,8 +3,8 @@ package com.plog.plogbackend.domain.badge.event;
 import com.plog.plogbackend.domain.badge.dto.BadgeResponse;
 import com.plog.plogbackend.domain.badge.entity.MemberBadge;
 import com.plog.plogbackend.domain.badge.repository.MemberBadgeRepository;
-import com.plog.plogbackend.domain.notification.event.SseConnectedEvent;
-import com.plog.plogbackend.domain.notification.service.NotificationService;
+import com.plog.plogbackend.global.sse.SseConnectedEvent;
+import com.plog.plogbackend.global.sse.SseEmitterService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class BadgeNotificationHandler {
 
   private final MemberBadgeRepository memberBadgeRepository;
-  private final NotificationService notificationService;
+  private final SseEmitterService sseEmitterService;
 
   /**
    * SSE 연결 완료 이벤트 수신 시, 미전송 뱃지 알림을 일괄 재전송합니다.
@@ -48,7 +48,7 @@ public class BadgeNotificationHandler {
 
     for (MemberBadge mb : unnotified) {
       BadgeResponse payload = BadgeResponse.from(mb.getBadge(), mb.getAcquiredAt());
-      boolean sent = notificationService.notify(memberId, payload, "badge_grant");
+      boolean sent = sseEmitterService.notify(memberId, payload, "badge_grant");
       if (sent) {
         mb.markNotified();
         log.info("미전송 뱃지 재전송 성공 - memberId: {}, badgeId: {}", memberId, mb.getBadge().getId());

@@ -7,7 +7,7 @@ import com.plog.plogbackend.domain.post.repository.PostImageRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
-import com.plog.plogbackend.global.util.GcsService;
+import com.plog.plogbackend.global.storage.CloudStorageService;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,7 +26,7 @@ public class PostImageService {
   private static final String POST_DIR = "posts";
   private static final int POST_IMAGE_MAX = 5;
 
-  private final GcsService gcsService;
+  private final CloudStorageService cloudStorageService;
   private final PostRepository postRepository;
   private final PostImageRepository postImageRepository;
 
@@ -57,7 +57,7 @@ public class PostImageService {
         files.stream()
             .map(
                 file -> {
-                  String url = gcsService.upload(file, POST_DIR);
+                  String url = cloudStorageService.upload(file, POST_DIR);
                   postImageRepository.save(PostImage.of(url, post));
                   return new ImageUrlResponse(url);
                 })
@@ -85,7 +85,7 @@ public class PostImageService {
       throw new AppException(ErrorType.INVALID_ACCESS_PATH);
     }
 
-    gcsService.delete(postImage.getImageUrl());
+    cloudStorageService.delete(postImage.getImageUrl());
     postImageRepository.delete(postImage);
     log.debug("게시글 이미지 삭제 완료 - postId: {}, imageId: {}", postId, imageId);
   }
@@ -98,7 +98,7 @@ public class PostImageService {
   @Transactional
   public void deleteAllPostImages(Long postId) {
     List<PostImage> images = postImageRepository.findAllByPostId(postId);
-    images.forEach(img -> gcsService.delete(img.getImageUrl()));
+    images.forEach(img -> cloudStorageService.delete(img.getImageUrl()));
     postImageRepository.deleteAllByPostId(postId);
     log.debug("게시글 전체 이미지 삭제 완료 - postId: {}, 삭제 수: {}", postId, images.size());
   }
@@ -135,7 +135,7 @@ public class PostImageService {
     }
 
     return files.stream()
-        .map(file -> new ImageUrlResponse(gcsService.upload(file, "test")))
+        .map(file -> new ImageUrlResponse(cloudStorageService.upload(file, "test")))
         .toList();
   }
 
@@ -180,7 +180,7 @@ public class PostImageService {
         .removeIf(
             img -> {
               if (!keepSet.contains(img.getId())) {
-                gcsService.delete(img.getImageUrl());
+                cloudStorageService.delete(img.getImageUrl());
                 return true;
               }
               return false;
@@ -189,7 +189,7 @@ public class PostImageService {
     // 2. 신규 이미지 추가 (CascadeType.ALL 에 의해 자동 영속화)
     safeNew.forEach(
         file -> {
-          String url = gcsService.upload(file, POST_DIR);
+          String url = cloudStorageService.upload(file, POST_DIR);
           post.addImage(PostImage.of(url, post));
         });
 
