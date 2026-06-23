@@ -48,7 +48,10 @@ public enum ErrorCode {
   E1600,
   E1601,
   E1602,
-  E1603
+  E1603,
+
+  // 공지 관련(E1700~)
+  E1700
 
   /*
       E1000~E1999 member / File
