@@ -15,7 +15,7 @@ import com.plog.plogbackend.domain.review.entity.PlaceReviewImage;
 import com.plog.plogbackend.domain.review.repository.PlaceReviewImageRepository;
 import com.plog.plogbackend.domain.review.repository.PlaceReviewRepository;
 import com.plog.plogbackend.global.common.Enum.EntityStatus;
-import com.plog.plogbackend.global.util.GcsService;
+import com.plog.plogbackend.global.storage.CloudStorageService;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 @ExtendWith(MockitoExtension.class)
 class PlaceReviewImageServiceTest {
 
-  @Mock private GcsService gcsService;
+  @Mock private CloudStorageService cloudStorageService;
   @Mock private PlaceReviewRepository placeReviewRepository;
   @Mock private PlaceReviewImageRepository placeReviewImageRepository;
   @Mock private PlaceReview placeReview;
@@ -43,7 +43,7 @@ class PlaceReviewImageServiceTest {
     List<ImageUrlResponse> responses = placeReviewImageService.uploadPlaceReviewImages(1L, null);
 
     assertThat(responses).isEmpty();
-    verifyNoInteractions(gcsService, placeReviewRepository, placeReviewImageRepository);
+    verifyNoInteractions(cloudStorageService, placeReviewRepository, placeReviewImageRepository);
   }
 
   @Test
@@ -56,7 +56,7 @@ class PlaceReviewImageServiceTest {
             new MockMultipartFile("images", "b.jpg", "image/jpeg", "b".getBytes()));
     given(placeReviewRepository.findByIdAndStatus(reviewId, EntityStatus.ACTIVE))
         .willReturn(Optional.of(placeReview));
-    given(gcsService.upload(any(MultipartFile.class), eq("place-reviews")))
+    given(cloudStorageService.upload(any(MultipartFile.class), eq("place-reviews")))
         .willReturn("https://storage/review-a.jpg", "https://storage/review-b.jpg");
 
     List<ImageUrlResponse> responses =
@@ -67,7 +67,7 @@ class PlaceReviewImageServiceTest {
         .containsExactly("https://storage/review-a.jpg", "https://storage/review-b.jpg");
     verify(placeReviewImageRepository, times(2)).save(any(PlaceReviewImage.class));
     verify(placeReviewRepository).findByIdAndStatus(reviewId, EntityStatus.ACTIVE);
-    verify(gcsService, never()).delete(any());
+    verify(cloudStorageService, never()).delete(any());
   }
 
   @Test
@@ -84,7 +84,7 @@ class PlaceReviewImageServiceTest {
         .willReturn(Optional.of(placeReview));
     given(placeReviewImageRepository.findAllByPlaceReviewId(reviewId))
         .willReturn(List.of(keepImage, deleteImage));
-    given(gcsService.upload(any(MultipartFile.class), eq("place-reviews")))
+    given(cloudStorageService.upload(any(MultipartFile.class), eq("place-reviews")))
         .willReturn("https://storage/new.jpg");
 
     List<ImageUrlResponse> responses =
@@ -93,7 +93,7 @@ class PlaceReviewImageServiceTest {
     assertThat(responses)
         .extracting(ImageUrlResponse::imageUrl)
         .containsExactly("https://storage/keep.jpg", "https://storage/new.jpg");
-    verify(gcsService).delete("https://storage/delete.jpg");
+    verify(cloudStorageService).delete("https://storage/delete.jpg");
     verify(placeReviewImageRepository).delete(deleteImage);
     verify(placeReviewImageRepository).save(any(PlaceReviewImage.class));
   }
@@ -112,7 +112,7 @@ class PlaceReviewImageServiceTest {
         .willReturn(Optional.of(placeReview));
     given(placeReviewImageRepository.findAllByPlaceReviewId(reviewId))
         .willReturn(List.of(deleteImage));
-    given(gcsService.upload(any(MultipartFile.class), eq("place-reviews")))
+    given(cloudStorageService.upload(any(MultipartFile.class), eq("place-reviews")))
         .willReturn("https://storage/new-a.jpg")
         .willThrow(new RuntimeException("upload failed"));
 
@@ -120,8 +120,8 @@ class PlaceReviewImageServiceTest {
             () -> placeReviewImageService.replacePlaceReviewImages(reviewId, List.of(), newImages))
         .isInstanceOf(RuntimeException.class);
 
-    verify(gcsService, never()).delete("https://storage/delete.jpg");
-    verify(gcsService).delete("https://storage/new-a.jpg");
+    verify(cloudStorageService, never()).delete("https://storage/delete.jpg");
+    verify(cloudStorageService).delete("https://storage/new-a.jpg");
     verify(placeReviewImageRepository, never()).delete(deleteImage);
   }
 }

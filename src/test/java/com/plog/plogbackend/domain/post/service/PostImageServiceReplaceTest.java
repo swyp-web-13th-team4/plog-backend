@@ -15,7 +15,7 @@ import com.plog.plogbackend.domain.post.entity.PublicScope;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.post.repository.PostImageRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
-import com.plog.plogbackend.global.util.GcsService;
+import com.plog.plogbackend.global.storage.CloudStorageService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,7 +47,7 @@ class PostImageServiceReplaceTest {
   @Autowired private MemberRepository memberRepository;
   @Autowired private PlaceRepository placeRepository;
 
-  @MockitoBean private GcsService gcsService;
+  @MockitoBean private CloudStorageService cloudStorageService;
 
   @Test
   @Transactional
@@ -58,7 +58,7 @@ class PostImageServiceReplaceTest {
     List<Long> keepIds = List.of(seeded.get(0).getId(), seeded.get(1).getId());
 
     AtomicInteger seq = new AtomicInteger();
-    given(gcsService.upload(any(MultipartFile.class), anyString()))
+    given(cloudStorageService.upload(any(MultipartFile.class), anyString()))
         .willAnswer(inv -> "https://gcs.test/new-" + seq.getAndIncrement() + ".jpg");
 
     List<MultipartFile> newFiles =
