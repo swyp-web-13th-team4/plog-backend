@@ -8,7 +8,7 @@ import com.plog.plogbackend.domain.review.repository.PlaceReviewRepository;
 import com.plog.plogbackend.global.common.Enum.EntityStatus;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
-import com.plog.plogbackend.global.util.GcsService;
+import com.plog.plogbackend.global.storage.CloudStorageService;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -28,7 +28,7 @@ public class PlaceReviewImageService {
   private static final String PLACE_REVIEW_DIR = "place-reviews";
   private static final int PLACE_REVIEW_IMAGE_MAX = 5;
 
-  private final GcsService gcsService;
+  private final CloudStorageService cloudStorageService;
   private final PlaceReviewRepository placeReviewRepository;
   private final PlaceReviewImageRepository placeReviewImageRepository;
 
@@ -47,14 +47,14 @@ public class PlaceReviewImageService {
 
     try {
       for (MultipartFile image : images) {
-        String imageUrl = gcsService.upload(image, PLACE_REVIEW_DIR);
+        String imageUrl = cloudStorageService.upload(image, PLACE_REVIEW_DIR);
         uploadedUrls.add(imageUrl);
         placeReviewImageRepository.save(PlaceReviewImage.of(placeReview, imageUrl));
         responses.add(new ImageUrlResponse(imageUrl));
       }
       return responses;
     } catch (RuntimeException e) {
-      uploadedUrls.forEach(gcsService::delete);
+      uploadedUrls.forEach(cloudStorageService::delete);
       throw e;
     }
   }
@@ -97,7 +97,7 @@ public class PlaceReviewImageService {
     List<String> deleteUrls = deleteImages.stream().map(PlaceReviewImage::getImageUrl).toList();
     try {
       for (MultipartFile image : safeNewImages) {
-        String imageUrl = gcsService.upload(image, PLACE_REVIEW_DIR);
+        String imageUrl = cloudStorageService.upload(image, PLACE_REVIEW_DIR);
         uploadedUrls.add(imageUrl);
         placeReviewImageRepository.save(PlaceReviewImage.of(placeReview, imageUrl));
         responses.add(new ImageUrlResponse(imageUrl));
@@ -107,7 +107,7 @@ public class PlaceReviewImageService {
       registerGcsCleanup(uploadedUrls, deleteUrls);
       return responses;
     } catch (RuntimeException e) {
-      uploadedUrls.forEach(gcsService::delete);
+      uploadedUrls.forEach(cloudStorageService::delete);
       throw e;
     }
   }
@@ -136,7 +136,7 @@ public class PlaceReviewImageService {
 
   private void registerGcsCleanup(List<String> uploadedUrls, List<String> deleteUrls) {
     if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-      deleteUrls.forEach(gcsService::delete);
+      deleteUrls.forEach(cloudStorageService::delete);
       return;
     }
 
@@ -144,13 +144,13 @@ public class PlaceReviewImageService {
         new TransactionSynchronization() {
           @Override
           public void afterCommit() {
-            deleteUrls.forEach(gcsService::delete);
+            deleteUrls.forEach(cloudStorageService::delete);
           }
 
           @Override
           public void afterCompletion(int status) {
             if (status == STATUS_ROLLED_BACK) {
-              uploadedUrls.forEach(gcsService::delete);
+              uploadedUrls.forEach(cloudStorageService::delete);
             }
           }
         });

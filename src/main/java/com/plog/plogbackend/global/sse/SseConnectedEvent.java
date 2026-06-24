@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.notification.event;
+package com.plog.plogbackend.global.sse;
 
 /**
  * SSE 구독이 완료되었을 때 발행되는 도메인 이벤트.

@@ -8,6 +8,8 @@ import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.dto.response.*;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
+import com.plog.plogbackend.domain.notification.enums.NotificationType;
+import com.plog.plogbackend.domain.notification.service.NotificationService;
 import com.plog.plogbackend.domain.post.controller.dto.response.*;
 import com.plog.plogbackend.domain.post.entity.Like;
 import com.plog.plogbackend.domain.post.entity.Post;
@@ -39,6 +41,7 @@ public class FeedService {
   private final BookMarkRepository bookMarkRepository;
   private final LikeRepository likeRepository;
   private final BlockRepository blockRepository;
+  private final NotificationService notificationService;
 
   // 이벤트 처리 객체
   private final ApplicationEventPublisher eventPublisher;
@@ -201,6 +204,16 @@ public class FeedService {
 
       likeRepository.save(newLike);
       postRepository.increaseLikeCount(postId);
+
+      // 좋아요 알림 전송 (자기 자신의 게시글은 제외)
+      Member postOwner = post.getMember();
+      if (!postOwner.getId().equals(member.getId())) {
+        notificationService.sendNotification(
+            postOwner,
+            NotificationType.POST_LIKE,
+            member.getNickname() + "님이 게시글에 좋아요를 눌렀습니다.",
+            "/post/" + postId);
+      }
 
       return new UpdateLiked(true);
 

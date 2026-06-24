@@ -6,7 +6,7 @@ import com.plog.plogbackend.domain.member.entity.DefaultProfileImage;
 import com.plog.plogbackend.domain.member.repository.DefaultProfileImageRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
-import com.plog.plogbackend.global.util.GcsService;
+import com.plog.plogbackend.global.storage.CloudStorageService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ public class MemberImageService {
 
   private static final String PROFILE_DIR = "profiles";
 
-  private final GcsService gcsService;
+  private final CloudStorageService cloudStorageService;
   private final DefaultProfileImageRepository defaultProfileImageRepository;
 
   // ==========================================
@@ -77,7 +77,7 @@ public class MemberImageService {
    */
   public String resolveProfileImageUrl(MultipartFile file, Long defaultImageId) {
     if (file != null && !file.isEmpty()) {
-      String url = gcsService.upload(file, PROFILE_DIR);
+      String url = cloudStorageService.upload(file, PROFILE_DIR);
       log.info("프로필 이미지 업로드 완료 - url: {}", url);
       return url;
     }
@@ -117,7 +117,7 @@ public class MemberImageService {
             @Override
             public void afterCommit() {
               try {
-                gcsService.delete(oldImageUrl);
+                cloudStorageService.delete(oldImageUrl);
                 log.info("구 프로필 이미지 GCS 삭제 완료 - url: {}", oldImageUrl);
               } catch (Exception e) {
                 log.warn("구 프로필 이미지 GCS 삭제 실패 - url: {}, error: {}", oldImageUrl, e.getMessage());

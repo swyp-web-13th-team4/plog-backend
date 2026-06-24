@@ -7,7 +7,7 @@ import com.plog.plogbackend.domain.badge.repository.BadgeRepository;
 import com.plog.plogbackend.domain.badge.repository.MemberBadgeRepository;
 import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
-import com.plog.plogbackend.domain.notification.service.NotificationService;
+import com.plog.plogbackend.global.sse.SseEmitterService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -33,7 +33,7 @@ public class BadgeEventHandler {
   private final MemberRepository memberRepository;
   private final BadgeRepository badgeRepository;
   private final MemberBadgeRepository memberBadgeRepository;
-  private final NotificationService notificationService;
+  private final SseEmitterService sseEmitterService;
 
   /**
    * {@link BadgeGrantEvent}를 수신하여 뱃지를 부여합니다.
@@ -80,7 +80,7 @@ public class BadgeEventHandler {
       // - 연결이 있으면 즉시 전송 후 notified = true 마킹
       // - 연결이 없으면 notified = false 유지 → 구독 시점에 flushUnnotifiedBadges가 재전송
       boolean sent =
-          notificationService.notify(
+          sseEmitterService.notify(
               member.getId(),
               BadgeResponse.from(badge, memberBadge.getAcquiredAt()),
               "badge_grant");
