@@ -12,6 +12,8 @@ import com.plog.plogbackend.domain.notification.repository.NotificationQueryRepo
 import com.plog.plogbackend.domain.notification.repository.NotificationRepository;
 import com.plog.plogbackend.domain.notification.repository.NotificationSettingRepository;
 import com.plog.plogbackend.domain.notification.repository.NotificationTypeSettingRepository;
+import com.plog.plogbackend.global.error.AppException;
+import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.global.sse.SseEmitterService;
 import com.plog.plogbackend.global.support.paging.Cursorable;
 import com.plog.plogbackend.global.support.paging.Slice;
@@ -139,9 +141,9 @@ public class NotificationService {
   @Transactional
   public void markAsRead(Long memberId, Long notificationId) {
     Notification notification =
-        notificationRepository
-            .findById(notificationId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 알림입니다."));
+            notificationRepository
+                    .findById(notificationId)
+                    .orElseThrow(() -> new AppException(ErrorType.NOTIFICATION_NOT_FOUND));
     validateOwnership(memberId, notification);
     notification.markAsRead();
   }
@@ -160,9 +162,9 @@ public class NotificationService {
   @Transactional
   public void deleteNotification(Long memberId, Long notificationId) {
     Notification notification =
-        notificationRepository
-            .findById(notificationId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 알림입니다."));
+            notificationRepository
+                    .findById(notificationId)
+                    .orElseThrow(() -> new AppException(ErrorType.NOTIFICATION_NOT_FOUND));
     validateOwnership(memberId, notification);
     notificationRepository.delete(notification);
   }
@@ -247,11 +249,11 @@ public class NotificationService {
   /**
    * 해당 알림이 현재 로그인한 사용자의 것인지 검증합니다.
    *
-   * @throws org.springframework.security.access.AccessDeniedException 타인의 알림에 접근할 경우
+   * @throws AppException 타인의 알림에 접근할 경우
    */
   private void validateOwnership(Long memberId, Notification notification) {
     if (!notification.getReceiver().getId().equals(memberId)) {
-      throw new org.springframework.security.access.AccessDeniedException("해당 알림에 대한 권한이 없습니다.");
+      throw new AppException(ErrorType.NOTIFICATION_FORBIDDEN);
     }
   }
 }

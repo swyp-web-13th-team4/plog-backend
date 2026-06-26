@@ -51,7 +51,11 @@ public enum ErrorCode {
   E1603,
 
   // 공지 관련(E1700~)
-  E1700
+  E1700,
+
+  // 알림 관련(E1800~)
+  E1800,
+  E1801
 
   /*
       E1000~E1999 member / File

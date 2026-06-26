@@ -6,6 +6,8 @@ import com.plog.plogbackend.domain.notification.dto.NotificationResponse;
 import com.plog.plogbackend.domain.notification.dto.NotificationSettingResponse;
 import com.plog.plogbackend.domain.notification.dto.NotificationSettingUpdateRequest;
 import com.plog.plogbackend.domain.notification.service.NotificationService;
+import com.plog.plogbackend.global.error.AppException;
+import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.global.response.ApiResponse;
 import com.plog.plogbackend.global.sse.SseEmitterService;
 import com.plog.plogbackend.global.support.paging.CursorDefault;
@@ -159,8 +161,8 @@ public class NotificationController {
 
   private Member findMemberByKey(UUID memberKey) {
     return memberRepository
-        .findByMemberKey(memberKey)
-        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+            .findByMemberKey(memberKey)
+            .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND));
   }
 
   // ── 응답용 inner record ──────────────────────────────────────────────────────
