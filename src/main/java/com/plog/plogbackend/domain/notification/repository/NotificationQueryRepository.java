@@ -50,6 +50,11 @@ public class NotificationQueryRepository {
    */
   private BooleanExpression cursorCondition(String cursor) {
     if (cursor == null || cursor.isBlank()) return null;
-    return notification.id.lt(Long.parseLong(cursor));
+    try {
+      return notification.id.lt(Long.parseLong(cursor));
+    } catch (NumberFormatException e) {
+      throw new com.plog.plogbackend.global.error.AppException(
+          com.plog.plogbackend.global.error.ErrorType.INVALID_ACCESS_PATH);
+    }
   }
 }
