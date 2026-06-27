@@ -8,7 +8,7 @@ import java.util.List;
 public record InquirysResponse(Long id, String title, Status status, LocalDateTime localDateTime) {
 
   public InquirysResponse(Inquiry inquiry) {
-    this(inquiry.getId(), inquiry.getTitle(), inquiry.getStatus(), inquiry.getCreatedAt());
+    this(inquiry.getId(), inquiry.getTitle(), inquiry.getInquiryStatus(), inquiry.getCreatedAt());
   }
 
   public static List<InquirysResponse> from(List<Inquiry> inquiries) {
