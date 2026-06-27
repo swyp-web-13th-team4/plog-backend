@@ -40,7 +40,7 @@ public class Inquiry extends BaseTimeStatusEntity {
   private String content;
 
   @Enumerated(EnumType.STRING)
-  private Status status;
+  private Status inquiryStatus;
 
   @OneToMany(mappedBy = "inquiry", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<InquiryImages> images = new ArrayList<>();
@@ -50,6 +50,6 @@ public class Inquiry extends BaseTimeStatusEntity {
     this.title = title;
     this.content = content;
     this.member = member;
-    this.status = Status.RECEIPT; // 초기 상태값
+    this.inquiryStatus = Status.RECEIPT; // 초기 상태값
   }
 }

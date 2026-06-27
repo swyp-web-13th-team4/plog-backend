@@ -19,7 +19,7 @@ public record InquiryResponse(
         inquiry.getId(),
         inquiry.getTitle(),
         inquiry.getContent(),
-        inquiry.getStatus(),
+        inquiry.getInquiryStatus(),
         inquiry.getImages().stream().map(InquiryImages::getImageUrl).toList(),
         inquiry.getCreatedAt());
   }
