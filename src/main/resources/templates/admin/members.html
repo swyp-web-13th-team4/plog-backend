@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회원 목록 관리 - Plog Admin</title>
+  <!-- Tailwind CSS v4 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-primary: #2E7D32;
+      --color-primary-light: #E8F5E9;
+      --color-primary-dark: #1B5E20;
+      --color-sidebar-bg: #FAFAFA;
+      --color-sidebar-hover: #F0F0F0;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <div th:replace="~{admin/fragments/sidebar :: sidebar(currentMenu='members')}"></div>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col ml-60">
+
+      <!-- Header -->
+      <div th:replace="~{admin/fragments/header :: header(pageTitle='회원 목록')}"></div>
+
+      <!-- Page Content -->
+      <main class="flex-1 p-8">
+        
+        <!-- Top Statistics Cards -->
+        <div class="grid grid-cols-4 gap-6 mb-8">
+          
+          <!-- Card 1: 전체 회원 -->
+          <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-500 mb-1">전체 회원</p>
+              <h3 class="text-3xl font-bold text-gray-900" th:text="${stats.totalMembers}">1,284</h3>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center text-primary">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Card 2: 관리자 회원 (플랜 대신) -->
+          <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-500 mb-1">관리자 회원</p>
+              <h3 class="text-3xl font-bold text-gray-900" th:text="${stats.adminMembers}">437</h3>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center text-primary">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Card 3: 이번 달 신규 -->
+          <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-500 mb-1">이번 달 신규</p>
+              <h3 class="text-3xl font-bold text-gray-900" th:text="${stats.newThisMonth}">68</h3>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center text-primary">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Card 4: 삭제/탈퇴 회원 (휴면 대신) -->
+          <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-500 mb-1">삭제 회원</p>
+              <h3 class="text-3xl font-bold text-gray-900" th:text="${stats.deletedMembers}">93</h3>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Member List Table Section -->
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+          
+          <!-- Header & Search -->
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-bold text-gray-900">회원 목록</h2>
+            
+            <form action="/admin/members" method="get" class="flex items-center gap-3">
+              <div class="relative">
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="회원 검색..." 
+                       class="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 w-64">
+                <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </div>
+              <button type="submit" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors">
+                검색
+              </button>
+            </form>
+          </div>
+
+          <!-- Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-200 text-gray-500">
+                  <th class="text-left py-3 px-4 font-semibold w-16">#</th>
+                  <th class="text-left py-3 px-4 font-semibold w-64">이름</th>
+                  <th class="text-left py-3 px-4 font-semibold">MemberKey</th>
+                  <th class="text-left py-3 px-4 font-semibold w-32">권한</th>
+                  <th class="text-left py-3 px-4 font-semibold w-32">가입일</th>
+                  <th class="text-left py-3 px-4 font-semibold">소개글</th>
+                  <th class="text-center py-3 px-4 font-semibold w-24">관리</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:if="${members.empty}">
+                  <td colspan="7" class="text-center py-12 text-gray-400">등록된 회원이 없습니다.</td>
+                </tr>
+                <tr th:each="member, stat : ${members.content}" class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  <!-- ID/Index -->
+                  <td class="py-4 px-4 text-gray-400" th:text="${member.id}">1</td>
+                  
+                  <!-- Name & Avatar -->
+                  <td class="py-4 px-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-full bg-primary-light text-primary flex items-center justify-center font-bold text-xs"
+                           th:text="${#strings.substring(member.nickname, 0, 1)}">김</div>
+                      <span class="font-medium text-gray-900" th:text="${member.nickname}">김민준</span>
+                    </div>
+                  </td>
+                  
+                  <!-- MemberKey (instead of Email) -->
+                  <td class="py-4 px-4 text-gray-500 font-mono text-xs" th:text="${member.memberKey}">
+                    e1a2b3c4-d5e6-7890-abcd-ef1234567890
+                  </td>
+                  
+                  <!-- Role (instead of Plan) -->
+                  <td class="py-4 px-4">
+                    <span th:if="${member.role.name() == 'ROLE_ADMIN'}" class="text-primary font-bold">관리자</span>
+                    <span th:if="${member.role.name() == 'ROLE_USER'}" class="text-gray-500">일반</span>
+                  </td>
+                  
+                  <!-- Join Date -->
+                  <td class="py-4 px-4 text-gray-500" th:text="${#temporals.format(member.createdAt, 'yyyy.MM.dd')}">
+                    2025.01.12
+                  </td>
+                  
+                  <!-- Introduction (instead of Status) -->
+                  <td class="py-4 px-4 text-gray-500">
+                    <div class="truncate max-w-[200px]" th:text="${member.introduction != null ? member.introduction : '-'}">
+                      안녕하세요!
+                    </div>
+                  </td>
+                  
+                  <!-- Action -->
+                  <td class="py-4 px-4 text-center">
+                    <button class="px-3 py-1 border border-primary text-primary hover:bg-primary-light rounded text-xs font-medium transition-colors">
+                      상세
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="flex justify-center items-center mt-8 gap-2" th:if="${members.totalPages > 0}">
+            
+            <!-- Previous -->
+            <a th:if="${members.hasPrevious()}" 
+               th:href="@{/admin/members(page=${members.number - 1}, keyword=${keyword})}"
+               class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-500 hover:bg-gray-50">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+              </svg>
+            </a>
+            <span th:unless="${members.hasPrevious()}" class="w-8 h-8 flex items-center justify-center rounded border border-gray-100 text-gray-300">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+              </svg>
+            </span>
+
+            <!-- Page Numbers (Simple logic for demonstration) -->
+            <th:block th:each="pageNum : ${#numbers.sequence(0, members.totalPages - 1)}">
+              <!-- Show pages around current page to avoid huge list -->
+              <th:block th:if="${pageNum >= members.number - 2 and pageNum <= members.number + 2}">
+                <a th:href="@{/admin/members(page=${pageNum}, keyword=${keyword})}"
+                   th:text="${pageNum + 1}"
+                   th:class="${pageNum == members.number} ? 'w-8 h-8 flex items-center justify-center rounded bg-primary text-white font-medium' : 'w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-500 hover:bg-gray-50'">
+                  1
+                </a>
+              </th:block>
+            </th:block>
+
+            <!-- Next -->
+            <a th:if="${members.hasNext()}" 
+               th:href="@{/admin/members(page=${members.number + 1}, keyword=${keyword})}"
+               class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-500 hover:bg-gray-50">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <span th:unless="${members.hasNext()}" class="w-8 h-8 flex items-center justify-center rounded border border-gray-100 text-gray-300">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </span>
+
+          </div>
+
+        </div>
+
+      </main>
+    </div>
+  </div>
+</body>
+</html>

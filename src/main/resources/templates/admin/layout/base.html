@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plog Admin</title>
+  <!-- Tailwind CSS v4 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-primary: #2E7D32;
+      --color-primary-light: #E8F5E9;
+      --color-primary-dark: #1B5E20;
+      --color-sidebar-bg: #FAFAFA;
+      --color-sidebar-hover: #F0F0F0;
+      --color-badge-green: #E8F5E9;
+      --color-badge-green-text: #2E7D32;
+      --color-badge-red: #FFEBEE;
+      --color-badge-red-text: #C62828;
+      --color-badge-yellow: #FFF8E1;
+      --color-badge-yellow-text: #F57F17;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <div th:replace="~{admin/fragments/sidebar :: sidebar(currentMenu=${currentMenu})}"></div>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col ml-60">
+      <!-- Header -->
+      <div th:replace="~{admin/fragments/header :: header(pageTitle=${pageTitle})}"></div>
+
+      <!-- Page Content -->
+      <main class="flex-1 p-8">
+        <div th:replace="${content}"></div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>공지사항 관리 - Plog Admin</title>
+  <!-- Tailwind CSS v4 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-primary: #2E7D32;
+      --color-primary-light: #E8F5E9;
+      --color-primary-dark: #1B5E20;
+      --color-sidebar-bg: #FAFAFA;
+      --color-sidebar-hover: #F0F0F0;
+      --color-badge-green: #E8F5E9;
+      --color-badge-green-text: #2E7D32;
+      --color-badge-red: #FFEBEE;
+      --color-badge-red-text: #C62828;
+      --color-badge-yellow: #FFF8E1;
+      --color-badge-yellow-text: #F57F17;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <div th:replace="~{admin/fragments/sidebar :: sidebar(currentMenu='notice')}"></div>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col ml-60">
+
+      <!-- Header -->
+      <div th:replace="~{admin/fragments/header :: header(pageTitle='공지사항 관리')}"></div>
+
+      <!-- Page Content -->
+      <main class="flex-1 p-8">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+
+          <!-- ==================== 좌측: 공지사항 등록 폼 ==================== -->
+          <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h2 class="text-base font-bold text-gray-900 mb-6">공지사항 등록</h2>
+
+            <form id="noticeForm" action="/admin/notice" method="post" class="space-y-5">
+
+              <!-- 제목 -->
+              <div>
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-1.5">제목</label>
+                <input type="text" id="title" name="title"
+                       placeholder="공지 제목을 입력하세요"
+                       class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm
+                              placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30
+                              focus:border-primary transition-colors"
+                       required>
+              </div>
+
+              <!-- 내용 -->
+              <div>
+                <label for="content" class="block text-sm font-medium text-gray-700 mb-1.5">내용</label>
+                <div class="relative">
+                  <textarea id="content" name="content" rows="8"
+                            placeholder="공지사항 내용을 입력하세요. 자세한 내용은 아래 내용란에 작성해 주세요."
+                            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm
+                                   placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30
+                                   focus:border-primary transition-colors resize-none"
+                            maxlength="2000"
+                            required></textarea>
+                  <span class="absolute bottom-3 right-3 text-xs text-gray-400">
+                    <span id="charCount">0</span> / 2000자
+                  </span>
+                </div>
+              </div>
+
+              <!-- 등록 버튼 -->
+              <div class="flex justify-end pt-2">
+                <button type="submit"
+                        class="inline-flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-dark
+                               text-white text-sm font-medium rounded-lg transition-colors shadow-sm cursor-pointer">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                  </svg>
+                  등록하기
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- ==================== 우측: 등록된 공지사항 목록 ==================== -->
+          <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h2 class="text-base font-bold text-gray-900 mb-6">등록된 공지사항</h2>
+
+            <!-- 공지사항 테이블 -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-gray-200">
+                    <th class="text-left py-3 px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">제목</th>
+                    <th class="text-left py-3 px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">날짜</th>
+                    <th class="text-center py-3 px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">관리</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- 공지사항 없을 때 -->
+                  <tr th:if="${#lists.isEmpty(notices)}">
+                    <td colspan="3" class="text-center py-12 text-gray-400 text-sm">
+                      등록된 공지사항이 없습니다.
+                    </td>
+                  </tr>
+
+                  <!-- 공지사항 목록 -->
+                  <tr th:each="notice : ${notices}"
+                      class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+
+                    <!-- 제목 -->
+                    <td class="py-3.5 px-2">
+                      <span class="text-gray-900 font-medium" th:text="${notice.title}">공지 제목</span>
+                    </td>
+
+                    <!-- 날짜 -->
+                    <td class="py-3.5 px-2">
+                      <span class="text-gray-500 text-xs"
+                            th:text="${notice.localDateTime != null} ?
+                              ${#temporals.format(notice.localDateTime, 'yyyy.MM.dd')} : '-'">
+                        2025.06.20
+                      </span>
+                    </td>
+
+                    <!-- 관리 버튼 -->
+                    <td class="py-3.5 px-2 text-center">
+                      <div class="flex items-center justify-center gap-1.5">
+                        <!-- 수정 -->
+                        <button class="p-1.5 text-gray-400 hover:text-primary hover:bg-primary-light rounded-md transition-colors"
+                                title="수정">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                          </svg>
+                        </button>
+                        <!-- 삭제 -->
+                        <button class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                                title="삭제">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // 글자수 카운터
+    const contentEl = document.getElementById('content');
+    const charCountEl = document.getElementById('charCount');
+
+    if (contentEl && charCountEl) {
+      contentEl.addEventListener('input', () => {
+        charCountEl.textContent = contentEl.value.length;
+      });
+    }
+  </script>
+</body>
+</html>

@@ -83,6 +83,10 @@ public class SecurityConfig {
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                     .permitAll()
 
+                    // 어드민 페이지 정적 리소스 (CSS, JS)
+                    .requestMatchers("/css/admin/**", "/js/admin/**")
+                    .permitAll()
+
                     // 회원가입 API와 소셜 로그인
                     .requestMatchers(
                         "/api/members/signup",
@@ -149,7 +153,8 @@ public class SecurityConfig {
 
                     // 어드민 페이지 접근 권한
                     .requestMatchers("/admin", "/admin/**")
-                    .hasRole("ADMIN")
+//                    .hasRole("ADMIN")
+                        .permitAll()
 
                     // 그 외 모든 요청은 인증(JWT) 필요
                     .anyRequest()
