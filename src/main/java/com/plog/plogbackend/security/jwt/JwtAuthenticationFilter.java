@@ -1,22 +1,29 @@
 package com.plog.plogbackend.security.jwt;
 
+import com.plog.plogbackend.domain.member.Member;
+import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.global.util.CookieUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 @Slf4j
 @Component
@@ -26,6 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private final JwtProvider jwtProvider;
   private final RefreshTokenService refreshTokenService;
   private final CookieUtil cookieUtil;
+  private final MemberRepository memberRepository;
 
   @Override
   protected void doFilterInternal(
@@ -86,8 +94,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   /** SecurityContext에 인증 정보를 설정합니다. */
   private void setAuthentication(String token, HttpServletRequest request) {
     UUID memberKey = jwtProvider.getMemberKeyFromToken(token);
+    
+    List<GrantedAuthority> authorities = emptyList();
+    Member member = memberRepository.findByMemberKey(memberKey).orElse(null);
+    if (member != null && member.getRole() != null) {
+      authorities = singletonList(
+          new SimpleGrantedAuthority(member.getRole().name())
+      );
+    }
+
     UsernamePasswordAuthenticationToken authentication =
-        new UsernamePasswordAuthenticationToken(memberKey, null, Collections.emptyList());
+        new UsernamePasswordAuthenticationToken(memberKey, null, authorities);
     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
     SecurityContextHolder.getContext().setAuthentication(authentication);
   }

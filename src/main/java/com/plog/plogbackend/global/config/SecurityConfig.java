@@ -147,6 +147,10 @@ public class SecurityConfig {
                     .requestMatchers("/api/test/images/upload")
                     .permitAll()
 
+                    // 어드민 페이지 접근 권한
+                    .requestMatchers("/admin", "/admin/**")
+                    .hasRole("ADMIN")
+
                     // 그 외 모든 요청은 인증(JWT) 필요
                     .anyRequest()
                     .authenticated())
