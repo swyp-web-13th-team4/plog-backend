@@ -52,9 +52,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     // 2. SavedRequest 확인 (로그인 전 요청 URL)
     SavedRequest savedRequest = requestCache.getRequest(request, response);
     boolean isAdminLogin = false;
+    boolean isTestLogin = false;
     if (savedRequest != null) {
       String savedUrl = savedRequest.getRedirectUrl();
       isAdminLogin = savedUrl.contains("/admin");
+      isTestLogin = savedUrl.contains("/testlogin");
       // 사용한 SavedRequest 제거
       requestCache.removeRequest(request, response);
     }
@@ -82,13 +84,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
               "refreshToken", refreshToken, jwtProvider.getRefreshTokenValidityInMs());
       response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
-      if (isAdminLogin) {
-        // 어드민 로그인 흐름: 역할 확인 후 분기
+      if (isTestLogin || isAdminLogin) {
+        // 어드민 로그인 흐름 (테스트 로그인 포함): 역할 확인 후 분기
         if (member.getRole() == Role.ROLE_ADMIN) {
-          log.info("어드민 로그인 성공: {}", member.getMemberKey());
+          log.info("어드민 로그인 성공 (테스트 포함): {}", member.getMemberKey());
           getRedirectStrategy().sendRedirect(request, response, "/admin/notice");
         } else {
-          log.warn("어드민 권한 없는 회원의 어드민 로그인 시도: {}", member.getMemberKey());
+          log.warn("어드민 권한 없는 회원의 로그인 시도: {}", member.getMemberKey());
           getRedirectStrategy().sendRedirect(request, response, "/admin/error");
         }
       } else {
@@ -108,7 +110,16 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
       // [신규 회원] → 어드민이면 프론트로, 앱이면 가입 페이지로
       // ==========================================
 
-      if (isAdminLogin) {
+      if (isTestLogin) {
+        // 테스트 로그인 시 신규 유저 -> 로컬 테스트 전용 가입 페이지로 이동
+        log.info("로컬 테스트 로그인 미가입 유저 → 테스트 전용 가입 페이지로 리다이렉트");
+        String registerToken = jwtProvider.createRegisterToken(providerId);
+        ResponseCookie cookie2 =
+            cookieUtil.createCookie(
+                "registerToken", registerToken, jwtProvider.getRegisterTokenValidityInMs());
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie2.toString());
+        getRedirectStrategy().sendRedirect(request, response, "/testlogin/signup");
+      } else if (isAdminLogin) {
         // 어드민 경로로 접근한 신규 유저 → 에러 페이지로 리다이렉트
         log.warn("어드민 경로로 접근한 미가입 유저 → 에러 페이지로 리다이렉트");
         getRedirectStrategy().sendRedirect(request, response, "/admin/error");

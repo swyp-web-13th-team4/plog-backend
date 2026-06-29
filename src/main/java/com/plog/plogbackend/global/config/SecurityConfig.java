@@ -87,14 +87,16 @@ public class SecurityConfig {
                     .requestMatchers("/css/admin/**", "/js/admin/**")
                     .permitAll()
 
-                    // 회원가입 API와 소셜 로그인
+                    // 회원가입 API와 소셜 로그인, 테스트 로그인
                     .requestMatchers(
                         "/api/members/signup",
                         "/api/members/refresh",
                         "/api/members/logout",
                         "/api/auth/callback",
                         "/oauth2/**",
-                        "/login/**")
+                        "/login/**",
+                        "/testlogin",
+                        "/testlogin/**")
                     .permitAll()
 
                     // 약관
@@ -151,10 +153,11 @@ public class SecurityConfig {
                     .requestMatchers("/api/test/images/upload")
                     .permitAll()
 
-                    // 어드민 페이지 접근 권한
+                    // 어드민 페이지 접근 권한 (단, 에러 페이지는 모두 접근 가능)
+                    .requestMatchers("/admin/error")
+                    .permitAll()
                     .requestMatchers("/admin", "/admin/**")
-//                    .hasRole("ADMIN")
-                        .permitAll()
+                    .hasRole("ADMIN")
 
                     // 그 외 모든 요청은 인증(JWT) 필요
                     .anyRequest()
