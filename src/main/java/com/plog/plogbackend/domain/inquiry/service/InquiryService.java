@@ -3,6 +3,7 @@ package com.plog.plogbackend.domain.inquiry.service;
 import com.plog.plogbackend.domain.inquiry.controller.dto.CreateInquiryRequest;
 import com.plog.plogbackend.domain.inquiry.controller.dto.InquiryResponse;
 import com.plog.plogbackend.domain.inquiry.controller.dto.InquirysResponse;
+import com.plog.plogbackend.domain.inquiry.controller.dto.UpdateInquiryRequest;
 import com.plog.plogbackend.domain.inquiry.entity.Inquiry;
 import com.plog.plogbackend.domain.inquiry.entity.InquiryImages;
 import com.plog.plogbackend.domain.inquiry.repository.InquiryImageRepository;
@@ -12,6 +13,7 @@ import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import com.plog.plogbackend.global.storage.CloudStorageService;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -75,5 +77,46 @@ public class InquiryService {
     InquiryResponse response = InquiryResponse.from(inquiry);
 
     return response;
+  }
+
+  @Transactional
+  public void updateInquiry(
+      Long id, UUID memberKey, @Valid UpdateInquiryRequest request, List<MultipartFile> images) {
+
+    Inquiry inquiry =
+        inquiryRepository
+            .findById(id)
+            .orElseThrow(() -> new AppException(ErrorType.INQUIRY_NOT_FOUND));
+
+    if (!inquiry.getMember().getMemberKey().equals(memberKey)) {
+      throw new AppException(ErrorType.INQUIRY_UNAUTHORIZED_ACCESS);
+    }
+    inquiry.update(request.category(), request.title(), request.content());
+
+    if (request.deleteImageIds() != null && !request.deleteImageIds().isEmpty()) {
+      inquiryImageRepository.deleteAllByIdInBatch(request.deleteImageIds());
+    }
+    if (images != null && !images.isEmpty()) {
+      for (MultipartFile file : images) {
+        String uploadUrl = cloudStorageService.upload(file, "unquiry");
+        InquiryImages inquiryImage = InquiryImages.of(uploadUrl, inquiry);
+        inquiryImageRepository.save(inquiryImage);
+      }
+    }
+  }
+
+  @Transactional
+  public void deleteInquiry(Long id, UUID memberKey) {
+
+    Inquiry inquiry =
+        inquiryRepository
+            .findById(id)
+            .orElseThrow(() -> new AppException(ErrorType.INQUIRY_NOT_FOUND));
+
+    if (!inquiry.getMember().getMemberKey().equals(memberKey)) {
+      throw new AppException(ErrorType.INQUIRY_UNAUTHORIZED_ACCESS);
+    }
+
+    inquiryRepository.delete(inquiry);
   }
 }

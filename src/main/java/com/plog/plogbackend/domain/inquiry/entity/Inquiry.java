@@ -14,6 +14,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.NotBlank;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -42,6 +44,10 @@ public class Inquiry extends BaseTimeStatusEntity {
   @Enumerated(EnumType.STRING)
   private Status inquiryStatus;
 
+  private String answerTitle;
+  private String answerContent;
+  private LocalDateTime answerTime;
+
   @OneToMany(mappedBy = "inquiry", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<InquiryImages> images = new ArrayList<>();
 
@@ -51,5 +57,13 @@ public class Inquiry extends BaseTimeStatusEntity {
     this.content = content;
     this.member = member;
     this.inquiryStatus = Status.RECEIPT; // 초기 상태값
+  }
+
+  public void update(
+      @NotBlank Category category, @NotBlank String title, @NotBlank String content) {
+
+    this.category = category;
+    this.title = title;
+    this.content = content;
   }
 }
