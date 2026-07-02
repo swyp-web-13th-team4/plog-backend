@@ -120,7 +120,9 @@ public enum ErrorType {
   NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E1700, "해당 공지를 찾을 수 없습니다", LogLevel.WARN),
 
   // 1:1 문의 관련
-  INQUIRY_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E1700, "해당 문의를 찾을 수 없습니다", LogLevel.WARN);
+  INQUIRY_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E1800, "해당 문의를 찾을 수 없습니다", LogLevel.WARN),
+  INQUIRY_UNAUTHORIZED_ACCESS(
+      HttpStatus.FORBIDDEN, ErrorCode.E1801, "본인 글만 수정 가능합니다", LogLevel.WARN);
   // 여기에 추가해주시고 사용하시면 됩니다.
 
   private final HttpStatus status;

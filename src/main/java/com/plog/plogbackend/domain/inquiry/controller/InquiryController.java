@@ -4,6 +4,7 @@ import com.plog.plogbackend.domain.inquiry.controller.dto.CreateInquiryRequest;
 import com.plog.plogbackend.domain.inquiry.controller.dto.CreateInquiryResponse;
 import com.plog.plogbackend.domain.inquiry.controller.dto.InquiryResponse;
 import com.plog.plogbackend.domain.inquiry.controller.dto.InquirysResponse;
+import com.plog.plogbackend.domain.inquiry.controller.dto.UpdateInquiryRequest;
 import com.plog.plogbackend.domain.inquiry.service.InquiryService;
 import com.plog.plogbackend.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,7 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -61,5 +64,25 @@ public class InquiryController {
     ApiResponse<InquiryResponse> success = ApiResponse.success(inquiry);
 
     return ResponseEntity.ok().body(success);
+  }
+
+  @PatchMapping("{id}")
+  public ResponseEntity<ApiResponse<Void>> update(
+      @PathVariable Long id,
+      @Valid UpdateInquiryRequest request,
+      List<MultipartFile> images,
+      @AuthenticationPrincipal UUID memberKey) {
+
+    inquiryService.updateInquiry(id, memberKey, request, images);
+
+    return ResponseEntity.ok().body(ApiResponse.success(null));
+  }
+
+  @DeleteMapping("{id}")
+  public ResponseEntity<ApiResponse<Void>> delete(
+      @PathVariable Long id, @AuthenticationPrincipal UUID memberKey) {
+    inquiryService.deleteInquiry(id, memberKey);
+
+    return ResponseEntity.ok().body(ApiResponse.success(null));
   }
 }
