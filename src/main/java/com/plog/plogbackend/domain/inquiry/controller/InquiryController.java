@@ -1,10 +1,10 @@
 package com.plog.plogbackend.domain.inquiry.controller;
 
-import com.plog.plogbackend.domain.inquiry.controller.dto.CreateInquiryRequest;
-import com.plog.plogbackend.domain.inquiry.controller.dto.CreateInquiryResponse;
-import com.plog.plogbackend.domain.inquiry.controller.dto.InquiryResponse;
-import com.plog.plogbackend.domain.inquiry.controller.dto.InquirysResponse;
-import com.plog.plogbackend.domain.inquiry.controller.dto.UpdateInquiryRequest;
+import com.plog.plogbackend.domain.inquiry.controller.dto.user.CreateInquiryRequest;
+import com.plog.plogbackend.domain.inquiry.controller.dto.user.CreateInquiryResponse;
+import com.plog.plogbackend.domain.inquiry.controller.dto.user.InquiryResponse;
+import com.plog.plogbackend.domain.inquiry.controller.dto.user.InquirysResponse;
+import com.plog.plogbackend.domain.inquiry.controller.dto.user.UpdateInquiryRequest;
 import com.plog.plogbackend.domain.inquiry.service.InquiryService;
 import com.plog.plogbackend.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Parameter;

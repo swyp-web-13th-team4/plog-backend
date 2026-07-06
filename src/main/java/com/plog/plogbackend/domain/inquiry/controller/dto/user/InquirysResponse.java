@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.inquiry.controller.dto;
+package com.plog.plogbackend.domain.inquiry.controller.dto.user;
 
 import com.plog.plogbackend.domain.inquiry.contents.Status;
 import com.plog.plogbackend.domain.inquiry.entity.Inquiry;

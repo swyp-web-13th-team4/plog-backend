@@ -1,4 +1,4 @@
-package com.plog.plogbackend.domain.inquiry.controller.dto;
+package com.plog.plogbackend.domain.inquiry.controller.dto.user;
 
 public record CreateInquiryResponse(Long InquiryId) {
 
