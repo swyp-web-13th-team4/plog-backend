@@ -19,6 +19,8 @@ services:
 
   spring:
     image: ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPOSITORY}:latest
+    ports:
+      - "8080:8080"
     container_name: spring
     restart: on-failure:3
     environment:
