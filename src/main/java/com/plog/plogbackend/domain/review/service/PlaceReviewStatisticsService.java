@@ -22,10 +22,9 @@ public class PlaceReviewStatisticsService {
 
   @Transactional(readOnly = true)
   public PlaceReviewSummary getSummary(Long placeId) {
-    PlaceReviewRatingSummary ratingSummary =
-        placeReviewStatisticsRepository.findRatingSummaryByPlaceId(placeId);
+    PlaceReviewRatingSummary ratingSummary = getRatingSummary(placeId);
 
-    if (ratingSummary == null || ratingSummary.reviewCount() == 0) {
+    if (ratingSummary.reviewCount() == 0) {
       return PlaceReviewSummary.empty();
     }
 
@@ -35,6 +34,23 @@ public class PlaceReviewStatisticsService {
 
     return new PlaceReviewSummary(
         ratingSummary.reviewCount(), ratingSummary.averageRating(), environments);
+  }
+
+  /** 장소 상세 화면에서 사용할 리뷰 건수와 평균 평점을 반환한다. */
+  @Transactional(readOnly = true)
+  public PlaceReviewRatingSummary getRatingSummary(Long placeId) {
+    PlaceReviewRatingSummary ratingSummary =
+        placeReviewStatisticsRepository.findRatingSummaryByPlaceId(placeId);
+
+    if (ratingSummary == null
+        || ratingSummary.reviewCount() == null
+        || ratingSummary.reviewCount() == 0) {
+      return new PlaceReviewRatingSummary(0L, 0.0);
+    }
+
+    return new PlaceReviewRatingSummary(
+        ratingSummary.reviewCount(),
+        ratingSummary.averageRating() == null ? 0.0 : ratingSummary.averageRating());
   }
 
   private List<PlaceReviewEnvironmentSummary> toEnvironmentSummaries(
