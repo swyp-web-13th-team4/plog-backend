@@ -108,7 +108,12 @@ public class MapController {
   }
 
   @GetMapping("/pins/records/{placeId}")
-  @Operation(summary = "기록 핀 상세 조회", description = "기록 핀을 탭했을 때 장소에 대한 정보를 반환합니다.")
+  @Operation(
+      summary = "기록 핀 상세 조회",
+      description =
+          "기록 핀을 탭했을 때 장소 정보와 전체 리뷰 건수·평균 평점을 반환합니다. "
+              + "리뷰 바텀시트의 요약 정보는 이 응답의 reviewCount, averageRating를 사용하며, "
+              + "리뷰가 없으면 각각 0, 0.0을 반환합니다.")
   public ResponseEntity<ApiResponse<PlaceDetailResponse>> getRecordPinDetail(
       @AuthenticationPrincipal UUID memberKey, @PathVariable Long placeId) {
     return ResponseEntity.ok(
@@ -117,7 +122,12 @@ public class MapController {
   }
 
   @GetMapping("/pins/bookmarks/{placeId}")
-  @Operation(summary = "북마크 핀 상세 조회", description = "북마크 핀을 탭했을 때 장소에 대한 정보를 반환합니다.")
+  @Operation(
+      summary = "북마크 핀 상세 조회",
+      description =
+          "북마크 핀을 탭했을 때 장소 정보와 전체 리뷰 건수·평균 평점을 반환합니다. "
+              + "리뷰 바텀시트의 요약 정보는 이 응답의 reviewCount, averageRating를 사용하며, "
+              + "리뷰가 없으면 각각 0, 0.0을 반환합니다.")
   public ResponseEntity<ApiResponse<PlaceDetailResponse>> getBookmarkPinDetail(
       @AuthenticationPrincipal UUID memberKey, @PathVariable Long placeId) {
     return ResponseEntity.ok(

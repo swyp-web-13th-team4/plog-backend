@@ -16,6 +16,8 @@ public class PlaceDetail {
   private Long totalStudyTime;
   private String thumbnailUrl;
   private PlaceCategoryCode placeCategory;
+  private Long reviewCount;
+  private Double averageRating;
 
   public static PlaceDetail of(
       Long placeId,
@@ -25,8 +27,19 @@ public class PlaceDetail {
       Double avgFocus,
       Long totalStudyTime,
       String thumbnailUrl,
-      PlaceCategoryCode placeCategory) {
+      PlaceCategoryCode placeCategory,
+      Long reviewCount,
+      Double averageRating) {
     return new PlaceDetail(
-        placeId, placeName, address, count, avgFocus, totalStudyTime, thumbnailUrl, placeCategory);
+        placeId,
+        placeName,
+        address,
+        count,
+        avgFocus,
+        totalStudyTime,
+        thumbnailUrl,
+        placeCategory,
+        reviewCount,
+        averageRating);
   }
 }
