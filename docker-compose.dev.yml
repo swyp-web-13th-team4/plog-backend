@@ -22,7 +22,7 @@ services:
     ports:
       - "8080:8080"
     container_name: spring
-    restart: on-failure:3
+    restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: dev
       TZ: Asia/Seoul
@@ -44,7 +44,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 15m  # <--- 이 줄을 꼭 넣어주세요!
+      start_period: 90s
     networks:
       - app-tier
       - data-tier

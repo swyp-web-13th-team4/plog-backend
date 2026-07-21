@@ -85,6 +85,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            set -Eeuo pipefail
             cd ${{ secrets.DEPLOY_DIR }}
             cat > .env.dev << EOF
             MYSQL_ROOT_PASSWORD=$(gcloud secrets versions access latest --secret=dev-MYSQL_ROOT_PASSWORD)
@@ -110,6 +111,12 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            set -Eeuo pipefail
             cd ${{ secrets.DEPLOY_DIR }}
-            docker compose -f docker-compose.dev.yml --env-file .env.dev pull
-            docker compose -f docker-compose.dev.yml --env-file .env.dev up -d
+            docker compose -f docker-compose.dev.yml --env-file .env.dev pull spring
+            docker compose -f docker-compose.dev.yml --env-file .env.dev up -d --no-deps --wait --wait-timeout 180 spring
+            docker compose -f docker-compose.dev.yml --env-file .env.dev exec -T nginx nginx -t
+            docker compose -f docker-compose.dev.yml --env-file .env.dev exec -T nginx nginx -s reload
+            curl -kfsS --retry 12 --retry-delay 5 --retry-all-errors \
+              -H "Host: plog-server.duckdns.org" \
+              https://127.0.0.1/actuator/health
