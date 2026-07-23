@@ -1,9 +1,9 @@
 package com.plog.plogbackend.domain.inquiry.service;
 
-import com.plog.plogbackend.domain.inquiry.controller.dto.CreateInquiryRequest;
-import com.plog.plogbackend.domain.inquiry.controller.dto.InquiryResponse;
-import com.plog.plogbackend.domain.inquiry.controller.dto.InquirysResponse;
-import com.plog.plogbackend.domain.inquiry.controller.dto.UpdateInquiryRequest;
+import com.plog.plogbackend.domain.inquiry.controller.dto.user.CreateInquiryRequest;
+import com.plog.plogbackend.domain.inquiry.controller.dto.user.InquiryResponse;
+import com.plog.plogbackend.domain.inquiry.controller.dto.user.InquirysResponse;
+import com.plog.plogbackend.domain.inquiry.controller.dto.user.UpdateInquiryRequest;
 import com.plog.plogbackend.domain.inquiry.entity.Inquiry;
 import com.plog.plogbackend.domain.inquiry.entity.InquiryImages;
 import com.plog.plogbackend.domain.inquiry.repository.InquiryImageRepository;
@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class InquiryService {
 
   private final InquiryRepository inquiryRepository;
@@ -98,7 +99,7 @@ public class InquiryService {
     }
     if (images != null && !images.isEmpty()) {
       for (MultipartFile file : images) {
-        String uploadUrl = cloudStorageService.upload(file, "unquiry");
+        String uploadUrl = cloudStorageService.upload(file, "inquiry");
         InquiryImages inquiryImage = InquiryImages.of(uploadUrl, inquiry);
         inquiryImageRepository.save(inquiryImage);
       }
