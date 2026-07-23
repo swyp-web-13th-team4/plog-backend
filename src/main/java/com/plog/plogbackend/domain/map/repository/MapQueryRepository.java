@@ -425,7 +425,9 @@ public class MapQueryRepository {
             t.get(avgFocusExpr),
             studyTime != null ? studyTime : 0L,
             t.get(thumbnail),
-            category));
+            category,
+            0L,
+            0.0));
   }
 
   public Optional<PlaceDetail> findBookmarkPinDetailByPlaceId(
@@ -460,7 +462,9 @@ public class MapQueryRepository {
             t.get(avgFocusExpr),
             studyTime != null ? studyTime : 0L,
             t.get(thumbnail),
-            category));
+            category,
+            0L,
+            0.0));
   }
 
   // ── cursor having ──────────────────────────────────────────────────────────

@@ -12,6 +12,8 @@ import com.plog.plogbackend.domain.map.repository.dto.PlaceSummary;
 import com.plog.plogbackend.domain.map.repository.dto.Viewport;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
+import com.plog.plogbackend.domain.review.repository.dto.PlaceReviewRatingSummary;
+import com.plog.plogbackend.domain.review.service.PlaceReviewStatisticsService;
 import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.plog.plogbackend.global.common.enums.SortType;
 import com.plog.plogbackend.global.error.AppException;
@@ -34,6 +36,7 @@ public class MapService {
   private final PostRepository postRepository;
   private final BookMarkRepository bookMarkRepository;
   private final BlockRepository blockRepository;
+  private final PlaceReviewStatisticsService placeReviewStatisticsService;
 
   public MapCount getMapCount(UUID memberKey) {
     Long memberId = getMemberId(memberKey);
@@ -90,17 +93,37 @@ public class MapService {
   }
 
   public PlaceDetail findRecordPinDetail(UUID memberKey, Long placeId) {
-    return mapQueryRepository
-        .findRecordPinDetailByPlaceId(getMemberId(memberKey), placeId)
-        .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
+    PlaceDetail detail =
+        mapQueryRepository
+            .findRecordPinDetailByPlaceId(getMemberId(memberKey), placeId)
+            .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
+    return withReviewSummary(detail);
   }
 
   public PlaceDetail findBookmarkPinDetail(UUID memberKey, Long placeId) {
     Long memberId = getMemberId(memberKey);
     List<Long> blockedIds = blockRepository.findBlockedMemberIdsByBlockerId(memberId);
-    return mapQueryRepository
-        .findBookmarkPinDetailByPlaceId(memberId, placeId, blockedIds)
-        .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
+    PlaceDetail detail =
+        mapQueryRepository
+            .findBookmarkPinDetailByPlaceId(memberId, placeId, blockedIds)
+            .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
+    return withReviewSummary(detail);
+  }
+
+  private PlaceDetail withReviewSummary(PlaceDetail detail) {
+    PlaceReviewRatingSummary ratingSummary =
+        placeReviewStatisticsService.getRatingSummary(detail.getPlaceId());
+    return PlaceDetail.of(
+        detail.getPlaceId(),
+        detail.getPlaceName(),
+        detail.getAddress(),
+        detail.getCount(),
+        detail.getAvgFocus(),
+        detail.getTotalStudyTime(),
+        detail.getThumbnailUrl(),
+        detail.getPlaceCategory(),
+        ratingSummary.reviewCount(),
+        ratingSummary.averageRating());
   }
 
   private Long getMemberId(UUID memberKey) {

@@ -34,17 +34,16 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
+      # Docker Buildx 세팅 (GHA 캐시 백엔드 활성화용)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # 컴파일 캐시 옵션 활성화 및 clean 제거
       - name: Build with Gradle
-        run: ./gradlew clean build -x test
-
-      - name: Docker Build
-        run: |
-          docker build \
-            -t ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPOSITORY }}:latest \
-            -t ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPOSITORY }}:${GITHUB_SHA::8} .
+        run: ./gradlew build -x test --build-cache
 
       - name: Docker Hub Login
         uses: docker/login-action@v3
@@ -52,10 +51,17 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Docker Hub Push
-        run: |
-          docker push ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPOSITORY }}:latest
-          docker push ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPOSITORY }}:${GITHUB_SHA::8}
+      # 캐시 백엔드(gha)를 활용한 이미지 빌드 및 푸시 통합
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPOSITORY }}:latest
+            ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPOSITORY }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max,ignore-error=true
 
       - name: Copy promtail-config to server
         uses: appleboy/scp-action@master
@@ -83,6 +89,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            set -Eeuo pipefail
             cd ${{ secrets.DEPLOY_DIR }}
             cat > .env.dev << EOF
             MYSQL_ROOT_PASSWORD=$(gcloud secrets versions access latest --secret=dev-MYSQL_ROOT_PASSWORD)
@@ -108,6 +115,12 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            set -Eeuo pipefail
             cd ${{ secrets.DEPLOY_DIR }}
-            docker compose -f docker-compose.dev.yml --env-file .env.dev pull
-            docker compose -f docker-compose.dev.yml --env-file .env.dev up -d
+            docker compose -f docker-compose.dev.yml --env-file .env.dev pull spring
+            docker compose -f docker-compose.dev.yml --env-file .env.dev up -d --no-deps --wait --wait-timeout 180 spring
+            docker exec nginx nginx -t
+            docker exec nginx nginx -s reload
+            curl -kfsS --retry 12 --retry-delay 5 --retry-all-errors \
+              -H "Host: plog-server.duckdns.org" \
+              https://127.0.0.1/actuator/health
