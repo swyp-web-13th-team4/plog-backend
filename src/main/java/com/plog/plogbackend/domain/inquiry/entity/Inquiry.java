@@ -66,4 +66,13 @@ public class Inquiry extends BaseTimeStatusEntity {
     this.title = title;
     this.content = content;
   }
+
+  public void answer(
+      @NotBlank Category category, @NotBlank String answerTitle, @NotBlank String answerContent) {
+
+    this.category = category;
+    this.title = title;
+    this.content = content;
+    this.answerTime = LocalDateTime.now();
+  }
 }

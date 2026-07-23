@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class InquiryService {
 
   private final InquiryRepository inquiryRepository;
@@ -98,7 +99,7 @@ public class InquiryService {
     }
     if (images != null && !images.isEmpty()) {
       for (MultipartFile file : images) {
-        String uploadUrl = cloudStorageService.upload(file, "unquiry");
+        String uploadUrl = cloudStorageService.upload(file, "inquiry");
         InquiryImages inquiryImage = InquiryImages.of(uploadUrl, inquiry);
         inquiryImageRepository.save(inquiryImage);
       }

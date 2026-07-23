@@ -12,7 +12,10 @@ public record InquiryResponse(
     String content,
     Status status,
     List<String> imageUrls,
-    LocalDateTime localDateTime) {
+    LocalDateTime localDateTime,
+    String answerTitle,
+    String answerContent,
+    LocalDateTime answerTime) {
 
   public InquiryResponse(Inquiry inquiry) {
     this(
@@ -21,7 +24,10 @@ public record InquiryResponse(
         inquiry.getContent(),
         inquiry.getInquiryStatus(),
         inquiry.getImages().stream().map(InquiryImages::getImageUrl).toList(),
-        inquiry.getCreatedAt());
+        inquiry.getCreatedAt(),
+        inquiry.getAnswerTitle(),
+        inquiry.getAnswerContent(),
+        inquiry.getAnswerTime());
   }
 
   public static InquiryResponse from(Inquiry inquiry) {
