@@ -10,6 +10,8 @@ import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.domain.post.enums.PlaceCategoryCode;
 import com.plog.plogbackend.domain.post.repository.PostRepository;
+import com.plog.plogbackend.domain.review.repository.dto.PlaceReviewRatingSummary;
+import com.plog.plogbackend.domain.review.service.PlaceReviewStatisticsService;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +29,7 @@ class MapServiceTest {
   @Mock private PostRepository postRepository;
   @Mock private BookMarkRepository bookMarkRepository;
   @Mock private com.plog.plogbackend.domain.block.repository.BlockRepository blockRepository;
+  @Mock private PlaceReviewStatisticsService placeReviewStatisticsService;
   @Mock private Member member;
   @InjectMocks private MapService mapService;
 
@@ -41,10 +44,13 @@ class MapServiceTest {
     given(memberRepository.findByMemberKey(memberKey)).willReturn(Optional.of(member));
     given(mapQueryRepository.findRecordPinDetailByPlaceId(memberId, placeId))
         .willReturn(Optional.of(detail));
+    given(placeReviewStatisticsService.getRatingSummary(placeId))
+        .willReturn(new PlaceReviewRatingSummary(10L, 4.2));
 
     PlaceDetail result = mapService.findRecordPinDetail(memberKey, placeId);
 
-    assertThat(result).isSameAs(detail);
+    assertThat(result.getReviewCount()).isEqualTo(10L);
+    assertThat(result.getAverageRating()).isEqualTo(4.2);
   }
 
   @Test
@@ -64,10 +70,13 @@ class MapServiceTest {
                 org.mockito.ArgumentMatchers.eq(placeId),
                 org.mockito.ArgumentMatchers.any()))
         .willReturn(Optional.of(detail));
+    given(placeReviewStatisticsService.getRatingSummary(placeId))
+        .willReturn(new PlaceReviewRatingSummary(8L, 4.5));
 
     PlaceDetail result = mapService.findBookmarkPinDetail(memberKey, placeId);
 
-    assertThat(result).isSameAs(detail);
+    assertThat(result.getReviewCount()).isEqualTo(8L);
+    assertThat(result.getAverageRating()).isEqualTo(4.5);
   }
 
   private PlaceDetail placeDetail(Long placeId) {
@@ -79,6 +88,8 @@ class MapServiceTest {
         4.5,
         1440L,
         "https://storage/place.jpg",
-        PlaceCategoryCode.CAFE);
+        PlaceCategoryCode.CAFE,
+        0L,
+        0.0);
   }
 }

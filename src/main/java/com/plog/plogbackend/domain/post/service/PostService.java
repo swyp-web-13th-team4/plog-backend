@@ -26,7 +26,6 @@ import com.plog.plogbackend.domain.tag.enums.PlaceTag;
 import com.plog.plogbackend.domain.tag.repository.TagRepository;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,8 +43,6 @@ public class PostService {
 
   /** 첫 게시글 작성 뱃지 ID */
   private static final long BADGE_ID_FIRST_POST = 2L;
-
-  private static final int ACTIVITY_DAY_CUTOFF_HOURS = 6;
 
   private final MemberRepository memberRepository;
   private final TagRepository tagRepository;
@@ -202,15 +199,14 @@ public class PostService {
     return new StudyTimeRange(start, end);
   }
 
-  private static LocalDateTime adjustEndedAt(LocalDateTime startedAt, LocalDateTime ended) {
-    if (ended.isAfter(startedAt)) {
-      return ended;
-    }
-    Duration backwardGap = Duration.between(ended, startedAt);
-    if (backwardGap.toHours() >= ACTIVITY_DAY_CUTOFF_HOURS) {
+  static LocalDateTime adjustEndedAt(LocalDateTime startedAt, LocalDateTime endedAtOnStudyDate) {
+    if (endedAtOnStudyDate.isEqual(startedAt)) {
       throw new AppException(ErrorType.INVALID_STUDY_TIME_RANGE);
     }
-    return ended.plusDays(1);
+    if (endedAtOnStudyDate.isBefore(startedAt)) {
+      return endedAtOnStudyDate.plusDays(1);
+    }
+    return endedAtOnStudyDate;
   }
 
   private record StudyTimeRange(LocalDateTime startedAt, LocalDateTime endedAt) {}

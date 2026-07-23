@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Test;
 class PlaceDetailResponseTest {
 
   @Test
-  @DisplayName("장소 상세 응답에는 장소 정보만 포함한다")
-  void from_excludesReviewSummary() {
+  @DisplayName("장소 상세 응답에는 장소 정보와 리뷰 요약을 포함한다")
+  void from_includesReviewSummary() {
     PlaceDetail detail =
         PlaceDetail.of(
             1L,
@@ -21,12 +21,16 @@ class PlaceDetailResponseTest {
             4.5,
             1440L,
             "https://storage/place.jpg",
-            PlaceCategoryCode.CAFE);
+            PlaceCategoryCode.CAFE,
+            12L,
+            4.3);
 
     PlaceDetailResponse response = PlaceDetailResponse.from(detail);
 
     assertThat(response.placeId()).isEqualTo(1L);
     assertThat(response.placeName()).isEqualTo("스타벅스 광화문점");
     assertThat(response.placeCategory()).isEqualTo(PlaceCategoryCode.CAFE);
+    assertThat(response.reviewCount()).isEqualTo(12L);
+    assertThat(response.averageRating()).isEqualTo(4.3);
   }
 }
