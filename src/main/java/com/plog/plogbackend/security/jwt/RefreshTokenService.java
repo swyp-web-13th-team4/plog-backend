@@ -1,5 +1,6 @@
 package com.plog.plogbackend.security.jwt;
 
+import com.plog.plogbackend.domain.member.enums.Role;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import java.util.Optional;
@@ -29,8 +30,8 @@ public class RefreshTokenService {
 
   /** 회원의 refresh token을 생성하고 DB에 저장합니다. 기존 토큰이 있으면 갱신합니다. */
   @Transactional
-  public String createRefreshToken(UUID memberKey) {
-    String tokenValue = jwtProvider.createRefreshToken(memberKey);
+  public String createRefreshToken(UUID memberKey,Role role) {
+    String tokenValue = jwtProvider.createRefreshToken(memberKey,role);
     long validityInMs = jwtProvider.getRefreshTokenValidityInMs();
 
     Optional<RefreshToken> existing = refreshTokenRepository.findByMemberKey(memberKey);
@@ -66,6 +67,8 @@ public class RefreshTokenService {
     // 2) DB에서 토큰 조회 (동시 갱신 요청 직렬화를 위해 Pessimistic Write Lock 사용)
     // JWT에서 memberKey를 추출하여 Race Condition 시 fallback에 활용
     UUID memberKeyFromJwt = jwtProvider.getMemberKeyFromToken(refreshTokenValue);
+    String roleStr = jwtProvider.getRoleFromToken(refreshTokenValue);
+    Role role = (roleStr != null) ? Role.valueOf(roleStr) : Role.ROLE_USER;
 
     RefreshToken storedToken =
         refreshTokenRepository
@@ -88,10 +91,10 @@ public class RefreshTokenService {
 
     // 4) 새 Access Token 발급
     UUID memberKey = storedToken.getMemberKey();
-    String newAccessToken = jwtProvider.createAccessToken(memberKey);
+    String newAccessToken = jwtProvider.createAccessToken(memberKey,role);
 
     // 5) Refresh Token Rotation - 새 refresh token으로 교체
-    String newRefreshToken = jwtProvider.createRefreshToken(memberKey);
+    String newRefreshToken = jwtProvider.createRefreshToken(memberKey,role);
     storedToken.updateToken(newRefreshToken, jwtProvider.getRefreshTokenValidityInMs());
 
     return new TokenPair(newAccessToken, newRefreshToken);

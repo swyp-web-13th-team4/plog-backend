@@ -4,6 +4,7 @@ import com.plog.plogbackend.security.error.CustomAccessDeniedHandler;
 import com.plog.plogbackend.security.error.CustomAuthenticationEntryPoint;
 import com.plog.plogbackend.security.error.OAuth2FailureHandler;
 import com.plog.plogbackend.security.jwt.JwtAuthenticationFilter;
+import com.plog.plogbackend.security.jwt.LoginOriginFilter;
 import com.plog.plogbackend.security.oauth2.CustomOAuth2UserService;
 import com.plog.plogbackend.security.oauth2.OAuth2SuccessHandler;
 import jakarta.servlet.DispatcherType;
@@ -17,6 +18,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.NullSecurityContextRepository;
@@ -37,6 +39,7 @@ public class SecurityConfig {
   private final OAuth2FailureHandler oAuth2FailureHandler;
   private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
   private final CustomAccessDeniedHandler customAccessDeniedHandler;
+  private final LoginOriginFilter loginOriginFilter;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -82,6 +85,11 @@ public class SecurityConfig {
                     // Swagger 등 API 문서
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                     .permitAll()
+                        .requestMatchers("/admin/login", "/admin/css/**", "/admin/js/**")
+                        .permitAll()
+
+                        .requestMatchers("/admin/**")
+                        .hasRole("ADMIN")
 
                     // 회원가입 API와 소셜 로그인
                     .requestMatchers(
@@ -164,6 +172,7 @@ public class SecurityConfig {
 
         // 5. JWT 필터를 시큐리티 기본 필터 앞에 추가
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(loginOriginFilter, OAuth2AuthorizationRequestRedirectFilter.class)
 
         // 6. 예외 처리 설정 (401, 403)
         .exceptionHandling(
