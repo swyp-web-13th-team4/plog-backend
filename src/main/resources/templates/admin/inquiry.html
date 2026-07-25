@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>1:1 문의 관리</title>
+  <link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+<body>
+<div class="layout">
+  <div th:replace="~{admin/fragments/common :: sidebar}"></div>
+  <div class="main">
+    <div th:replace="~{admin/fragments/common :: header('1:1 문의 관리')}"></div>
+
+    <div class="grid-4">
+      <div class="card stat-card">
+        <div class="stat-label">전체 문의 💬</div>
+        <div class="stat-value" id="statTotal">-</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-label">미답변 ⚠️</div>
+        <div class="stat-value" id="statWaiting">-</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-label">답변 대기 📈</div>
+        <div class="stat-value" id="statPending">-</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-label">답변완료 👤</div>
+        <div class="stat-value" id="statDone">-</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:15px;">1:1 문의 목록</h3>
+        <div class="filters">
+          <select><option>전체 카테고리</option></select>
+          <select><option>전체</option></select>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+        <tr><th>제목</th><th>작성자</th><th>카테고리</th><th>작성일자</th><th>상태</th></tr>
+        </thead>
+        <tbody id="inquiryTableBody"><!-- 목록 --></tbody>
+      </table>
+    </div>
+
+    <!-- 상세 + 답변 패널 (행 클릭 시 표시) -->
+    <div class="card" id="detailPanel" style="display:none; margin-top:20px;">
+      <div style="display:flex; justify-content:space-between;">
+        <h3 id="detailTitle" style="font-size:15px;"></h3>
+        <span class="tag" id="detailStatusTag"></span>
+      </div>
+      <p id="detailAuthor" style="font-size:12px; color:#9ca3af; margin-top:4px;"></p>
+      <p id="detailContent" style="margin-top:12px; font-size:14px; line-height:1.6;"></p>
+
+      <label>답변 작성</label>
+      <textarea id="answerContent" placeholder="답변을 입력하세요"></textarea>
+
+      <div class="row-2" style="margin-top:12px;">
+        <select id="answerStatus">
+          <option value="">상태 선택...</option>
+          <option value="WAITING">답변 대기</option>
+          <option value="ANSWERED">답변 완료</option>
+          <option value="CLOSED">종료</option>
+        </select>
+        <button class="btn-primary" style="margin-top:0;" onclick="submitAnswer()">답변 등록</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  let currentInquiryId = null;
+
+  async function loadStats() {
+    const res = await fetch('/admin/api/inquiry/count');
+    const json = await res.json();
+    const d = json.data || {};
+    document.getElementById('statTotal').innerText = d.total ?? 0;
+    document.getElementById('statWaiting').innerText = d.waiting ?? 0;
+    document.getElementById('statPending').innerText = d.pending ?? 0;
+    document.getElementById('statDone').innerText = d.done ?? 0;
+  }
+
+  async function loadInquiries() {
+    const res = await fetch('/admin/api/inquiry');
+    const json = await res.json();
+    const list = json.data || [];
+    const tbody = document.getElementById('inquiryTableBody');
+    tbody.innerHTML = list.map(i => `
+            <tr onclick="openDetail(${i.id})">
+                <td>${i.title}</td>
+                <td>${i.authorName}</td>
+                <td>${i.category}</td>
+                <td>${i.createdDate}</td>
+                <td><span class="tag ${statusTag(i.status)}">${statusLabel(i.status)}</span></td>
+            </tr>`).join('');
+  }
+
+  function statusTag(status) {
+    if (status === 'WAITING') return 'tag-waiting';
+    if (status === 'ANSWERED') return 'tag-answered';
+    return 'tag-closed';
+  }
+  function statusLabel(status) {
+    if (status === 'WAITING') return '답변 대기';
+    if (status === 'ANSWERED') return '답변 완료';
+    return '종료';
+  }
+
+  async function openDetail(id) {
+    currentInquiryId = id;
+    const res = await fetch(`/admin/api/inquiry/${id}`);
+    const json = await res.json();
+    const d = json.data;
+
+    document.getElementById('detailPanel').style.display = 'block';
+    document.getElementById('detailTitle').innerText = d.title;
+    document.getElementById('detailStatusTag').innerText = statusLabel(d.status);
+    document.getElementById('detailStatusTag').className = 'tag ' + statusTag(d.status);
+    document.getElementById('detailAuthor').innerText = `${d.authorName} · ${d.authorEmail}`;
+    document.getElementById('detailContent').innerText = d.content;
+    document.getElementById('answerContent').value = d.answerContent || '';
+
+    document.getElementById('detailPanel').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function submitAnswer() {
+    if (!currentInquiryId) return;
+    const body = {
+      content: document.getElementById('answerContent').value,
+      status: document.getElementById('answerStatus').value,
+    };
+    const res = await fetch(`/admin/api/inquiry/${currentInquiryId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (res.ok) {
+      loadInquiries();
+      loadStats();
+      openDetail(currentInquiryId);
+    }
+  }
+
+  loadStats();
+  loadInquiries();
+</script>
+</body>
+</html>
