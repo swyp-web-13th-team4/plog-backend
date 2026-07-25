@@ -14,7 +14,11 @@ public record AdminInquiryResponse(
     String memberId,
     Status status,
     List<String> imageUrls,
-    LocalDateTime localDateTime) {
+    LocalDateTime localDateTime,
+    String answerTitle,
+    String answerContent,
+    LocalDateTime answeredAt) {
+
 
   public AdminInquiryResponse(Inquiry inquiry) {
     this(
@@ -25,7 +29,10 @@ public record AdminInquiryResponse(
         inquiry.getMember().getProviderId(),
         inquiry.getInquiryStatus(),
         inquiry.getImages().stream().map(InquiryImages::getImageUrl).toList(),
-        inquiry.getCreatedAt());
+        inquiry.getCreatedAt(),
+            inquiry.getAnswerTitle(),
+            inquiry.getAnswerContent(),
+            inquiry.getAnswerTime());
   }
 
   public static AdminInquiryResponse from(Inquiry inquiry) {
