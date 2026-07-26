@@ -33,7 +33,7 @@ public class AdminNoticeController {
   public ResponseEntity<ApiResponse<List<NoticeListResponse>>> noticeList(NoticeRequest request) {
     List<NoticesResult> noticeResults = noticeService.noticeResultList(request);
     List<NoticeListResponse> responses =
-            noticeResults.stream().map(NoticeListResponse::of).toList();
+        noticeResults.stream().map(NoticeListResponse::of).toList();
     return ResponseEntity.ok(ApiResponse.success(responses));
   }
 
@@ -51,7 +51,7 @@ public class AdminNoticeController {
 
   @PatchMapping("/{id}")
   public ResponseEntity<ApiResponse<Long>> updateNotice(
-          @PathVariable Long id, @RequestBody @Valid NewNoticeRequest request) {
+      @PathVariable Long id, @RequestBody @Valid NewNoticeRequest request) {
     noticeService.updateNotice(id, request);
     return ResponseEntity.ok(ApiResponse.success(id));
   }

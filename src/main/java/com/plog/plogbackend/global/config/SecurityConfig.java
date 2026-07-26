@@ -85,11 +85,10 @@ public class SecurityConfig {
                     // Swagger 등 API 문서
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                     .permitAll()
-                        .requestMatchers("/admin/login", "/admin/css/**", "/admin/js/**")
-                        .permitAll()
-
-                        .requestMatchers("/admin/**")
-                        .hasRole("ADMIN")
+                    .requestMatchers("/admin/login", "/admin/css/**", "/admin/js/**")
+                    .permitAll()
+                    .requestMatchers("/admin/**")
+                    .hasRole("ADMIN")
 
                     // 회원가입 API와 소셜 로그인
                     .requestMatchers(
@@ -172,7 +171,7 @@ public class SecurityConfig {
 
         // 5. JWT 필터를 시큐리티 기본 필터 앞에 추가
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(loginOriginFilter, OAuth2AuthorizationRequestRedirectFilter.class)
+        .addFilterBefore(loginOriginFilter, OAuth2AuthorizationRequestRedirectFilter.class)
 
         // 6. 예외 처리 설정 (401, 403)
         .exceptionHandling(

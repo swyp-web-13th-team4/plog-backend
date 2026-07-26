@@ -32,15 +32,16 @@ public class AdminInquiryController {
   }
 
   @GetMapping("/{id}")
-  public ApiResponse<AdminInquiryResponse> inquiry(@PathVariable Long id,@AuthenticationPrincipal UUID memberKey) {
-    return ApiResponse.success(adminInquiryService.findInquiry(id,memberKey));
+  public ApiResponse<AdminInquiryResponse> inquiry(
+      @PathVariable Long id, @AuthenticationPrincipal UUID memberKey) {
+    return ApiResponse.success(adminInquiryService.findInquiry(id, memberKey));
   }
 
   @PostMapping("/{id}")
   public ApiResponse<AdminAnswerInquiryResponse> answer(
-          @PathVariable Long id,
-          @RequestBody @Valid AnswerInquiryRequest request,
-          @AuthenticationPrincipal UUID memberKey) {
+      @PathVariable Long id,
+      @RequestBody @Valid AnswerInquiryRequest request,
+      @AuthenticationPrincipal UUID memberKey) {
     return ApiResponse.success(adminInquiryService.createAnswer(id, request, memberKey));
   }
 }

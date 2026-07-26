@@ -47,7 +47,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
       // [기존 회원] -> 일반 로그인 처리
       // ==========================================
       Member member = memberOpt.get();
-      String accessToken = jwtProvider.createAccessToken(member.getMemberKey(),member.getRole());
+      String accessToken = jwtProvider.createAccessToken(member.getMemberKey(), member.getRole());
 
       org.springframework.http.ResponseCookie accessCookie =
           cookieUtil.createCookie(
@@ -55,7 +55,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
       response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, accessCookie.toString());
 
       // Refresh Token 발급 및 DB 저장
-      String refreshToken = refreshTokenService.createRefreshToken(member.getMemberKey(),member.getRole());
+      String refreshToken =
+          refreshTokenService.createRefreshToken(member.getMemberKey(), member.getRole());
       org.springframework.http.ResponseCookie refreshCookie =
           cookieUtil.createCookie(
               "refreshToken", refreshToken, jwtProvider.getRefreshTokenValidityInMs());

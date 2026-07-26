@@ -56,13 +56,13 @@ public class JwtProvider {
         .compact();
   }
 
-  public String createAccessToken(UUID memberKey ,Role role) {
+  public String createAccessToken(UUID memberKey, Role role) {
     Date now = new Date();
     Date validity = new Date(now.getTime() + accessTokenValidityInMs);
     return Jwts.builder()
         .subject("ACCESS")
         .claim("memberKey", memberKey.toString()) // 회원 식별자는 ID 가 아니라 memberKey로 결정
-            .claim("role",role.name())
+        .claim("role", role.name())
         .issuedAt(now)
         .expiration(validity)
         .signWith(key)
@@ -75,7 +75,7 @@ public class JwtProvider {
     return Jwts.builder()
         .subject("REFRESH")
         .claim("memberKey", memberKey.toString())
-            .claim("role",role.name())
+        .claim("role", role.name())
         .issuedAt(now)
         .expiration(validity)
         .signWith(key)
@@ -147,9 +147,9 @@ public class JwtProvider {
     return UUID.fromString(memberKeyString);
   }
 
-    public String getRoleFromToken(String token) { // JWT 토큰에서 Role 가져오는 메서드
-        Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
-        String role = claims.get("role", String.class);
-        return role;
-    }
+  public String getRoleFromToken(String token) { // JWT 토큰에서 Role 가져오는 메서드
+    Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+    String role = claims.get("role", String.class);
+    return role;
+  }
 }

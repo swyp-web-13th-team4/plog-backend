@@ -74,6 +74,6 @@ public class Inquiry extends BaseTimeStatusEntity {
     this.title = title;
     this.content = content;
     this.answerTime = LocalDateTime.now();
-    this.inquiryStatus=Status.FINISH;
+    this.inquiryStatus = Status.FINISH;
   }
 }
