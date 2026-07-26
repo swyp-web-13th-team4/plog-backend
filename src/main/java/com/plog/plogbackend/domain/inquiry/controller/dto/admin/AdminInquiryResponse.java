@@ -19,7 +19,6 @@ public record AdminInquiryResponse(
     String answerContent,
     LocalDateTime answeredAt) {
 
-
   public AdminInquiryResponse(Inquiry inquiry) {
     this(
         inquiry.getId(),
@@ -30,9 +29,9 @@ public record AdminInquiryResponse(
         inquiry.getInquiryStatus(),
         inquiry.getImages().stream().map(InquiryImages::getImageUrl).toList(),
         inquiry.getCreatedAt(),
-            inquiry.getAnswerTitle(),
-            inquiry.getAnswerContent(),
-            inquiry.getAnswerTime());
+        inquiry.getAnswerTitle(),
+        inquiry.getAnswerContent(),
+        inquiry.getAnswerTime());
   }
 
   public static AdminInquiryResponse from(Inquiry inquiry) {
