@@ -1,6 +1,7 @@
 package com.plog.plogbackend.security.oauth2;
 
 import com.plog.plogbackend.domain.member.Member;
+import com.plog.plogbackend.domain.member.enums.Role;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
 import com.plog.plogbackend.global.util.CookieUtil;
 import com.plog.plogbackend.security.jwt.JwtProvider;
@@ -41,13 +42,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     // 2. DB에서 회원 조회 - 기존 사용자 인지 아니면 회원가입자 인지 판단하기위한 멤버
     Optional<Member> memberOpt = memberRepository.findByProviderId(providerId);
-
     if (memberOpt.isPresent()) {
       // ==========================================
       // [기존 회원] -> 일반 로그인 처리
       // ==========================================
       Member member = memberOpt.get();
-      String accessToken = jwtProvider.createAccessToken(member.getMemberKey());
+      String accessToken = jwtProvider.createAccessToken(member.getMemberKey(),member.getRole());
 
       org.springframework.http.ResponseCookie accessCookie =
           cookieUtil.createCookie(
@@ -55,11 +55,24 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
       response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, accessCookie.toString());
 
       // Refresh Token 발급 및 DB 저장
-      String refreshToken = refreshTokenService.createRefreshToken(member.getMemberKey());
+      String refreshToken = refreshTokenService.createRefreshToken(member.getMemberKey(),member.getRole());
       org.springframework.http.ResponseCookie refreshCookie =
           cookieUtil.createCookie(
               "refreshToken", refreshToken, jwtProvider.getRefreshTokenValidityInMs());
       response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+      String loginOrigin = (String) request.getSession().getAttribute("LOGIN_ORIGIN");
+      request.getSession().removeAttribute("LOGIN_ORIGIN"); // 1회용이니 바로 제거
+
+      if ("admin".equals(loginOrigin)) {
+        if (member.getRole() != Role.ADMIN) {
+          // 관리자 폼으로 로그인했는데 실제론 권한 없는 사람 -> 막기
+          getRedirectStrategy().sendRedirect(request, response, "/admin/login?error=forbidden");
+          return;
+        }
+        getRedirectStrategy().sendRedirect(request, response, "/admin/dashboard");
+        return;
+      }
 
       // 프론트엔드 콜백 페이지로 토큰을 URL 파라미터로 전달
       String redirectUrl =

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>관리자 로그인</title>
+  <link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-box">
+    <h1>서비스명 Admin</h1>
+    <p class="error-msg" th:if="${errorMessage}" th:text="${errorMessage}"></p>
+    <a class="kakao-btn" href="/oauth2/authorization/kakao?redirect=admin">카카오로 로그인</a>
+  </div>
+</div>
+</body>
+</html>

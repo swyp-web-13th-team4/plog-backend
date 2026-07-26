@@ -19,6 +19,8 @@ spring:
 
   jpa:
     open-in-view: false
+    hibernate:
+      ddl-auto: update
 
   security:
     oauth2:

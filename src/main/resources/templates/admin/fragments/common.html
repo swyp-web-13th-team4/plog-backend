@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="sidebar" class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-title">서비스명 Admin</div>
+    <div class="logo-sub">관리자 포털</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">콘텐츠</div>
+    <a href="/admin/notice" class="sidebar-item">공지사항</a>
+    <a href="/admin/inquiry" class="sidebar-item">
+      1:1 문의
+      <span class="badge" th:if="${pendingInquiryCount != null and pendingInquiryCount > 0}"
+            th:text="${pendingInquiryCount}"></span>
+    </a>
+    <a href="/admin/faq" class="sidebar-item">FAQ 관리</a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">회원</div>
+    <a href="/admin/members" class="sidebar-item">회원 목록</a>
+    <a href="/admin/stats" class="sidebar-item">통계</a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">설정</div>
+    <a href="/admin/settings" class="sidebar-item">환경 설정</a>
+  </div>
+</div>
+
+<div th:fragment="header(title)" class="topbar">
+  <h1 class="page-title" th:text="${title}">페이지 제목</h1>
+  <div class="topbar-actions">
+    <span class="icon-bell">🔔</span>
+    <a href="/admin/logout" class="btn-admin-name">관리</a>
+  </div>
+</div>
+
+</body>
+</html>

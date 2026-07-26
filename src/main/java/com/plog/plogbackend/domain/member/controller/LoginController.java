@@ -1,6 +1,7 @@
 package com.plog.plogbackend.domain.member.controller;
 
 import com.plog.plogbackend.domain.member.dto.request.MemberSignupRequest;
+import com.plog.plogbackend.domain.member.enums.Role;
 import com.plog.plogbackend.domain.member.service.MemberService;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
@@ -52,15 +53,16 @@ public class LoginController {
     // 1. 회원 저장 후 memberKey 반환
     UUID memberKey = memberService.signup(registerToken, request, profileImage, defaultImageId);
 
+
     // 2. 컨트롤러에서 accessToken 생성 후 쿠키에 담음
-    String accessToken = jwtProvider.createAccessToken(memberKey);
+    String accessToken = jwtProvider.createAccessToken(memberKey,Role.ROLE_USER);
     ResponseCookie accessCookie =
         cookieUtil.createCookie(
             "accessToken", accessToken, jwtProvider.getAccessTokenValidityInMs());
     response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
 
     // 3. Refresh Token 발급 및 DB 저장 후 쿠키에 담음
-    String refreshToken = refreshTokenService.createRefreshToken(memberKey);
+    String refreshToken = refreshTokenService.createRefreshToken(memberKey,Role.ROLE_USER);
     ResponseCookie refreshCookie =
         cookieUtil.createCookie(
             "refreshToken", refreshToken, jwtProvider.getRefreshTokenValidityInMs());

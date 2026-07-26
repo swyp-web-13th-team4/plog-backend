@@ -7,12 +7,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -86,8 +89,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   /** SecurityContext에 인증 정보를 설정합니다. */
   private void setAuthentication(String token, HttpServletRequest request) {
     UUID memberKey = jwtProvider.getMemberKeyFromToken(token);
+    String role = jwtProvider.getRoleFromToken(token);
+
+    List<GrantedAuthority> authorities =
+            (role !=null) ?
+            List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                    : Collections.emptyList();
+
     UsernamePasswordAuthenticationToken authentication =
-        new UsernamePasswordAuthenticationToken(memberKey, null, Collections.emptyList());
+            new UsernamePasswordAuthenticationToken(memberKey, null, authorities);
     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
     SecurityContextHolder.getContext().setAuthentication(authentication);
   }

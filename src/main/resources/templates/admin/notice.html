@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>공지사항 관리</title>
+  <link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+<body>
+<div class="layout">
+  <div th:replace="~{admin/fragments/common :: sidebar}"></div>
+  <div class="main">
+    <div th:replace="~{admin/fragments/common :: header('공지사항 관리')}"></div>
+
+    <div class="grid-2">
+      <!-- 등록/수정 폼 -->
+      <div class="card">
+        <h3 style="font-size:15px; margin-bottom:4px;" id="formTitle">공지사항 등록</h3>
+
+        <input type="hidden" id="noticeId">
+
+        <label>제목</label>
+        <input type="text" id="noticeTitle" placeholder="공지 제목을 입력하세요">
+
+        <label>내용</label>
+        <textarea id="noticeContent" maxlength="2000" oninput="updateCharCount()"></textarea>
+        <div class="char-count"><span id="charCount">0</span> / 2000자</div>
+
+        <button class="btn-primary" id="submitBtn" onclick="submitNotice()">📨 등록하기</button>
+        <button class="btn-primary" id="cancelBtn" style="display:none; background:#9ca3af; margin-top:8px;" onclick="resetForm()">취소</button>
+      </div>
+
+      <!-- 등록된 목록 -->
+      <div class="card">
+        <h3 style="font-size:15px; margin-bottom:12px;">등록된 공지사항</h3>
+
+        <table>
+          <thead>
+          <tr><th>제목</th><th>내용</th><th>등록일시</th><th></th></tr>
+          </thead>
+          <tbody id="noticeTableBody">
+          <!-- JS로 채워짐 -->
+          </tbody>
+        </table>
+
+        <div style="display:flex; justify-content:center; gap:8px; margin-top:16px;">
+          <button class="icon-btn" onclick="changePage(-1)">이전</button>
+          <span id="pageLabel" style="font-size:13px;">1</span>
+          <button class="icon-btn" onclick="changePage(1)">다음</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  let currentPage = 0;
+
+  function updateCharCount() {
+    const content = document.getElementById('noticeContent').value;
+    document.getElementById('charCount').innerText = content.length;
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    // LocalDateTime -> "2025.06.20 14:32" 형태로 표시
+    const d = new Date(dateStr);
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function truncate(text, len) {
+    if (!text) return '';
+    return text.length > len ? text.slice(0, len) + '…' : text;
+  }
+
+  async function loadNotices() {
+    const res = await fetch(`/admin/api/notice?page=${currentPage}`);
+    const json = await res.json();
+    const list = json.data || [];
+
+    const tbody = document.getElementById('noticeTableBody');
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#9ca3af;">등록된 공지사항이 없습니다.</td></tr>`;
+    } else {
+      tbody.innerHTML = list.map(n => `
+                <tr>
+                    <td onclick="loadForEdit(${n.id})">${n.title}</td>
+                    <td onclick="loadForEdit(${n.id})">${truncate(n.content, 20)}</td>
+                    <td onclick="loadForEdit(${n.id})">${formatDate(n.localDateTime)}</td>
+                    <td onclick="event.stopPropagation()">
+                        <button class="icon-btn" onclick="loadForEdit(${n.id})">✏️</button>
+                        <button class="icon-btn" onclick="deleteNotice(${n.id})">🗑</button>
+                    </td>
+                </tr>`).join('');
+    }
+
+    document.getElementById('pageLabel').innerText = currentPage + 1;
+  }
+
+  function changePage(delta) {
+    const next = currentPage + delta;
+    if (next < 0) return;
+    currentPage = next;
+    loadNotices();
+  }
+
+  async function loadForEdit(id) {
+    const res = await fetch(`/admin/api/notice/${id}`);
+    const json = await res.json();
+    const n = json.data;
+
+    document.getElementById('noticeId').value = n.id;
+    document.getElementById('noticeTitle').value = n.title;
+    document.getElementById('noticeContent').value = n.content;
+    updateCharCount();
+
+    document.getElementById('formTitle').innerText = '공지사항 수정';
+    document.getElementById('submitBtn').innerText = '✏️ 수정하기';
+    document.getElementById('cancelBtn').style.display = 'block';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function resetForm() {
+    document.getElementById('noticeId').value = '';
+    document.getElementById('noticeTitle').value = '';
+    document.getElementById('noticeContent').value = '';
+    updateCharCount();
+
+    document.getElementById('formTitle').innerText = '공지사항 등록';
+    document.getElementById('submitBtn').innerText = '📨 등록하기';
+    document.getElementById('cancelBtn').style.display = 'none';
+  }
+
+  async function submitNotice() {
+    const id = document.getElementById('noticeId').value;
+    const title = document.getElementById('noticeTitle').value.trim();
+    const content = document.getElementById('noticeContent').value.trim();
+
+    if (!title || !content) {
+      alert('제목과 내용을 모두 입력해주세요.');
+      return;
+    }
+
+    const body = { title, content };
+    const url = id ? `/admin/api/notice/${id}` : '/admin/api/notice/new';
+    const method = id ? 'PATCH' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (res.ok) {
+      resetForm();
+      loadNotices();
+    } else {
+      alert('저장에 실패했습니다.');
+    }
+  }
+
+  async function deleteNotice(id) {
+    if (!confirm('삭제하시겠습니까?')) return;
+    const res = await fetch(`/admin/api/notice/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      loadNotices();
+    }
+  }
+
+  loadNotices();
+</script>
+</body>
+</html>

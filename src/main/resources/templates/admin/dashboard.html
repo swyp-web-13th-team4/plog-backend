@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>관리자 대시보드</title>
+  <link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+<body>
+<div class="layout">
+  <div th:replace="~{admin/fragments/common :: sidebar}"></div>
+  <div class="main">
+    <div th:replace="~{admin/fragments/common :: header('대시보드')}"></div>
+    <div class="card">
+      <p>왼쪽 메뉴에서 공지사항 또는 1:1 문의 관리로 이동하세요.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
