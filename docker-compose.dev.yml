@@ -29,6 +29,8 @@ services:
       DB_URL: ${DEV_DB_URL}
       DB_USERNAME: ${DEV_DB_USERNAME}
       DB_PASSWORD: ${DEV_DB_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
       KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
@@ -38,6 +40,8 @@ services:
       - /var/log/plog:/var/log/plog
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
@@ -86,6 +90,23 @@ services:
     networks:
       - app-tier
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Seoul
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD","redis-cli","ping"]
+      interval: 10s
+      retries: 5
+    networks:
+      - data-tier
+
 networks:
   app-tier:
     driver: bridge
@@ -94,3 +115,4 @@ networks:
 
 volumes:
   mysql-data:
+  redis-data:

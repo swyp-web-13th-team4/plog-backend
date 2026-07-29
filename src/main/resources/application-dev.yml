@@ -5,12 +5,16 @@ spring:
   config:
     activate:
       on-profile: dev
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:redis}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
 
   security:
     front:
       cors:
-        allowed-origins: "https://www.plog.today, https://localhost:3000, https://localhost:5173" # 프론트 CORS 허용 주소
-      frontend-url: https://www.plog.today
+        allowed-origins: "https://plog-pi.vercel.app, https://localhost:3000, https://localhost:5173" # 프론트 CORS 허용 주소
+      frontend-url:  https://plog-pi.vercel.app
 
   servlet:
     multipart:
