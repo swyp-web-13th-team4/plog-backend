@@ -33,6 +33,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +55,8 @@ public class PostService {
   private final ApplicationEventPublisher eventPublisher;
   private final PlaceReviewRepository placeReviewRepository;
   private final PlaceReviewImageRepository placeReviewImageRepository;
+  private final RedisTemplate<String, Object> redisTemplate;
+  private static final String FEED_FIRST_PAGE_KEY = "feed:first-page";
 
   @Transactional
   public PostTextResponse create(PostCreateCommand command) {
@@ -87,6 +90,8 @@ public class PostService {
     if (totalPosts == 1) {
       eventPublisher.publishEvent(new BadgeGrantEvent(member.getId(), BADGE_ID_FIRST_POST));
     }
+
+    redisTemplate.delete(FEED_FIRST_PAGE_KEY);
 
     return PostTextResponse.from(savedPost);
   }
@@ -126,6 +131,7 @@ public class PostService {
         newTagEntities.stream().map(tag -> PostTag.of(post, tag)).toList();
     postTagRepository.saveAll(newPostTagLinks);
 
+    redisTemplate.delete(FEED_FIRST_PAGE_KEY);
     // 양방향 컬렉션 동기화
     post.replaceTags(newPostTagLinks);
   }
@@ -149,6 +155,8 @@ public class PostService {
     placeReviewRepository.deleteByPostId(postId);
     postTagRepository.deleteAllByPostId(postId);
     postRepository.delete(post);
+
+    redisTemplate.delete(FEED_FIRST_PAGE_KEY);
   }
 
   private Member findMember(UUID memberKey) {
