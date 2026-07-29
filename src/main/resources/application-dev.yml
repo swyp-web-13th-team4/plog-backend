@@ -5,6 +5,10 @@ spring:
   config:
     activate:
       on-profile: dev
+  data:
+    redis:
+      host: redis
+      port: 6379
 
   security:
     front:

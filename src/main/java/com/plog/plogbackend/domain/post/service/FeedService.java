@@ -21,10 +21,12 @@ import com.plog.plogbackend.domain.post.service.dto.FeedFindCommand;
 import com.plog.plogbackend.domain.post.service.dto.FeedMyPageCommand;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +45,10 @@ public class FeedService {
   private final BlockRepository blockRepository;
   private final NotificationService notificationService;
 
+  private final RedisTemplate<String, Object> redisTemplate;
+  private static final String FEED_FIRST_PAGE_KEY = "feed:first-page";
+  private static final Duration CACHE_TTL = Duration.ofMinutes(5);
+
   // 이벤트 처리 객체
   private final ApplicationEventPublisher eventPublisher;
 
@@ -50,6 +56,14 @@ public class FeedService {
 
   public FeedResponse feedFind(FeedFindCommand command, UUID memberKey) {
 
+    boolean isCacheable = memberKey == null && command.lastPostId() == 0;
+
+    if (isCacheable) {
+      Object cached = redisTemplate.opsForValue().get(FEED_FIRST_PAGE_KEY);
+      if (cached != null) {
+        return (FeedResponse) cached;
+      }
+    }
     Member member =
         (memberKey != null) ? memberRepository.findByMemberKey(memberKey).orElse(null) : null;
     int pageSize = 10;
@@ -101,7 +115,11 @@ public class FeedService {
       lastPostId = post.getId();
       nextCreatedAt = post.getCreatedAt();
     }
-    return new FeedResponse(content, lastPostId, nextCreatedAt);
+    FeedResponse response = new FeedResponse(content, lastPostId, nextCreatedAt);
+    if (isCacheable) {
+      redisTemplate.opsForValue().set(FEED_FIRST_PAGE_KEY, response, CACHE_TTL);
+    }
+    return response;
   }
 
   // 피드 상세 조회
