@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 
 import com.plog.plogbackend.domain.member.Member;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
+import com.plog.plogbackend.domain.review.dto.response.PlaceReviewEnvironmentItemResponse;
 import com.plog.plogbackend.domain.review.dto.response.PlaceReviewPageResponse;
 import com.plog.plogbackend.domain.review.enums.PlaceReviewSortType;
 import com.plog.plogbackend.domain.review.enums.ReviewEnvironmentName;
@@ -75,7 +76,12 @@ class PlaceReviewPageServiceTest {
     assertThat(response.reviews().content().get(0).profileImageUrl())
         .isEqualTo("https://profile/namnaming.jpg");
     assertThat(response.reviews().content().get(0).isAuthor()).isTrue();
-    assertThat(response.reviews().content().get(0).environments()).hasSize(4);
+    assertThat(response.reviews().content().get(0).environments())
+        .containsExactly(
+            new PlaceReviewEnvironmentItemResponse("spaceSize", 5),
+            new PlaceReviewEnvironmentItemResponse("noiseLevel", 4),
+            new PlaceReviewEnvironmentItemResponse("congestionLevel", 3),
+            new PlaceReviewEnvironmentItemResponse("focusLevel", 2));
     assertThat(response.reviews().content().get(0).imageUrls())
         .containsExactly("https://storage/review.jpg");
     assertThat(response.reviews().hasNext()).isFalse();

@@ -31,20 +31,36 @@ class PlaceReviewSwaggerTest {
                     "$.components.schemas.PlaceReviewEnvironmentSummaryResponse.properties.environmentName")
                 .exists())
         .andExpect(
-            jsonPath(
-                    "$.components.schemas.PlaceReviewEnvironmentSummaryResponse.properties.iconName")
-                .exists())
-        .andExpect(
             jsonPath("$.components.schemas.PlaceReviewEnvironmentSummaryResponse.properties.score")
                 .exists())
         .andExpect(
             jsonPath("$.components.schemas.PlaceReviewEnvironmentSummaryResponse.properties.count")
                 .exists())
         .andExpect(
+            jsonPath(
+                    "$.components.schemas.PlaceReviewEnvironmentSummaryResponse.properties.iconName")
+                .doesNotExist())
+        .andExpect(
             jsonPath("$.components.schemas.PlaceReviewEnvironmentSummaryResponse.properties.title")
                 .doesNotExist())
         .andExpect(
             jsonPath("$.components.schemas.PlaceReviewEnvironmentSummaryResponse.properties.label")
+                .doesNotExist())
+        .andExpect(
+            jsonPath(
+                    "$.components.schemas.PlaceReviewEnvironmentItemResponse.properties.environmentName")
+                .exists())
+        .andExpect(
+            jsonPath("$.components.schemas.PlaceReviewEnvironmentItemResponse.properties.score")
+                .exists())
+        .andExpect(
+            jsonPath("$.components.schemas.PlaceReviewEnvironmentItemResponse.properties.title")
+                .doesNotExist())
+        .andExpect(
+            jsonPath("$.components.schemas.PlaceReviewEnvironmentItemResponse.properties.iconName")
+                .doesNotExist())
+        .andExpect(
+            jsonPath("$.components.schemas.PlaceReviewEnvironmentItemResponse.properties.label")
                 .doesNotExist());
   }
 }
