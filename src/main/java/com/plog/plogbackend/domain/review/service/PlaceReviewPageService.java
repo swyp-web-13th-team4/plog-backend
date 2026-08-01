@@ -1,8 +1,6 @@
 package com.plog.plogbackend.domain.review.service;
 
-import com.plog.plogbackend.domain.bookmark.repository.BookMarkRepository;
 import com.plog.plogbackend.domain.member.repository.MemberRepository;
-import com.plog.plogbackend.domain.post.repository.PostRepository;
 import com.plog.plogbackend.domain.review.dto.response.PlaceReviewListItemResponse;
 import com.plog.plogbackend.domain.review.dto.response.PlaceReviewPageResponse;
 import com.plog.plogbackend.domain.review.enums.PlaceReviewSortType;
@@ -23,41 +21,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class PlaceReviewPageService {
 
   private final MemberRepository memberRepository;
-  private final PostRepository postRepository;
-  private final BookMarkRepository bookMarkRepository;
   private final PlaceReviewStatisticsService placeReviewStatisticsService;
   private final PlaceReviewQueryRepository placeReviewQueryRepository;
 
-  public PlaceReviewPageResponse getRecordReviewPage(
-      UUID memberKey,
-      Long placeId,
-      Cursorable<String> cursorable,
-      boolean imageOnly,
-      PlaceReviewSortType sortType) {
-    Long memberId = getMemberId(memberKey);
-    validateRecordedPlace(memberId, placeId);
-
-    return getReviewPage(memberId, placeId, cursorable, imageOnly, sortType);
-  }
-
-  public PlaceReviewPageResponse getBookmarkReviewPage(
-      UUID memberKey,
-      Long placeId,
-      Cursorable<String> cursorable,
-      boolean imageOnly,
-      PlaceReviewSortType sortType) {
-    Long memberId = getMemberId(memberKey);
-    validateBookmarkedPlace(memberId, placeId);
-
-    return getReviewPage(memberId, placeId, cursorable, imageOnly, sortType);
-  }
-
   public PlaceReviewPageResponse getReviewPage(
-      Long currentMemberId,
+      UUID memberKey,
       Long placeId,
       Cursorable<String> cursorable,
       boolean imageOnly,
       PlaceReviewSortType sortType) {
+    Long currentMemberId = getMemberId(memberKey);
     PlaceReviewSummary summary = placeReviewStatisticsService.getSummary(placeId);
 
     Slice<PlaceReviewListItemResponse> reviews =
@@ -73,17 +46,5 @@ public class PlaceReviewPageService {
         .findByMemberKey(memberKey)
         .orElseThrow(() -> new AppException(ErrorType.MEMBER_NOT_FOUND))
         .getId();
-  }
-
-  private void validateRecordedPlace(Long memberId, Long placeId) {
-    if (!postRepository.existsByMemberIdAndPlaceId(memberId, placeId)) {
-      throw new AppException(ErrorType.PLACE_NOT_FOUND);
-    }
-  }
-
-  private void validateBookmarkedPlace(Long memberId, Long placeId) {
-    if (!bookMarkRepository.existsByMemberIdAndPlaceId(memberId, placeId)) {
-      throw new AppException(ErrorType.PLACE_NOT_FOUND);
-    }
   }
 }
