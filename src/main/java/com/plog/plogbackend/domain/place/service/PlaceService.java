@@ -1,5 +1,6 @@
 package com.plog.plogbackend.domain.place.service;
 
+import com.plog.plogbackend.domain.place.dto.response.PlaceInfoResponse;
 import com.plog.plogbackend.domain.place.dto.response.PlaceNameResponse;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.domain.place.repository.PlaceRepository;
@@ -16,12 +17,17 @@ public class PlaceService {
 
   private final PlaceRepository placeRepository;
 
-  public PlaceNameResponse getPlace(Long placeId) {
-    Place place =
-        placeRepository
-            .findById(placeId)
-            .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
+  public PlaceInfoResponse getPlaceInfo(Long placeId) {
+    return PlaceInfoResponse.from(findPlace(placeId));
+  }
 
-    return PlaceNameResponse.from(place);
+  public PlaceNameResponse getPlaceName(Long placeId) {
+    return PlaceNameResponse.from(findPlace(placeId));
+  }
+
+  private Place findPlace(Long placeId) {
+    return placeRepository
+        .findById(placeId)
+        .orElseThrow(() -> new AppException(ErrorType.PLACE_NOT_FOUND));
   }
 }
