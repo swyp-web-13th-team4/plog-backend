@@ -4,9 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import com.plog.plogbackend.domain.review.dto.response.PlaceReviewPageResponse;
+import com.plog.plogbackend.domain.review.dto.response.PlaceReviewPlaceResponse;
 import com.plog.plogbackend.domain.review.enums.PlaceReviewSortType;
 import com.plog.plogbackend.domain.review.model.PlaceReviewSummary;
 import com.plog.plogbackend.domain.review.service.PlaceReviewPageService;
+import com.plog.plogbackend.domain.review.service.PlaceReviewPlaceService;
 import com.plog.plogbackend.global.response.ApiResponse;
 import com.plog.plogbackend.global.support.paging.Cursorable;
 import java.util.List;
@@ -23,7 +25,22 @@ import org.springframework.http.ResponseEntity;
 class PlaceReviewSummaryControllerTest {
 
   @Mock private PlaceReviewPageService placeReviewPageService;
+  @Mock private PlaceReviewPlaceService placeReviewPlaceService;
   @InjectMocks private PlaceReviewSummaryController placeReviewSummaryController;
+
+  @Test
+  @DisplayName("리뷰 화면에 표시할 장소명을 반환한다")
+  void getReviewPlace_returnsPlaceName() {
+    Long placeId = 1L;
+    given(placeReviewPlaceService.getPlace(placeId))
+        .willReturn(new PlaceReviewPlaceResponse(placeId, "콤파일"));
+
+    ResponseEntity<ApiResponse<PlaceReviewPlaceResponse>> response =
+        placeReviewSummaryController.getReviewPlace(placeId);
+
+    assertThat(response.getBody().getData().placeId()).isEqualTo(placeId);
+    assertThat(response.getBody().getData().placeName()).isEqualTo("콤파일");
+  }
 
   @Test
   @DisplayName("장소의 리뷰 요약과 빈 리뷰 목록을 반환한다")
