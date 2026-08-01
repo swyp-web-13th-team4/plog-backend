@@ -4,9 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
+import com.plog.plogbackend.domain.place.service.PlaceService;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.domain.place.repository.PlaceRepository;
-import com.plog.plogbackend.domain.review.dto.response.PlaceReviewPlaceResponse;
+import com.plog.plogbackend.domain.place.dto.response.PlaceNameResponse;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import java.util.Optional;
@@ -18,10 +19,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PlaceReviewPlaceServiceTest {
+class PlaceServiceTest {
 
   @Mock private PlaceRepository placeRepository;
-  @InjectMocks private PlaceReviewPlaceService placeReviewPlaceService;
+  @InjectMocks private PlaceService placeService;
 
   @Test
   @DisplayName("장소 ID로 리뷰 화면 장소명을 조회한다")
@@ -30,7 +31,7 @@ class PlaceReviewPlaceServiceTest {
     Place place = Place.of("콤파일", "서울 마포구 잔다리로 73", 37.5501, 126.9212);
     given(placeRepository.findById(placeId)).willReturn(Optional.of(place));
 
-    PlaceReviewPlaceResponse response = placeReviewPlaceService.getPlace(placeId);
+    PlaceNameResponse response = placeService.getPlace(placeId);
 
     assertThat(response.placeName()).isEqualTo("콤파일");
   }
@@ -40,7 +41,7 @@ class PlaceReviewPlaceServiceTest {
   void getPlace_whenPlaceNotFound_throwsPlaceNotFound() {
     given(placeRepository.findById(1L)).willReturn(Optional.empty());
 
-    assertThatThrownBy(() -> placeReviewPlaceService.getPlace(1L))
+    assertThatThrownBy(() -> placeService.getPlace(1L))
         .isInstanceOf(AppException.class)
         .extracting("errorType")
         .isEqualTo(ErrorType.PLACE_NOT_FOUND);
