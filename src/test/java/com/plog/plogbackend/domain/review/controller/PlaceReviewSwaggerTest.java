@@ -23,8 +23,6 @@ class PlaceReviewSwaggerTest {
     mockMvc
         .perform(get("/v3/api-docs"))
         .andExpect(status().isOk())
-        .andExpect(
-            jsonPath("$.paths['/api/reviews/{placeId}/place'].get.summary").value("리뷰 화면 장소명 조회"))
         .andExpect(jsonPath("$.paths['/api/reviews/{placeId}'].get.summary").value("장소 리뷰 화면 조회"))
         .andExpect(jsonPath("$.paths['/api/reviews/record/{placeId}']").doesNotExist())
         .andExpect(jsonPath("$.paths['/api/reviews/bookmark/{placeId}']").doesNotExist())

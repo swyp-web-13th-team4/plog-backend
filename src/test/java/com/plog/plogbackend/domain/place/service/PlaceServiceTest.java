@@ -1,13 +1,12 @@
-package com.plog.plogbackend.domain.review.service;
+package com.plog.plogbackend.domain.place.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
-import com.plog.plogbackend.domain.place.service.PlaceService;
+import com.plog.plogbackend.domain.place.dto.response.PlaceNameResponse;
 import com.plog.plogbackend.domain.place.entity.Place;
 import com.plog.plogbackend.domain.place.repository.PlaceRepository;
-import com.plog.plogbackend.domain.place.dto.response.PlaceNameResponse;
 import com.plog.plogbackend.global.error.AppException;
 import com.plog.plogbackend.global.error.ErrorType;
 import java.util.Optional;
@@ -25,7 +24,7 @@ class PlaceServiceTest {
   @InjectMocks private PlaceService placeService;
 
   @Test
-  @DisplayName("장소 ID로 리뷰 화면 장소명을 조회한다")
+  @DisplayName("장소 ID로 장소명을 조회한다")
   void getPlace_returnsPlaceName() {
     Long placeId = 1L;
     Place place = Place.of("콤파일", "서울 마포구 잔다리로 73", 37.5501, 126.9212);
