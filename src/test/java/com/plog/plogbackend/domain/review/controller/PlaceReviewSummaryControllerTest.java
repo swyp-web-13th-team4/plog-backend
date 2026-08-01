@@ -26,46 +26,21 @@ class PlaceReviewSummaryControllerTest {
   @InjectMocks private PlaceReviewSummaryController placeReviewSummaryController;
 
   @Test
-  @DisplayName("기록 장소의 리뷰 요약과 빈 리뷰 목록을 반환한다")
-  void getRecordReviews_returnsReviewPage() {
+  @DisplayName("장소의 리뷰 요약과 빈 리뷰 목록을 반환한다")
+  void getReviews_returnsReviewPage() {
     UUID memberKey = UUID.randomUUID();
     Long placeId = 1L;
     Cursorable<String> cursorable = new Cursorable<>(null, 10);
     boolean imageOnly = true;
     PlaceReviewSortType sortType = PlaceReviewSortType.LATEST;
-    given(
-            placeReviewPageService.getRecordReviewPage(
-                memberKey, placeId, cursorable, imageOnly, sortType))
+    given(placeReviewPageService.getReviewPage(memberKey, placeId, cursorable, imageOnly, sortType))
         .willReturn(PlaceReviewPageResponse.from(new PlaceReviewSummary(15L, 4.27, List.of())));
 
     ResponseEntity<ApiResponse<PlaceReviewPageResponse>> response =
-        placeReviewSummaryController.getRecordReviews(
+        placeReviewSummaryController.getReviews(
             memberKey, placeId, cursorable, imageOnly, sortType);
 
     assertThat(response.getBody().getData().summary().reviewCount()).isEqualTo(15L);
-    assertThat(response.getBody().getData().reviews().content()).isEmpty();
-    assertThat(response.getBody().getData().reviews().hasNext()).isFalse();
-    assertThat(response.getBody().getData().reviews().nextCursor()).isNull();
-  }
-
-  @Test
-  @DisplayName("북마크 장소의 리뷰 요약과 빈 리뷰 목록을 반환한다")
-  void getBookmarkReviews_returnsReviewPage() {
-    UUID memberKey = UUID.randomUUID();
-    Long placeId = 1L;
-    Cursorable<String> cursorable = new Cursorable<>(null, 10);
-    boolean imageOnly = true;
-    PlaceReviewSortType sortType = PlaceReviewSortType.LATEST;
-    given(
-            placeReviewPageService.getBookmarkReviewPage(
-                memberKey, placeId, cursorable, imageOnly, sortType))
-        .willReturn(PlaceReviewPageResponse.from(new PlaceReviewSummary(7L, 3.5, List.of())));
-
-    ResponseEntity<ApiResponse<PlaceReviewPageResponse>> response =
-        placeReviewSummaryController.getBookmarkReviews(
-            memberKey, placeId, cursorable, imageOnly, sortType);
-
-    assertThat(response.getBody().getData().summary().reviewCount()).isEqualTo(7L);
     assertThat(response.getBody().getData().reviews().content()).isEmpty();
     assertThat(response.getBody().getData().reviews().hasNext()).isFalse();
     assertThat(response.getBody().getData().reviews().nextCursor()).isNull();
