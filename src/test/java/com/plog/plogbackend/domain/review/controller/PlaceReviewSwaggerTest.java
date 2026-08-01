@@ -23,8 +23,6 @@ class PlaceReviewSwaggerTest {
     mockMvc
         .perform(get("/v3/api-docs"))
         .andExpect(status().isOk())
-        .andExpect(
-            jsonPath("$.paths['/api/reviews/{placeId}/place'].get.summary").value("리뷰 화면 장소명 조회"))
         .andExpect(jsonPath("$.paths['/api/reviews/{placeId}'].get.summary").value("장소 리뷰 화면 조회"))
         .andExpect(jsonPath("$.paths['/api/reviews/record/{placeId}']").doesNotExist())
         .andExpect(jsonPath("$.paths['/api/reviews/bookmark/{placeId}']").doesNotExist())
@@ -33,20 +31,36 @@ class PlaceReviewSwaggerTest {
                     "$.components.schemas.PlaceReviewEnvironmentSummaryResponse.properties.environmentName")
                 .exists())
         .andExpect(
-            jsonPath(
-                    "$.components.schemas.PlaceReviewEnvironmentSummaryResponse.properties.iconName")
-                .exists())
-        .andExpect(
             jsonPath("$.components.schemas.PlaceReviewEnvironmentSummaryResponse.properties.score")
                 .exists())
         .andExpect(
             jsonPath("$.components.schemas.PlaceReviewEnvironmentSummaryResponse.properties.count")
                 .exists())
         .andExpect(
+            jsonPath(
+                    "$.components.schemas.PlaceReviewEnvironmentSummaryResponse.properties.iconName")
+                .doesNotExist())
+        .andExpect(
             jsonPath("$.components.schemas.PlaceReviewEnvironmentSummaryResponse.properties.title")
                 .doesNotExist())
         .andExpect(
             jsonPath("$.components.schemas.PlaceReviewEnvironmentSummaryResponse.properties.label")
+                .doesNotExist())
+        .andExpect(
+            jsonPath(
+                    "$.components.schemas.PlaceReviewEnvironmentItemResponse.properties.environmentName")
+                .exists())
+        .andExpect(
+            jsonPath("$.components.schemas.PlaceReviewEnvironmentItemResponse.properties.score")
+                .exists())
+        .andExpect(
+            jsonPath("$.components.schemas.PlaceReviewEnvironmentItemResponse.properties.title")
+                .doesNotExist())
+        .andExpect(
+            jsonPath("$.components.schemas.PlaceReviewEnvironmentItemResponse.properties.iconName")
+                .doesNotExist())
+        .andExpect(
+            jsonPath("$.components.schemas.PlaceReviewEnvironmentItemResponse.properties.label")
                 .doesNotExist());
   }
 }

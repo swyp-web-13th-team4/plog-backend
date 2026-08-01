@@ -1,10 +1,8 @@
 package com.plog.plogbackend.domain.review.controller;
 
 import com.plog.plogbackend.domain.review.dto.response.PlaceReviewPageResponse;
-import com.plog.plogbackend.domain.review.dto.response.PlaceReviewPlaceResponse;
 import com.plog.plogbackend.domain.review.enums.PlaceReviewSortType;
 import com.plog.plogbackend.domain.review.service.PlaceReviewPageService;
-import com.plog.plogbackend.domain.review.service.PlaceReviewPlaceService;
 import com.plog.plogbackend.global.response.ApiResponse;
 import com.plog.plogbackend.global.support.paging.CursorDefault;
 import com.plog.plogbackend.global.support.paging.Cursorable;
@@ -25,14 +23,6 @@ import org.springframework.web.bind.annotation.*;
 public class PlaceReviewSummaryController {
 
   private final PlaceReviewPageService placeReviewPageService;
-  private final PlaceReviewPlaceService placeReviewPlaceService;
-
-  @GetMapping("/{placeId}/place")
-  @Operation(summary = "리뷰 화면 장소명 조회", description = "장소 ID로 리뷰 화면에 표시할 장소명을 조회합니다.")
-  public ResponseEntity<ApiResponse<PlaceReviewPlaceResponse>> getReviewPlace(
-      @Parameter(description = "장소 ID") @PathVariable Long placeId) {
-    return ResponseEntity.ok(ApiResponse.success(placeReviewPlaceService.getPlace(placeId)));
-  }
 
   @GetMapping("/{placeId}")
   @Operation(

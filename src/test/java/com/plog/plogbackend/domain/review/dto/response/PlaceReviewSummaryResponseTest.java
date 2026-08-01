@@ -27,7 +27,6 @@ class PlaceReviewSummaryResponseTest {
     assertThat(response.environments()).hasSize(1);
     PlaceReviewEnvironmentSummaryResponse environment = response.environments().get(0);
     assertThat(environment.environmentName()).isEqualTo("spaceSize");
-    assertThat(environment.iconName()).isEqualTo("company-filled");
     assertThat(environment.score()).isEqualTo(4);
     assertThat(environment.count()).isEqualTo(15L);
   }
